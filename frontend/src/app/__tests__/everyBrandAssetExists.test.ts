@@ -13,9 +13,9 @@
 //
 // The check is narrow on purpose. It covers `/brand/...` literals, the one
 // public folder the UI hard-codes paths into; other absolute image strings in
-// `src` are fixtures, example URLs or YouTube thumbnail names, not files we
-// ship. The population is floored so a regex that stops matching goes red
-// instead of reporting "nothing missing".
+// `src` are fixtures or example URLs in tests, not files we ship. The
+// population is floored so a regex that stops matching goes red instead of
+// reporting "nothing missing".
 import { describe, expect, it } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';

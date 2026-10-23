@@ -18,8 +18,8 @@ export function LearnTopBarButton() {
   const setGroupHidden = useModuleStore((s) => s.setGroupHidden);
   if (!hidden) return null;
 
-  const label = t('sidebar.learn.show', { defaultValue: 'Show video guides & use cases' });
-  const hint = t('sidebar.learn.show_hint', { defaultValue: 'Put Video guides and Use cases back at the top of the menu' });
+  const label = t('sidebar.learn.show', { defaultValue: 'Show cases & packs' });
+  const hint = t('sidebar.learn.show_hint', { defaultValue: 'Put Cases and Packs back at the top of the menu' });
 
   return (
     <button
