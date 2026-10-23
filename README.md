@@ -10,18 +10,12 @@ Professional BOQ, CAD and BIM takeoff, 4D scheduling, 5D cost model, and tenderi
 
 **Like WordPress for construction companies** - pick modules from the marketplace, drop in your own, or replace ours with custom-built ones. Same plug-and-play model, but for BOQ, scheduling, cost control, BIM, and tendering.
 
-[▶ Watch the 12-min walkthrough](https://www.youtube.com/watch?v=X06cIaroAeI) · [Demo](https://openconstructionerp.com) · [Documentation](https://openconstructionerp.com/docs) · [Build on it](DEVELOPING.md) · [Community chat (Telegram)](https://t.me/datadrivenconstruction) · [Report Bug](https://github.com/datadrivenconstruction/OpenConstructionERP/issues)
+[Demo](https://openconstructionerp.com) · [Documentation](https://openconstructionerp.com/docs) · [Build on it](DEVELOPING.md) · [Community chat (Telegram)](https://t.me/datadrivenconstruction) · [Report Bug](https://github.com/datadrivenconstruction/OpenConstructionERP/issues)
 
 <!-- Each badge row is one source line on purpose. A newline between two badges
      renders as a line break here, which stacks them into a single column. -->
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE) [![Version](https://img.shields.io/github/v/release/datadrivenconstruction/OpenConstructionERP?label=version&color=green)](https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest) [![Release downloads](https://img.shields.io/github/downloads/datadrivenconstruction/OpenConstructionERP/total?label=downloads&color=brightgreen)](https://github.com/datadrivenconstruction/OpenConstructionERP/releases) [![PyPI](https://img.shields.io/pypi/v/openconstructionerp?color=informational&label=pypi)](https://pypi.org/project/openconstructionerp/) [![Downloads (pepy · per month)](https://static.pepy.tech/personalized-badge/openconstructionerp?period=month&units=international_system&left_color=grey&right_color=blue&left_text=downloads%20(pepy%20%C2%B7%20per%20month))](https://pepy.tech/project/openconstructionerp) [![Stars](https://img.shields.io/github/stars/datadrivenconstruction/OpenConstructionERP?style=flat&logo=github)](https://github.com/datadrivenconstruction/OpenConstructionERP/stargazers) [![Last commit](https://img.shields.io/github/last-commit/datadrivenconstruction/OpenConstructionERP?color=informational)](https://github.com/datadrivenconstruction/OpenConstructionERP/commits/main)
 ![Languages](https://img.shields.io/badge/languages-44-orange) ![Cost Items](https://img.shields.io/badge/cost_items-120%2C000%2B-red) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/datadrivenconstruction/OpenConstructionERP/badge)](https://securityscorecards.dev/viewer/?uri=github.com/datadrivenconstruction/OpenConstructionERP) [![CodeQL](https://github.com/datadrivenconstruction/OpenConstructionERP/actions/workflows/codeql.yml/badge.svg)](https://github.com/datadrivenconstruction/OpenConstructionERP/actions/workflows/codeql.yml) [![Signed releases](https://img.shields.io/badge/releases-Sigstore_signed-8250df)](SECURITY.md)
-
-<video src="https://github.com/user-attachments/assets/20b9b585-93ac-4829-a3dc-0ede9ca9e2fc" controls width="800" playsinline>
-  <a href="https://github.com/datadrivenconstruction/OpenConstructionERP/releases/download/v2.0.0/oce_full_demo.mp4">▶ 1-minute teaser</a>
-</video>
-
-<sub><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/device-camera-video-dark.svg"><img src="docs/readme-icons/device-camera-video-light.svg" width="14" align="center" alt=""></picture> <b>1-minute teaser above</b> · for the full 12-minute walkthrough → <a href="https://www.youtube.com/watch?v=X06cIaroAeI"><b>watch on YouTube</b></a> · onboarding → BOQ → BIM → DWG → PDF → AI → dashboard</sub>
 
 <img src="docs/screenshots/banner.png" alt="OpenConstructionERP: a honeycomb of the eight company types and fifteen professional roles the platform is built around, over a second honeycomb of its 190+ backend modules and the two shared libraries drawn beside them, each cell coloured by the category its own manifest declares and shaded by how many of the others it is wired to" width="800" />
 
@@ -133,7 +127,6 @@ Short, practical videos, most of them from the [OpenConstruction Academy](https:
 <table>
 <tr>
 <td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=WjDK-uk9b1w"><img src="https://i.ytimg.com/vi/WjDK-uk9b1w/hqdefault.jpg" alt="Install and set up your first project" width="100%"></a><br/><sub><b>Install and set up your first project</b> · 4:41</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=X06cIaroAeI"><img src="https://i.ytimg.com/vi/X06cIaroAeI/hqdefault.jpg" alt="Full product walkthrough" width="100%"></a><br/><sub><b>Full product walkthrough</b> · 12:00</sub></td>
 <td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=zGgfX19b3gc"><img src="https://i.ytimg.com/vi/zGgfX19b3gc/hqdefault.jpg" alt="Build an estimate step by step" width="100%"></a><br/><sub><b>Build an estimate step by step</b> · 4:48</sub></td>
 <td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=FRI5_7CsZT0"><img src="https://i.ytimg.com/vi/FRI5_7CsZT0/hqdefault.jpg" alt="Overhead, profit and contingency" width="100%"></a><br/><sub><b>Overhead, profit and contingency</b> · 3:54</sub></td>
 </tr>
@@ -724,9 +717,6 @@ has the details.
   </a>
   <a href="https://www.linkedin.com/company/78381569" target="_blank">
     <img src="https://custom-icon-badges.demolab.com/badge/LinkedIn-0A66C2?logo=linkedin-white&logoColor=fff" alt="Connect on LinkedIn">
-  </a>
-  <a href="https://www.youtube.com/watch?v=X06cIaroAeI" target="_blank">
-    <img src="https://img.shields.io/badge/▶_Watch_demo-12_min_walkthrough-FF0000?logo=youtube&logoColor=white" alt="Watch the 12-minute walkthrough">
   </a>
 </p>
 
