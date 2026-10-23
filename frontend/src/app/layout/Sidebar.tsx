@@ -2274,7 +2274,7 @@ function NavGroupSection({
   );
 }
 
-/** The Learn card: Videos and Cases, drawn above every other section.
+/** The Learn card: Cases and Packs, drawn above every other section.
  *
  *  It reads as a card rather than as one more group header, because it is not
  *  one more area of work; it is the way in for somebody still finding their

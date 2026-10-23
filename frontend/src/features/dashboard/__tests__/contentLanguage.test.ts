@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { baseLanguage, distinctTags, keyLanguage, languageTag, preferLanguage } from '../contentLanguage';
+import { baseLanguage, distinctTags, keyLanguage, languageTag } from '../contentLanguage';
 import { validationSummary } from '../RegionalPackCard';
 import { DASHBOARD_WIDGET_BY_ID } from '../widgetRegistry';
 
@@ -61,18 +61,6 @@ describe('distinctTags', () => {
   it('lists each tag once, in first-seen order, skipping tiles in the UI language', () => {
     expect(distinctTags([null, 'EN', 'DE', 'EN', null])).toEqual(['EN', 'DE']);
     expect(distinctTags([null, null])).toEqual([]);
-  });
-});
-
-describe('preferLanguage', () => {
-  it('puts the reader language first, keeps order, drops nothing', () => {
-    const items = [
-      { id: 1, lang: 'en' },
-      { id: 2, lang: 'bg' },
-      { id: 3, lang: 'de' },
-      { id: 4, lang: 'bg' },
-    ];
-    expect(preferLanguage(items, (i) => i.lang, 'bg').map((i) => i.id)).toEqual([2, 4, 1, 3]);
   });
 });
 

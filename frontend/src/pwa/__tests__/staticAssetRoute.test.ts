@@ -3,7 +3,7 @@
  * The service worker's CacheFirst lane takes same-origin static files only.
  *
  * It used to take every image including cross-origin ones and cache status 0,
- * so an opaque 404 from the video thumbnail host was stored as a success and
+ * so an opaque 404 from a thumbnail host was stored as a success and
  * served for 30 days. These cases pin the narrower rule and the recovery path
  * for browsers that still hold the old cache.
  *
