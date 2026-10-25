@@ -110,7 +110,16 @@ describe('the Academy video library is gone', () => {
     // English is asserted word by word; the rest are asserted through the key
     // they answer, because the sentence each one keeps is its own language's.
     const en = read(LOCALES, 'en.ts');
-    const learnCopy = [...en.matchAll(/"(sidebar\.learn\.[a-z_]+)": "([^"]*)"/g)].map((m) => m[2]);
+    const learnCopy = [...en.matchAll(/"(sidebar\.learn\.[a-z_]+)": "([^"]*)"/g)].map((m) => {
+      // noUncheckedIndexedAccess types a capture group as possibly absent. This
+      // one cannot be: group 2 is part of every match the regex makes. Fail
+      // loudly on that impossibility instead of asserting past it or skipping it.
+      const value = m[2];
+      if (value === undefined) {
+        throw new Error(`sidebar.learn entry with no captured value: ${m[0]}`);
+      }
+      return value;
+    });
     expect(learnCopy.length).toBeGreaterThanOrEqual(6);
     for (const value of learnCopy) {
       expect(value.toLowerCase()).not.toMatch(/video|tutorial/);
