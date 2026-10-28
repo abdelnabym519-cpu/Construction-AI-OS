@@ -2279,6 +2279,7 @@
         "scheduler.py",
         "schemas.py",
         "service.py",
+        "tool_authorization.py",
         "triggers.py",
         "trust.py"
       ],
@@ -3541,7 +3542,8 @@
         "notifications",
         "projects",
         "reporting",
-        "teams"
+        "teams",
+        "users"
       ]
     },
     {
@@ -277422,7 +277424,8 @@
       "notifications",
       "projects",
       "reporting",
-      "teams"
+      "teams",
+      "users"
     ],
     "ai_estimator": [
       "ai",
@@ -278985,7 +278988,7 @@
     "total_relationships": 240,
     "total_routes": 4627,
     "total_schemas": 4120,
-    "total_python_files": 2810,
+    "total_python_files": 2811,
     "frontend_features": 208,
     "frontend_ts_files": 3579,
     "frontend_backend_mapped": 187
