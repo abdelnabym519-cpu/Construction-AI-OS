@@ -20,7 +20,7 @@ code. That dangling reference is left alone here, because a path matching
 | Phase | Scope | Status |
 |---|---|---|
 | **01 — Foundation Audit** | Verify the live state, audit repository, architecture, capabilities and security, classify every capability, write these three documents | **Complete.** Documentation only. No code, dependency, schema, configuration or workflow change |
-| **02 — ERP Hardening** | Close the control gaps that must be closed before automated agents touch data | **Not started.** Recommended next |
+| **02 — ERP Hardening** | Close the control gaps that must be closed before automated agents touch data | **In progress.** Scope items 1 and 2 — the RLS strict predicate behind a readiness gate, and the central agent authorization gate — are implemented and tested; items 3 to 11 are not started. See [Phase 02 delivered](#phase-02-delivered) |
 | **03 — Intelligence Core foundations** | Versioned domain contract, ontology, graph and evidence projections, governed tool platform | Not started |
 | **04 — Reasoning** | Cross-domain dependency, impact and quantitative risk engines | Not started |
 | **05 — Interaction** | Unified simulation, ranked decision support, proactive detection, multimodal ingestion, voice | Not started |
@@ -78,8 +78,8 @@ The mechanism exists and is sound; its reach, coverage or enforcement is what fa
 
 | # | Capability | Evidence | What changes | Dependencies | Risks | Phase |
 |---|---|---|---|---|---|---|
-| A1 | Row-level security | `rls.py` (142 lines), `rls_setup.py` (443 lines); `rls_enforce` defaults to False; predicate admits NULL `tenant_id`; only 29 `tenant_id` columns across 15 of 169 `models.py` files | Enable on a documented path: connect as the non-superuser `oe_app` role, backfill `tenant_id`, then tighten to a strict predicate. The code already describes this as the intended sequence | A database role change, a backfill per table, and the 45 IDOR tests as the acceptance net | Breaking existing installs if the strict predicate lands before the backfill; mitigated by keeping the permissive policy until coverage is measured per table | **02** |
-| A2 | Tool platform governance | `ToolRegistry`, `FunctionTool`, `__agent_context__` injection in `base.py`; `required_permission_for_tool` in `triggers.py`; `agents/_access.py::assert_user_can_access_project` | Move the check from convention into the registry: resolve the required permission, verify caller authorization and project access, then invoke. No tool signature changes | A1 for scoped reads; the existing permission registry | Over-blocking legitimate tools; mitigated by failing closed only for tools that declare a permission, and logging every denial | **02** |
+| A1 | Row-level security | `rls.py` (142 lines), `rls_setup.py` (443 lines); `rls_enforce` defaults to False; predicate admits NULL `tenant_id`; only 29 `tenant_id` columns across 15 of 169 `models.py` files | Enable on a documented path: connect as the non-superuser `oe_app` role, backfill `tenant_id`, then tighten to a strict predicate. The code already describes this as the intended sequence. **Phase 02: strict predicate and readiness gate delivered; the role change and the backfill are still open.** | A database role change, a backfill per table, and the 45 IDOR tests as the acceptance net | Breaking existing installs if the strict predicate lands before the backfill; mitigated by keeping the permissive policy until coverage is measured per table | **02** |
+| A2 | Tool platform governance | `ToolRegistry`, `FunctionTool`, `__agent_context__` injection in `base.py`; `required_permission_for_tool` in `triggers.py`; `agents/_access.py::assert_user_can_access_project` | Move the check from convention into the registry: resolve the required permission, verify caller authorization and project access, then invoke. No tool signature changes. **Phase 02: delivered, in the runner rather than the registry; no tool signature changed.** | A1 for scoped reads; the existing permission registry | Over-blocking legitimate tools; mitigated by failing closed only for tools that declare a permission, and logging every denial | **02** |
 | A3 | Inference declarations | `InferenceDeclaration` validated by the loader, guarded by `check_module_inference_declarations.py`, tested by 3 files, adopted by **9 of 213** manifests | Extend adoption to every surface that produces a machine-derived conclusion, then make the guard ratchet so the count cannot fall | None | Large but mechanical; the risk is declaring inaccurately, which is worse than not declaring | **02** |
 | A4 | Project intelligence | `project_intelligence` (11 files, 4,899 lines); [RFC 25](../rfc/25-project-intelligence-audit.md) records "13 hardcoded if-then rules", "no ML, no anomaly detection, no forecast", status draft | Implement RFC 25's chosen Option A: keep the shell, retarget the widgets to financial metrics, tighten the cache, reposition the advisor. The RFC already specifies endpoints, frontend shape and a testing plan | The domain contract (B1) for financial metrics; A2 for any agent involvement | Duplicating RFC 25's work by designing a parallel module. The RFC's Option B was explicitly deferred | **03** |
 | A5 | Risk engine | `risk` (14 files, 4,763 lines); `accuracy_service.py` stores recorded outcomes | Grow from register to quantitative exposure, calibrated against recorded outcomes that already exist | B1, B4 for evidence links | Producing numbers with no basis; mitigated by the trust envelope's rule that confidence is never fabricated | **04** |
@@ -88,7 +88,7 @@ The mechanism exists and is sound; its reach, coverage or enforcement is what fa
 | A8 | Proactive triggers | `triggers.py` (135 lines) with `EventTrigger`, `scheduler.py` (182 lines), `core/events.py` | Add the detection layer that decides what is worth raising; the trigger and scheduling machinery stays | A2 governance, since proactive runs act without a person asking | Unsolicited agent runs are the highest-risk surface; they need the strictest permission defaults | **05** |
 | A9 | Retrieval | `modules/retrieval` (10 files, 1,826 lines), facet query over documents, correspondence and change orders, project-scoped with bounded reads | Extend to evidence-linked search returning citations, not only records | B4 | Unbounded reads; the module already bounds per source and that discipline must survive the extension | **03** |
 | A10 | Rate limiting | `core/rate_limiter.py` (191 lines), in-process, its own docstring says "For production, replace with Redis-based implementation"; 26 usage points | Same interface, Redis-backed implementation when more than one process serves traffic. `celery[redis]` is already available via the `server` extra | A Redis deployment | Changing the interface would touch 26 files; the adaptation is deliberately behind the existing one | **02** |
-| A11 | Caller scoping | `core/cost_scope.py` (308 lines) with `bind_caller`, `caller_scope`, `system_scope`, `visible_ids`; `RequestScopeMiddleware` | Reuse as the scope every agent read passes through, so tool reads inherit the same visibility rules as HTTP reads | A2 | Background sessions deliberately bypass scope; that distinction must stay explicit for agent work | **02** |
+| A11 | Caller scoping | `core/cost_scope.py` (308 lines) with `bind_caller`, `caller_scope`, `system_scope`, `visible_ids`; `RequestScopeMiddleware` | Reuse as the scope every agent read passes through, so tool reads inherit the same visibility rules as HTTP reads | A2 | Background sessions deliberately bypass scope; that distinction must stay explicit for agent work. **Phase 02: partly — the event bus was missing the binding the other two run paths apply, and now has it; reusing `cost_scope` for every agent read is still open.** | **02** |
 | A12 | Backup and recovery | `modules/backup` (7 files) with a derived model registry and sensitive-field redaction; `check_backup_freshness.py` | Extend to cover derived stores and to document a restore path, including the boot-time schema heal it must survive | A1, R3 | A restore that lands on a schema produced by boot-time DDL is not reproducible today | **02** |
 | A13 | Architecture documentation | prose counts stale across `README.md`, `OVERVIEW.md` and `llms.txt` while the generated manifest is exact | Apply the remedy the repository already proved: generate the numbers, or guard them, as `check_architecture_manifest.py` and `check_public_language_counts.py` do | None | Low. The risk of not doing it is that the next reader trusts 16.2.0 | **02** |
 | A14 | Multimodal ingestion | `match_service` extractors including DWG, `cv`, `pdf_paint_scan.py`, `inbound_capture`, `ai_estimator` (19 files, 11,016 lines) | Unify into one ingestion path that emits evidence-linked observations with citations | B4, A7 | Duplicating four working extractors; the unification is a façade over them, not a rewrite | **05** |
@@ -129,7 +129,7 @@ none of these duplicates working code.
 | B5 | Cross-domain Dependency Engine | `depends` resolves module load order; `core/cpm.py` resolves schedule networks; nothing links a cost line to the drawing and activity it derives from | Impact and simulation both need dependency traversal across domains | B3 | Cycle handling and ambiguous derivation; needs an explicit, cited derivation record rather than inference | **04** |
 | B6 | Unified simulation scenarios | BOQ what-if and `schedule_advanced` simulate inside their own domains; there is no scenario object holding a set of assumptions and reporting combined effect | What-if answering requires one assumption set evaluated across cost, schedule and procurement | B5 | Non-reproducible scenarios; every result must record the assumptions and the data version | **05** |
 | B7 | Proactive detection layer | `triggers.py` fires on declared events and `scheduler.py` runs on a schedule; nothing decides that an unasked-about condition warrants attention | Proactive intelligence is the difference between a tool that answers and one that warns | A8, B5 | Alert fatigue and unrequested agent action; the strictest permission defaults and a citation requirement per alert | **05** |
-| B8 | Agent authorization policy service | Permission is enforced at the HTTP edge by `RequirePermission` and, by convention, inside tools; `required_permission_for_tool` maps names to permissions but the registry does not enforce it | Ground rule 4 and the execution contract need one place where an agent's authority is defined, checked and logged | A2, A3 | Duplicating the RBAC engine; the service must consume it, never reimplement it | **02** |
+| B8 | Agent authorization policy service | Permission is enforced at the HTTP edge by `RequirePermission` and, by convention, inside tools; `required_permission_for_tool` maps names to permissions but the registry does not enforce it | Ground rule 4 and the execution contract need one place where an agent's authority is defined, checked and logged | A2, A3 | Duplicating the RBAC engine; the service must consume it, never reimplement it. **Phase 02: delivered as `ai_agents/tool_authorization.py`, which consumes `PermissionRegistry` and `agents/_access.py` and reimplements neither.** | **02** |
 | B9 | Approval records for agent-proposed mutations | `proposals.py` implements the flow for BOQ positions; `approval_routes` exists as a module; there is no general record of "an agent proposed X, person Y approved it at Z" across domains | Human approval must be auditable for every sensitive operation, not only BOQ applies | B8, the audit log | Two approval systems; extend the audit discipline already in place | **02** |
 | B10 | Metrics and tracing | Only `/api/health` was found; no `metrics`, `ready` or `live` route in `main.py`; no tracing | Capacity, latency and saturation cannot be answered from the platform, and the recorded 139.7-second startup incident shows the cost of that blindness | R1 | Metric cardinality explosion over 4,627 routes; label discipline must be defined before the first endpoint | **02** |
 | B11 | Import-boundary guard for the intelligence package | No such guard exists among the 69 `check_*` scripts, and nothing today prevents a new package from importing `app.core` internals | Ground rule 5 has to be enforced mechanically, or the separation survives only as long as reviewers notice. The repository's own history, recorded in `check_architecture_manifest.py`, is an argument for guards over memory | B1 | A guard that fires on legitimate code gets deleted; scope it to the new package only | **03** |
@@ -141,8 +141,14 @@ reach. It contains no new intelligence capability, on purpose.
 
 1. **A1** — the RLS enablement path: non-superuser connection, measured `tenant_id`
    coverage, backfill, then a strict predicate, with the 45 IDOR tests as acceptance.
+   **Partly delivered**: the strict predicate, the readiness gate and both directions of
+   the mode transition are implemented and tested. The role change, the coverage
+   measurement and the backfill are not, and the readiness report still refuses strict on
+   a stock install — see [Phase 02 delivered](#phase-02-delivered).
 2. **A2 and B8** — enforce tool authorization in the registry, and give agent authority one
-   defined home.
+   defined home. **Delivered**, with one correction to the wording: the gate is in
+   `AgentRunner.run`, not in `ToolRegistry`, because the registry has no execution method
+   and the runner holds the only `tool.run(...)` call.
 3. **B9** — general approval records for agent-proposed mutations.
 4. **A3** — inference declarations beyond the current 9 of 213, with a ratcheting guard.
 5. **R3** — a reproducible migration path alongside the boot-time heal.
@@ -160,6 +166,119 @@ Explicitly out of Phase 02: the ontology, the graphs, simulation and proactive d
 They depend on the contract and the authorization gate, and starting them first would build
 reasoning on top of an unenforced boundary.
 
+## Phase 02 delivered
+
+Two of the eleven scoped items are implemented and tested; the other nine are untouched.
+This section records what changed, what was verified and what is still open, so a later
+reader does not have to reconstruct it from a diff.
+
+### What changed
+
+| Item | Change | Files |
+|---|---|---|
+| **A1** | A strict tenant predicate beside the permissive one, and a readiness gate in front of it. `OE_RLS_STRICT` is refused unless `rls_readiness_report` is clean; the refusal is logged, returned as `strict_refused`, and provisioning continues in permissive mode so asking for strict can never leave a table with no policy. Mode changes apply in both directions, so turning strict off drops the strict policy and recreates the permissive one. The readiness endpoint now also reports `strict_requested`, so a silent downgrade is visible without reading the boot log | `core/rls_setup.py`, `config.py`, `modules/admin/rls_router.py` |
+| **A2 / B8** | One mandatory authorization gate for every agent tool call, in the runner immediately before the single `await tool.run(...)`. It resolves the principal from the trusted context, the tool's permission from `TOOL_PERMISSIONS`, the caller's current role from the database, and every project the call names in either the context or the arguments; fails closed on anything missing, unparseable or raising; refuses arguments that try to name a principal; denies before the tool is reached; and logs the denial at `WARNING` without the arguments. All three production execution paths pass an authorizer, and all fifteen registered tools name a permission | `ai_agents/tool_authorization.py` (new), `ai_agents/base.py`, `ai_agents/router.py`, `ai_agents/service.py`, `ai_estimator/service.py`, `ai_agents/triggers.py` |
+| **A11** (repair) | The event bus started agent runs without the `cost_scope.caller_scope` binding that the scheduler and the HTTP background task both apply, so the same agent read a wider cost catalogue when an event fired it than when its schedule did | `ai_agents/events.py` |
+
+Nothing else moved: no schema, no migration, no dependency, no workflow and no frontend
+file. The contract these changes establish — ownership semantics, database roles, policy
+semantics and the tool-registration obligations — is written up in
+[TARGET_ARCHITECTURE.md](./TARGET_ARCHITECTURE.md#what-phase-02-added).
+
+### Evidence
+
+Executed locally, for real, on Python 3.11.2 with pytest 8.4.2 and `--noconftest`:
+
+- **50 new tests, all passing.** `test_rls_strict_policy_is_refused_until_the_database_is_ready.py`
+  (14) pins the refusal and permissive fallback, the no-NULL-escape strict predicate, that
+  `ENABLE` and `FORCE` survive, that strict is inert while enforcement is off, that the
+  rollback drops the strict policy and drops it before recreating, that an unrecognised
+  policy is never dropped, and that an unreadable catalog does not stop provisioning.
+  `test_every_agent_tool_call_passes_one_mandatory_authorization_gate.py` (34) pins the
+  authorized path, every denial code, the forged-context and forged-identifier cases, the
+  absence of side effects on a denial, what the denial payload and log line may contain,
+  the distinction between refusal / unknown tool / tool failure, and both ratchets.
+  `test_an_event_triggered_agent_run_reads_costs_as_its_creator.py` (2) pins the scope
+  binding on every dispatch path.
+- **No regression, measured rather than assumed.** A pristine worktree at the audited
+  commit and the working tree were both run over the same 67 test files selected by name
+  across `rls`, `ai_agents`, `ai_estimator`, `tenant`, `permission`, `settings` and
+  `admin`: **555 passed / 20 failed / 236 errors / 13 skipped** before, **569 passed /
+  20 failed / 236 errors / 13 skipped** after. The single difference is the new RLS file.
+  Every pre-existing failure and error is unchanged and environment-caused.
+- **All 67 `scripts/check_*.py` guards return identical exit codes** before and after:
+  53 pass, 9 fail, 5 need arguments — the same 14 pre-existing environment cases in both
+  trees.
+- **`ruff==0.16.6`**, the version CI pins, reports `check` and `format --check` clean on
+  all twelve changed files.
+- **The permissive path is byte-identical.** `_policy_statements(table)` with
+  `strict=False` emits exactly the SQL the audited version emitted, and the two early-return
+  stats dictionaries that `test_a_worker_that_waited_for_the_rls_lock_provisions_after_it`
+  pins exactly are untouched.
+- **Each new ratchet was mutation-checked**: removing an authorizer from a call site,
+  unmapping one tool, and removing the scope binding each fail the test meant to catch
+  them, and each file was restored byte-identically afterwards.
+
+### What was not verified
+
+- **No PostgreSQL server was available, so RLS provisioning was never executed against a
+  database.** No policy was created, `verify_rls_role` never ran, no migration was applied
+  and no backfill was measured. The evidence above is SQL-generation and decision-logic
+  evidence from tests that fake the connection. Nothing here is a claim that a migration or
+  a provisioning run was tested against a real, let alone a production, database.
+- **The full backend suite still cannot run here**: `requires-python >= 3.12` against
+  3.11.2, and 25 files under `backend/app` do not parse on 3.11.
+- **The 45 IDOR and cross-tenant integration files and `backend/tests/pg/` were not
+  executed**; they need embedded PostgreSQL. `tests/integration/test_rls_enforcement.py`
+  errors on collection for the same reason. **CI is the authority**, and its recorded state
+  at the audited commit is 46 of 46 check runs `success`.
+- **No claim is made that strict mode is safe to enable anywhere.** It is refused by design
+  until the readiness report is clean, and it has never been observed running.
+
+### Deployment prerequisites and rollback
+
+1. The default path is unchanged: with `OE_RLS_ENFORCE` off, none of this executes.
+2. To enforce, set `OE_RLS_ENFORCE=1` and boot, then read
+   `GET /api/v1/admin/rls/readiness` (admin only). It reports the blocker codes and now
+   also `strict_requested`.
+3. To tighten, resolve the blockers the report names — in practice `tenant_is_user` and
+   `null_tenant_rows`, which means an ownership backfill per table — then set
+   `OE_RLS_STRICT=1` and boot again. A refusal is safe: the install keeps the permissive
+   policy it already had.
+4. To roll back, unset `OE_RLS_STRICT` and boot. Provisioning drops the strict policy and
+   recreates the permissive one, and `policies_replaced` in the returned stats counts how
+   many. Unsetting `OE_RLS_ENFORCE` stops transactions from entering `oe_app` but leaves
+   the policies installed.
+5. The agent gate needs no configuration and has no kill switch. It is not a mode; it is
+   the execution path.
+
+### Remaining gaps
+
+1. **`tenant_is_user` blocks strict mode** on any install whose login issues no tenant
+   claim, because `resolve_tenant_id` falls back to `sub` and every user would become a
+   tenant of one, hiding colleagues' rows from each other. Fixing it is an authentication
+   change, not an RLS one. Until then `OE_RLS_STRICT=1` is refused with the blocker named,
+   which is the intended behaviour and not a failure.
+2. **A session that never resolved a tenant keeps the connecting role** — the cluster
+   superuser in a default install — and is therefore not policied at all. Agent runs and
+   scheduled jobs are exactly that case. Closing it means binding a tenant for background
+   work, which depends on gap 1.
+3. **Coverage is still 29 `tenant_id` columns across 15 of 169 `models.py` files.** Phase 02
+   added none, deliberately: a column nothing populates is a policy that hides rows from
+   their owners.
+4. **The gate verifies the projects a call names.** Resolving a resource identifier to the
+   project that owns it — a `boq_id` to its project — stays the tool's job, and a tool
+   that does not do it is not caught by the gate. Enforcement is therefore not universal in
+   the strongest sense: it is universal over tool *invocation*, and the resource-level
+   check remains a documented obligation on each tool.
+5. **A tool absent from `TOOL_PERMISSIONS` falls to `ai_agents.run`** and, with no
+   authorizer supplied, would run. Every registered tool is mapped today and a test fails
+   if one is not, but the default itself is still permissive.
+6. **Denials are logged, not written to the audit trail.** `core/audit_log.py` is the
+   platform's audit facility and the gate does not use it; the refusal is persisted on the
+   run's own step record, which is queryable per run but is not an audit row. Whether a
+   denied tool call belongs in `ActivityLog` is a decision for whoever owns that schema.
+
 ## Blockers and limitations
 
 Recorded so that no later reader mistakes them for passing results.
@@ -173,6 +292,13 @@ Recorded so that no later reader mistakes them for passing results.
   matrix at 16 of 16.
 - **No runtime was started.** Every behavioural statement comes from code, tests and
   recorded CI results, not from an observed response.
+- **Phase 02 did execute tests locally, and they are still partial.** The bullet above
+  describes the audit. During Phase 02 a dependency set was installed and 50 new tests plus
+  a 67-file before/after comparison were run for real with `--noconftest` on Python 3.11.2.
+  Those runs exercise pure logic and faked connections; anything needing embedded
+  PostgreSQL or Python 3.12 still did not run, and no database was ever started. The
+  distinction is recorded in [Phase 02 delivered](#phase-02-delivered) under "What was not
+  verified".
 - **Fork platform settings are not changeable from here.** The actions-permissions, rerun
   and dispatch endpoints refused the available token, so the five `disabled_fork`
   workflows — including CodeQL and OpenSSF Scorecard — are reported rather than enabled.

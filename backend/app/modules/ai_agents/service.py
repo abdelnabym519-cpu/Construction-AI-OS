@@ -44,6 +44,7 @@ from app.modules.ai_agents.repository import (
     AgentStepRepository,
     CustomAgentRepository,
 )
+from app.modules.ai_agents.tool_authorization import SessionToolAuthorizer
 from app.modules.ai_agents.triggers import (
     normalise_triggers,
     required_permission_for_tool,
@@ -675,6 +676,11 @@ class AgentService:
                 user_input,
                 context=context,
                 tool_registry=tool_registry,
+                # This is the path the scheduler and the event triggers use, so
+                # it has no HTTP request behind it: ``start_run`` resolves the
+                # agent's creator and runs as them, and the gate re-checks that
+                # user's permission and project access on every tool call.
+                authorizer=SessionToolAuthorizer(self.session),
             )
         except Exception as exc:  # pragma: no cover - defensive
             logger.exception("Agent run %s crashed", run_id)

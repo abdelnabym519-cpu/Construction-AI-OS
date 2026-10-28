@@ -34,7 +34,12 @@ import inspect
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Awaitable, Callable, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    # Typing-only: the runner resolves the gate lazily inside ``run`` so a
+    # prompt-only agent never pays for the permission registry.
+    from app.modules.ai_agents.tool_authorization import ToolAuthorizer
 
 logger = logging.getLogger(__name__)
 
@@ -356,6 +361,7 @@ class AgentRunner:
         *,
         context: dict[str, Any] | None = None,
         tool_registry: ToolRegistry | None = None,
+        authorizer: ToolAuthorizer | None = None,
     ) -> AgentResult:
         """Execute the ReAct loop until a final answer or max_iterations.
 
@@ -363,9 +369,19 @@ class AgentRunner:
             agent: declarative agent metadata.
             user_input: the user's initial question / instruction.
             context: optional dict to expose to the system prompt (e.g.
-                project_id). Rendered as ``[context] key=value`` lines.
+                project_id). Rendered as ``[context] key=value`` lines. It is
+                also the *trusted* identity the authorization gate reads, so a
+                caller must put the authenticated user's id here and must never
+                let model output into it.
             tool_registry: registry to dispatch tool_calls against.
                 Defaults to the module-level :data:`global_tool_registry`.
+            authorizer: mandatory authorization gate for tool calls, see
+                :mod:`app.modules.ai_agents.tool_authorization`. Omitting it does
+                not disable the gate: a tool that requires more than the run-floor
+                permission is then denied, because nothing has established that
+                the caller holds it. Only tools at the floor still run, on the
+                strength of the route-level ``RequirePermission`` that admitted
+                the run.
 
         Returns:
             :class:`AgentResult` describing the outcome. ``status`` is
@@ -376,6 +392,16 @@ class AgentRunner:
         registry = tool_registry or global_tool_registry
         allowed = set(agent.allowed_tools)
         available_tools: list[Tool] = [t for t in registry.all() if not allowed or t.name in allowed]
+
+        # Resolved here rather than at module scope so the runner stays
+        # import-light: this module reaches the permission registry and the
+        # project-access primitives, which a prompt-only run never needs.
+        from app.modules.ai_agents.tool_authorization import (
+            decide_without_authorizer,
+            log_denial,
+            principal_from,
+            project_scopes,
+        )
 
         # Trust envelope: analytical agents are asked to append a structured
         # confidence/sources block to their final answer, which we parse back
@@ -591,16 +617,56 @@ class AgentRunner:
                     )
                     continue
 
-                # Forward the user/project context to tools that opt in.
-                # Tools sniff ``__agent_context__`` and re-verify the user's
-                # permission before performing privileged actions - we never
-                # trust the LLM's elevated runner context implicitly.
-                #
-                # SECURITY: any ``__agent_context__`` the LLM tried to forge
-                # in its tool_call args is STRIPPED before we re-inject the
-                # trusted runtime context. A model that asks to run a tool
-                # "as another user" must not be able to do so.
-                call_args = {k: v for k, v in tool_args.items() if k != "__agent_context__"}
+                # SECURITY: any ``__agent_context__`` the LLM tried to forge in
+                # its tool_call args is STRIPPED before the trusted runtime
+                # context is re-injected. A model that asks to run a tool "as
+                # another user" must not be able to do so.
+                stripped_args = {k: v for k, v in tool_args.items() if k != "__agent_context__"}
+
+                # Mandatory authorization, evaluated before any side effect.
+                # This used to be each tool's own job: the runner forwarded the
+                # trusted context and the tools that cared re-verified the caller,
+                # while a tool that did not care still ran. The gate lives here
+                # because this is the one place every supported execution path
+                # passes through, and because a denial has to happen before the
+                # tool is invoked rather than somewhere inside it.
+                decision = (
+                    await authorizer.authorize(tool_name=tool_name, args=stripped_args, context=context)
+                    if authorizer is not None
+                    else decide_without_authorizer(tool_name)
+                )
+                if not decision.allowed:
+                    log_denial(
+                        decision,
+                        user_id=principal_from(context),
+                        scopes=project_scopes(stripped_args, context),
+                    )
+                    # Fed back to the model as an observation instead of raised,
+                    # for the reason ``agents/_access.py`` gives: a raised
+                    # exception would crash the whole run, while a structured
+                    # refusal lets the model reason "I have no access" and answer
+                    # honestly. The payload carries the code and the permission
+                    # only, never the reason and never the arguments, so a
+                    # refusal is not a channel for describing what the caller
+                    # almost reached.
+                    denial_payload = {
+                        "name": tool_name,
+                        "error": decision.code,
+                        "required_permission": decision.permission,
+                    }
+                    obs_step = StepRecord(role="observation", content=denial_payload)
+                    steps.append(obs_step)
+                    await self._emit(obs_step)
+                    _log_step(obs_step, tool=tool_name)
+                    messages.append({"role": "tool", "name": tool_name, "content": denial_payload})
+                    continue
+
+                # Forward the trusted context to tools that still read it. They
+                # keep their own resource-level checks, because resolving a
+                # ``boq_id`` to its owning project is knowledge only the tool
+                # has; the gate above guarantees those checks are no longer the
+                # only ones that run.
+                call_args = dict(stripped_args)
                 if context:
                     call_args["__agent_context__"] = dict(context)
 

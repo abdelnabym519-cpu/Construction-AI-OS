@@ -806,6 +806,7 @@ async def _run_in_background_as_user(
             from app.modules.ai_agents.base import AgentRunner, StepRecord
             from app.modules.ai_agents.models import AgentStep
             from app.modules.ai_agents.service import _iso_now, _resolve_production_llm
+            from app.modules.ai_agents.tool_authorization import SessionToolAuthorizer
 
             # Resolve built-in OR the caller's own custom agent. Ownership for
             # custom:<id> slugs is enforced in resolve_agent.
@@ -855,7 +856,17 @@ async def _run_in_background_as_user(
             context: dict[str, str] = {"user_id": str(user_id)}
             if project_id:
                 context["project_id"] = str(project_id)
-            result = await runner.run(target, user_input, context=context)
+            result = await runner.run(
+                target,
+                user_input,
+                context=context,
+                # The gate re-checks permission and project access on every tool
+                # call, against the invoking user and this background session.
+                # The HTTP-level ``RequirePermission`` only proved the caller
+                # could *start* the run, and a run can outlive the request that
+                # started it.
+                authorizer=SessionToolAuthorizer(bg_session),
+            )
 
             await service.run_repo.update_fields(
                 run_id,

@@ -213,11 +213,18 @@ The contract in words:
 
 1. **A tool is a declared use case, not a query.** Its schema says what it takes and what
    it returns; its registration says which permission it requires.
-2. **The platform checks, the tool does not have to remember.** `__agent_context__`
-   already carries the invoking user and project; the change is that the registry enforces
-   `required_permission_for_tool` and project access before invoking, using
+2. **The platform checks, the tool does not have to remember.** *Implemented in Phase 02.*
+   `__agent_context__` carries the invoking user and project, and
+   `app/modules/ai_agents/tool_authorization.py` enforces `required_permission_for_tool`
+   plus project access before the tool is invoked, using
    `agents/_access.py::assert_user_can_access_project` rather than leaving the call to each
-   tool's discretion.
+   tool's discretion. One correction to how this page first stated it: the check lives in
+   `AgentRunner.run`, not in `ToolRegistry`. The registry has no execution method — it is a
+   name-to-tool map — and the runner holds the single `await tool.run(...)` statement that
+   every supported path reaches. Putting the gate in the registry would have meant giving
+   it an execution path of its own, which is how a second, unguarded way to run a tool
+   gets invented. Status and evidence are in
+   [ROADMAP_STATUS.md](./ROADMAP_STATUS.md#phase-02-delivered).
 3. **Reads are scoped at the use-case layer**, which is where `cost_scope` and project
    scoping already live, and every read is bounded, as `retrieval` already bounds reads
    per source.
@@ -252,3 +259,113 @@ touched, and no existing behaviour was altered. The three documents in this dire
 the whole output. The capability statuses above are the audit's reading of existing code,
 not a claim about anything new, and the phasing is a proposal to be confirmed against
 evidence as each phase begins.
+
+## What Phase 02 added
+
+Two controls, and no new capability. Both are stated here as the contract a later phase
+has to respect, because each one changes what "the platform checks this" means.
+
+### Ownership semantics
+
+Canonical ownership is **the project**, applied in the application layer. `project_id`
+appears in 416 column declarations across 147 of 169 `models.py` files, and
+`core/cost_scope.py` plus `RequestScopeMiddleware` bind the caller so a read inherits the
+same visibility rules whether it arrives over HTTP or from a tool. Project-to-tenant is
+therefore the boundary that matters for most data, and it is enforced by
+`agents/_access.py::assert_user_can_access_project` (owner or team member, fail closed)
+rather than by a column.
+
+`tenant_id` is the **database-level backstop**, not the primary model. It exists on 15 of
+169 `models.py` files (29 column declarations), and Phase 02 deliberately did not add it
+anywhere else: a column that nothing populates is a policy that hides rows from their
+owners. Six tables are explicitly *never* tenant-scoped — `oe_costs_item`,
+`oe_costs_catalog`, `oe_catalog_resource`, `oe_regional_indices`, `oe_cost_item_usage`,
+`oe_cost_item_resource` — and that exclusion list, not a `tenant_id IS NULL` escape, is how
+the platform defines a global record.
+
+### Database roles
+
+Three roles, and the connecting role is the one to watch:
+
+| Role | Attributes | Used for |
+|---|---|---|
+| the connecting role | cluster superuser in a default install | migrations, boot-time DDL, and any transaction that never resolved a tenant |
+| `oe_app` | `NOSUPERUSER NOINHERIT NOLOGIN` | the policied role; entered with `SET LOCAL ROLE` for the duration of a transaction that carries a tenant |
+| `oe_system` | `NOSUPERUSER NOINHERIT NOLOGIN BYPASSRLS` | system work that must see every row |
+
+`verify_rls_role(engine)` raises `RLSConfigurationError` at startup if `oe_app` is missing,
+is a superuser, carries `BYPASSRLS`, or cannot be assumed, and it runs outside the
+best-effort handler — a mis-provisioned role refuses to boot. The consequence to design
+around: **a transaction that never bound a tenant stays on the connecting role and is not
+policied at all.** Agent runs and scheduled jobs are exactly that case today.
+
+### Policy semantics
+
+Per table, provisioning issues `ENABLE ROW LEVEL SECURITY`, `FORCE ROW LEVEL SECURITY` (so
+the owner is bound too), and a `CREATE POLICY "oe_tenant_isolation"` guarded on
+`pg_policies`. Two predicates are available:
+
+- **permissive** — `tenant_id IS NULL OR tenant_id::text = current_setting('app.current_tenant', true)`.
+  The rollout mode. A row with no tenant stays visible to everyone, which is what makes a
+  first enablement non-breaking and is also why it is not the end state.
+- **strict** — `tenant_id::text = current_setting('app.current_tenant', true)`. No NULL arm,
+  so an unowned row belongs to nobody, and an empty GUC matches nothing: an anonymous
+  caller fails closed rather than widening to every row.
+
+Strict is honoured only when the readiness report is clean; otherwise provisioning logs the
+refusal, reports `strict_refused`, and installs the permissive predicate, so asking for
+strict can never leave a table with no policy. Because the guarded `CREATE POLICY` never
+replaces an installed one, `apply_rls` reconciles modes explicitly: it drops a policy whose
+installed mode differs from the requested one and recreates it. That is what makes turning
+strict off a real rollback instead of a no-op. The installed mode is read from
+`pg_policies.qual`, and a policy this code cannot classify is left alone — guessing the mode
+of an unfamiliar policy in order to drop it is how live data gets hidden.
+
+Provisioning is boot-time DDL under a named advisory lock with `SET LOCAL lock_timeout =
+'3s'`, not an Alembic revision; no revision mentions row-level security, and none was added.
+Strict mode requires an ownership backfill *before* it is enabled, and the readiness report
+is the instrument that measures whether that has happened. Phase 02 performed no data
+migration and requires none on the default path.
+
+### The agent authorization gate
+
+`AgentRunner.run` accepts an `authorizer`, and every tool call is decided before the tool is
+reached. The decision resolves, in order: whether the arguments tried to name a principal
+(`user_id`, `tenant_id`, `actor_id`, `on_behalf_of` — no registered tool takes any of them,
+so their presence is an override attempt and is refused rather than ignored); the trusted
+principal, from the runner context and never from the arguments; that principal's current
+role from the database; the tool's required permission against the real
+`PermissionRegistry`; and every project the call names, in the context *and* in the
+arguments. Anything missing, unparseable or raising denies, because an unevaluated policy
+is not a granted one.
+
+A denial is returned to the model as an observation carrying a stable code
+(`authorization_unavailable`, `missing_principal`, `permission_denied`,
+`project_access_denied`, `identity_override_rejected`, `policy_error`) and the required
+permission — never the reason and never the arguments — and is logged at `WARNING` in the
+`ai_agent.tool_denied` structured form. The run continues, so a refusal is something a model
+can answer honestly instead of a crash. Denial stays distinguishable from `unknown_tool` and
+from a tool that raised, which are different facts about the same call.
+
+Omitting the authorizer does not disable the gate: a tool above the run floor
+(`ai_agents.run`) is then denied. Tools at the floor still run, on the strength of the
+`RequirePermission` that admitted the run — which is why an unmapped *privileged* tool would
+be a bug, and why every registered tool is required to appear in `TOOL_PERMISSIONS`.
+
+### Registering a tool
+
+Three obligations, all checked by tests rather than by review:
+
+1. Name the tool's required permission in `triggers.py::TOOL_PERMISSIONS`. A tool absent
+   from the map falls to the run floor and would execute for anyone who can start an agent.
+2. Keep identity out of the tool's own parameters. It arrives in `__agent_context__`;
+   accepting a `user_id` argument makes the tool the thing the gate refuses.
+3. Resolve resource identifiers to their owning project inside the tool. The gate verifies
+   the projects a call *names*; only the tool knows that a `boq_id` belongs to one.
+   `estimate_reviewer._tool_read_boq` is the pattern: resolve, fail closed without a trusted
+   user, and answer `not_found` identically for a denied and a missing resource so the
+   response cannot be used to probe.
+
+And a fourth for anyone adding an execution path: pass an authorizer. A test parses the tree
+for `.run(...)` calls that supply `context=` and fails if one omits it, so a new entry point
+cannot arrive unguarded by accident.

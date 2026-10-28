@@ -20,6 +20,17 @@ read from code, from tests, and from the recorded results of the continuous-inte
 runs at the audited commit. Where that reading is not enough to settle a question, the
 question is left open and named.
 
+**Corrections made during Phase 02.** Three statements on this page were wrong, and all
+three were wrong in the direction that matters: they understated controls that already
+existed in the tree at the audited commit. Each is corrected inline and marked
+*[corrected in Phase 02]* — the row-level-security provisioning path does install
+`FORCE ROW LEVEL SECURITY` and does verify the runtime role at boot; the platform does
+ship an RLS readiness report and a PostgreSQL-backed test suite for it; and `Role` has
+seven members, not eight. Everything else was re-measured against the current tree during
+Phase 02 and stands. What Phase 02 then *changed* is recorded in
+[ROADMAP_STATUS.md](./ROADMAP_STATUS.md#phase-02-delivered), not here: this page stays a
+record of the platform as audited, with its errors marked rather than quietly removed.
+
 ## A. Repository and governance
 
 ### Identity and licence
@@ -264,9 +275,20 @@ state. Both facts complicate audit and disaster recovery.
 
 Authentication is JWT over `HTTPBearer`, decoded through `core/jwt_keys.decode_jwt` with
 `python-jose`. Role authorization is a real engine: `core/permissions.py` defines
-`Role` as a `StrEnum` with eight roles (`admin`, `owner`, `manager`, `estimator`,
-`site_foreman`, `site_inspector`, `viewer`, `guest`), a `ROLE_HIERARCHY`, `ROLE_ALIASES`,
-and a `PermissionRegistry` whose `register(permission, min_role)` defaults to editor.
+`Role` as a `StrEnum` with **seven** members — `admin`, `manager`, `editor`, `viewer` and
+the three design-stage field roles `site_inspector`, `site_foreman`, `field_worker` —
+together with a `ROLE_HIERARCHY` that ranks the field roles *below* `viewer` (negative
+ranks, so the legacy `-1` floor cannot promote a field worker above a viewer) and a
+`ROLE_ALIASES` map of eight industry titles (`estimator`, `qs`, `quantity_surveyor`,
+`owner`, `superuser`, `guest`, `readonly`, `user`) resolved onto those members. It also
+defines a `PermissionRegistry` whose `register(permission, min_role)` defaults to editor.
+
+> *[Corrected in Phase 02: this page first reported eight roles and listed `owner`,
+> `estimator` and `guest` as members while omitting `editor` and `field_worker`. Those
+> three are aliases, and the difference is not cosmetic — `role_has_permission` denies an
+> unknown permission outright, and an alias is resolved to a member before the hierarchy
+> is read, so reasoning from the wrong list predicts the wrong answer for every field
+> role.]*
 171 module directories carry their own `permissions.py`, declaring 215 distinct dotted
 action keys (`<module>.<view|edit|manage|approve|delete|create|export>`), and
 `scripts/check_permission_registration.py` guards registration. Routers depend on
@@ -282,19 +304,52 @@ consequential finding in this audit.
    SQLAlchemy session hook, and exposes `visible_cost_items(user_id)` and `visible_ids`.
    `core/tenant_scope.py` (203 lines) resolves a tenant from the token payload.
    `RequestScopeMiddleware` binds scope per request.
-2. **Row-level security, present but inert by default.** `core/rls.py` (142 lines) stamps
-   a transaction-local `app.current_tenant` GUC through an `after_begin` listener, and
-   `core/rls_setup.py` (443 lines) creates a non-superuser runtime role `oe_app`, a
-   `BYPASSRLS` role `oe_system`, and an `oe_tenant_isolation` policy on every table
-   carrying a `tenant_id` column. Three qualifications, all documented in the modules
-   themselves: `settings.rls_enforce` defaults to **False** (`OE_RLS_ENFORCE`); the app
-   otherwise connects as the cluster superuser, and a superuser bypasses every policy;
-   and the installed predicate is deliberately permissive,
+2. **Row-level security, present but off by default.** `core/rls.py` (142 lines) stamps a
+   transaction-local `app.current_tenant` GUC through an `after_begin` listener and, in
+   the same hook, moves the transaction into the policied role with
+   `SET LOCAL ROLE "oe_app"`. `core/rls_setup.py` creates that role
+   `NOSUPERUSER NOINHERIT NOLOGIN`, creates `oe_system` as `NOSUPERUSER NOINHERIT NOLOGIN
+   BYPASSRLS` for the system work that must see every row, grants `oe_app` exactly
+   `USAGE` on the public schema, `SELECT`/`INSERT`/`UPDATE`/`DELETE` on all tables and
+   `USAGE`/`SELECT` on sequences plus two `ALTER DEFAULT PRIVILEGES` statements, and on
+   every table carrying a `tenant_id` column issues `ENABLE` **and `FORCE`** `ROW LEVEL
+   SECURITY` followed by a guarded `CREATE POLICY "oe_tenant_isolation"`. Provisioning
+   runs once per boot under a named advisory lock with `SET LOCAL lock_timeout = '3s'`, so
+   a busy table defers to the next boot instead of stalling traffic, and
+   `verify_rls_role(engine)` raises `RLSConfigurationError` at startup when `oe_app` is
+   missing, is a superuser, carries `BYPASSRLS` or cannot be assumed. That verification
+   sits *outside* the best-effort handler in `main.py`, so a mis-provisioned role refuses
+   to boot rather than merely logging.
+
+   > *[Corrected in Phase 02: this page first reported that no `FORCE ROW LEVEL SECURITY`
+   > is installed and that the subsystem is inert but for the superuser bypass. Both were
+   > wrong, and the reading also missed `verify_rls_role`, the `rls_readiness_report` /
+   > `readiness_blockers` census, and the PostgreSQL-backed suites under
+   > `backend/tests/pg/` and `backend/tests/modules/`. `FORCE` matters because it binds
+   > the table owner as well as other roles; without it, owning a table would be enough to
+   > read every row in it.]*
+
+   Three qualifications remain, and all three are documented in the modules themselves:
+   `settings.rls_enforce` defaults to **False** (`OE_RLS_ENFORCE`), so none of the above
+   runs on a default install; when it is off the app connects as the cluster superuser,
+   and a superuser bypasses every policy; and the predicate the rollout installs is
+   deliberately permissive,
    `tenant_id IS NULL OR tenant_id::text = current_setting('app.current_tenant', true)`,
    because `tenant_id` is "only partly rolled out". Only **29 `tenant_id` column
    declarations across 15 of 169 `models.py` files** exist, and no Alembic revision
    mentions row-level security, because the policies are created by `rls_setup.py` at
-   startup rather than by a migration.
+   startup rather than by a migration. Six global reference tables are deliberately
+   excluded from any policy — `oe_costs_item`, `oe_costs_catalog`, `oe_catalog_resource`,
+   `oe_regional_indices` and the two join tables `oe_cost_item_usage` and
+   `oe_cost_item_resource` — which is the platform's explicit definition of a record that
+   is not tenant-owned.
+
+   Phase 02 added a **strict** mode beside the permissive one, and a readiness gate in
+   front of it; see [ROADMAP_STATUS.md](./ROADMAP_STATUS.md#phase-02-delivered). It does
+   not change any measurement above, and it does not close the fourth qualification that
+   the audit's reading missed: a session whose tenant was never resolved keeps the
+   connecting role, so background work — agent runs, scheduled jobs — is not policied
+   unless the caller bound a tenant first.
 
 So tenant isolation is enforced where code remembers to enforce it, and the database
 backstop that would catch a forgotten filter covers a small minority of tables and is
@@ -522,11 +577,33 @@ the 4,627 routes individually.
    to write. Any new data path — a graph projection, an embedding index build, an agent
    tool — inherits no database-level guarantee. For a platform about to expose data to
    automated agents, this is the first thing to fix.
-2. **Tool-level authorization is a convention, not a gate.** `base.py` injects
-   `__agent_context__` into every tool call "so tools that need the invoking user /
-   project can re-verify permission". That is the right seam and it is documented, but it
-   is opt-in per tool. `triggers.py` maps a tool name to a required permission, which
-   shows the intent; nothing in the registry enforces that mapping at call time.
+
+   **Phase 02 narrowed this and did not close it.** `rls_setup.py` can now install a
+   strict predicate with no `IS NULL` arm, so an unowned row belongs to nobody and an
+   anonymous caller matches nothing; it is refused unless
+   `GET /api/v1/admin/rls/readiness` reports the database ready, it falls back to the
+   permissive policy rather than leaving a table unpolicied, and mode changes are applied
+   in both directions so switching it off again is a real rollback. What is still true:
+   enforcement is off by default, the readiness report names `tenant_is_user` as a blocker
+   on a stock install (the login issues no tenant claim, so `resolve_tenant_id` falls back
+   to the user id and every user would become a tenant of one), coverage is still 29
+   columns across 15 of 169 `models.py` files, and a session that never resolved a tenant
+   keeps the connecting role. The gap is now measured and gated rather than assumed away.
+2. **Tool-level authorization is a convention, not a gate.** *(Closed in Phase 02.)*
+   `base.py` injects `__agent_context__` into every tool call "so tools that need the
+   invoking user / project can re-verify permission". That is the right seam and it is
+   documented, but it is opt-in per tool. `triggers.py` maps a tool name to a required
+   permission, which shows the intent; nothing in the registry enforces that mapping at
+   call time.
+
+   Phase 02 put the check in the runner, immediately before the single
+   `await tool.run(call_args)` statement every supported execution path reaches, so a
+   protected tool call is now refused by the platform rather than by whichever tool
+   remembered to check. All fifteen registered tools name their permission, pinned by a
+   test, and all three production call sites pass an authorizer, also pinned. What is
+   still a tool's own job is resolving a resource identifier to the project that owns it
+   — a `boq_id` means nothing to the gate — so the per-tool discipline this finding
+   describes is still required, it is just no longer the only control.
 3. **The Content-Security-Policy permits `script-src 'self' 'unsafe-inline' 'unsafe-eval'
    blob:`.** The file describes the policy as "relaxed for SPA". With inline script and
    eval allowed, the policy will not stop an injected script from executing; it remains

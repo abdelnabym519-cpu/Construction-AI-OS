@@ -1693,6 +1693,7 @@ class AiEstimatorService:
         deterministic top-1 (index 0) when the agent flags-for-human or its
         answer references no real id - never invents.
         """
+        from app.modules.ai_agents.tool_authorization import SessionToolAuthorizer
         from app.modules.ai_estimator.prompts import build_match_reasoning_input
 
         agent = agent_bundle["agent"]
@@ -1708,6 +1709,14 @@ class AiEstimatorService:
                 agent,
                 user_input,
                 context={"project_id": str(run.project_id), "region": run.region or "", "user_id": str(run.user_id)},
+                # The matcher's tools read the cost database on behalf of the
+                # user who started the run, so the gate checks that user holds
+                # ``costs.read`` and can see this project on every call. A denial
+                # is not an exception on this path: it arrives as an observation,
+                # the model then cannot name a real candidate id, and this method
+                # already degrades to the deterministic top-1 rather than
+                # inventing one.
+                authorizer=SessionToolAuthorizer(self.session),
             )
         except Exception as exc:  # noqa: BLE001 - degrade to deterministic top-1
             logger.warning("ai_estimator agent pick failed for %s: %s", grp.group_key, exc)
