@@ -218,6 +218,14 @@ Executed locally, for real, on Python 3.11.2 with pytest 8.4.2 and `--noconftest
 - **Each new ratchet was mutation-checked**: removing an authorizer from a call site,
   unmapping one tool, and removing the scope binding each fail the test meant to catch
   them, and each file was restored byte-identically afterwards.
+- **CI at the commit that carried the code** (`beb2b94`): 8 of 8 workflow runs `success`
+  and 46 of 46 check runs `success`, including CI at 20 of 20 jobs and CI (PostgreSQL) at
+  16 of 16. The Tenant Isolation / IDOR job passed, which is the acceptance net this phase
+  was told to preserve, and the embedded-PostgreSQL matrices passed on Linux, Windows and
+  macOS, which is where the RLS and agent-runtime suites actually execute. The intermediate
+  commit `dc509d6` failed Repo hygiene on the architecture-manifest step, because a new
+  module file is manifest drift; `beb2b94` repairs it, and the two matrix runs on
+  `dc509d6` were cancelled by that superseding push, so no signal was lost.
 
 ### What was not verified
 
