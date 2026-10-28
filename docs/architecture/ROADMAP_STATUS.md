@@ -20,7 +20,7 @@ code. That dangling reference is left alone here, because a path matching
 | Phase | Scope | Status |
 |---|---|---|
 | **01 — Foundation Audit** | Verify the live state, audit repository, architecture, capabilities and security, classify every capability, write these three documents | **Complete.** Documentation only. No code, dependency, schema, configuration or workflow change |
-| **02 — ERP Hardening** | Close the control gaps that must be closed before automated agents touch data | **In progress.** Scope items 1 and 2 — the RLS strict predicate behind a readiness gate, and the central agent authorization gate — are implemented and tested; items 3 to 11 are not started. See [Phase 02 delivered](#phase-02-delivered) |
+| **02 — ERP Hardening** | Close the control gaps that must be closed before automated agents touch data | **In progress.** Scope items 1 and 2 — the RLS strict predicate behind a readiness gate, and the central agent authorization gate — are implemented and tested, and item 1's database behaviour is now observed on a real PostgreSQL cluster; items 3 to 11 are not started. See [Phase 02 delivered](#phase-02-delivered) |
 | **03 — Intelligence Core foundations** | Versioned domain contract, ontology, graph and evidence projections, governed tool platform | Not started |
 | **04 — Reasoning** | Cross-domain dependency, impact and quantitative risk engines | Not started |
 | **05 — Interaction** | Unified simulation, ranked decision support, proactive detection, multimodal ingestion, voice | Not started |
@@ -227,21 +227,157 @@ Executed locally, for real, on Python 3.11.2 with pytest 8.4.2 and `--noconftest
   module file is manifest drift; `beb2b94` repairs it, and the two matrix runs on
   `dc509d6` were cancelled by that superseding push, so no signal was lost.
 
+### Observed on a real PostgreSQL cluster
+
+The evidence above was SQL generation and decision logic. This is behaviour, and it
+was observed rather than inferred, on the PostgreSQL 16.11 cluster that
+`pixeltable-pgserver` 0.5.1 bundles and `app/core/embedded_pg.py` boots - the same
+mechanism the *CI (PostgreSQL)* workflow uses, reached locally by installing that
+wheel and running the lane with its own gate, `OE_TEST_DB=pg`. Without the gate the
+lane reports `PG lane only` and skips; the new tests were confirmed to skip without
+it and pass with it, so a green run cannot be a collection that never happened.
+
+| What ran | Result |
+|---|---|
+| `tests/pg/test_a_strict_rls_policy_is_enforced_by_the_real_database_role.py` (new) | 18 passed |
+| `tests/pg/test_rls_strict_mode_is_refused_until_the_database_is_ready_and_rolls_back.py` (new) | 15 passed |
+| `tests/pg/test_a_background_session_keeps_the_connecting_role_and_is_not_policied.py` (new) | 5 passed |
+| `tests/pg/test_rls_readiness_report_measures_the_real_database.py` (existing) | 3 passed |
+| `tests/pg/test_rls_ws_handshake.py` (existing) | 10 passed |
+| `tests/integration/test_rls_enforcement.py` (existing, previously unrunnable here) | 11 passed |
+| `tests/unit/test_the_rls_tenant_binding_has_one_call_site_so_background_work_is_unpolicied.py` (new) | 3 passed |
+| the three Phase 02 unit suites | 50 passed |
+
+Fifty-one of those ran in the PostgreSQL lane in a single session, and the eleven in
+`test_rls_enforcement.py` had never run in this environment before: they need a
+cluster, and they provision the real roles through `apply_rls` and drive raw SQL
+through the application's own `async_session_factory`, so the `after_begin` listener
+does the role downgrade exactly as it does for a request.
+
+The role under test is `oe_app`, entered with `SET LOCAL ROLE` and with
+`app.current_tenant` bound transaction-locally, which is how a real request enters
+it. The cluster's session user is the `postgres` superuser, so every isolation
+assertion also records `current_user` and that user's `rolsuper` flag: a superuser
+bypasses every policy silently, and a test that did not prove which role answered
+would pass just as happily with no policy installed.
+
+What PostgreSQL actually did:
+
+| Situation | Observed |
+|---|---|
+| Strict policy, caller bound to tenant A | reads A's two rows of four; `current_user` is `oe_app`, `rolsuper` false |
+| Strict policy, caller bound to tenant B | reads B's one row; never A's, never the unowned one |
+| Strict policy, no tenant bound (anonymous request) | GUC set to the empty string, zero rows: fails closed |
+| Strict policy, a tenant value that matches nothing | zero rows, including a value shaped like an injection |
+| Same query as the connecting superuser | all four rows, so the two above are a policy and not an empty table |
+| `UPDATE` / `DELETE` of another tenant's row, committed | `rowcount` 0 and the row unchanged |
+| `DELETE FROM t` with no predicate at all, committed | 2 rows, the caller's own; other tenants' rows survive |
+| `INSERT` naming another tenant | refused: `new row violates row-level security policy` |
+| `INSERT` with a NULL tenant under strict | refused, so a strict install cannot grow the backlog it hides |
+| The same NULL insert under the permissive policy | accepted, which is the difference between the two modes |
+| Row-level security enabled with no policy at all | zero rows: enabled-and-unpolicied denies |
+| `oe_system`, tenant bound | all four rows: `rolbypassrls` true, `rolsuper` false |
+| `pg_policies.qual`, both modes | deparsed with and without the `IS NULL` arm, and `policy_is_strict` reads both correctly |
+| `relrowsecurity` / `relforcerowsecurity` | both true, so the owner is bound as well |
+| `oe_app` in `pg_roles` | `rolsuper`, `rolbypassrls`, `rolcanlogin`, `rolinherit` all false, with `SELECT`/`INSERT`/`UPDATE`/`DELETE` on the table: privileges and isolation are separate facts, and a denial here is the policy rather than a missing grant |
+| `verify_rls_role` after `ALTER ROLE oe_app SUPERUSER` | raises `RLSConfigurationError`; passes again once the attribute is removed. Same for `BYPASSRLS` |
+| The six `_NEVER_POLICY` reference tables | row-level security not even enabled, no policy row, and readable by `oe_app`: a global record is excluded by name, not admitted by a NULL escape |
+| Strict refused, then the rows backfilled, then the same call | refused with `strict_refused`, permissive installed; after the backfill `ready_for_strict` is true and the same call installs strict, reporting `policies_replaced: 2` |
+| Strict switched back off | `policies_replaced: 2`, the permissive predicate installed, and the row strict had been hiding readable again |
+| Three enable/disable cycles | each ends in the mode asked for, and tenant B never reads tenant A's row in either mode |
+| A policy this code does not recognise | left in place, `policies_replaced: 0`: an administrator's own policy survives a boot |
+
+`CREATE ROLE` inside the guarded `DO` block was separately confirmed to succeed
+inside an explicit transaction, which is what lets provisioning create the roles in
+the same transaction that takes the advisory lock.
+
+### Tenant identity: what the investigation found
+
+`tenant_is_user` is not a defect in one login flow. It is the documented shape of
+the platform, and the evidence is a chain rather than a single reading:
+
+* **No tenant claim is issued, anywhere.** `create_access_token` builds
+  `iss`, `sub`, `email`, `role`, `iat`, `exp`, `type`, `jti` and an optional `sid`,
+  and nothing else. It has exactly one caller, `_issue_token_pair`, which all six
+  token-minting flows reach: `login`, `demo_login`, `desktop_bootstrap`,
+  `oidc_login`, `refresh_tokens` and `change_password`. The `extra_claims`
+  parameter exists and no caller in the application passes it.
+* **So the resolver always falls through.** `resolve_tenant_id` prefers a
+  `tenant_id` claim and falls back to `sub`; with no claim ever issued, every
+  authenticated request resolves its tenant to the user's own id.
+* **That is the intended semantics, not an accident.** `core/tenant_scope.py`
+  states there is no separate Tenant or Org entity and no `tenant_id` claim, and
+  that the tenant is the owning user's id. Migration `v231_contact_tenant_id` says
+  the same in its own docstring - "For single-tenant installs (the only shape
+  shipped today)", backfilling `tenant_id = created_by`, with rows whose
+  `created_by` is NULL left NULL and admin-only - and anticipates linking
+  `tenant_id` to "a real Tenants table" later.
+* **The write sites agree.** `subcontractors` and `tendering` store
+  `tenant_id=str(user_id)`; `design_management` and `stakeholders` store
+  `resolve_tenant_id(payload)`, which is the same value. Nothing stores an
+  organisation id, because there is none to store.
+* **There is no organisation to derive one from.** `User` carries `email`,
+  `hashed_password`, `full_name`, `role`, `locale`, `is_active`, timestamps,
+  `oidc_sub`, `oidc_issuer`, `metadata_`, `timezone` and `measurement_system`, and
+  no organisation or tenant reference. `LegalEntity` is a financial entity, "a
+  company of the group, with the country and currency its books follow", and
+  nothing links a user to it as an ownership scope. Team membership is per
+  project (`oe_teams_membership(team_id, user_id)` to a team with a `project_id`),
+  so project ownership is a real and enforced boundary - it is what
+  `assert_user_can_access_project` and `cost_scope` use - but it is not what the
+  29 `tenant_id` columns store, and substituting it would be a data-model change
+  rather than a fix.
+
+Enforcing a strict policy over that data would scope each user to their own rows,
+which is correct for a single-user install and would hide a colleague's rows from
+everybody else on a shared one. That is precisely what the `tenant_is_user` blocker
+detects, so the refusal is the right behaviour and not an obstacle to route around.
+
+**No tenant claim was invented and `sub` was not equated with a tenant.** The
+prerequisite, stated exactly:
+
+1. a tenancy entity - an organisation or tenant table - with a membership relation
+   from `User` to it, since none exists today;
+2. `create_access_token` issuing a `tenant_id` claim from that membership. The
+   resolver already prefers the claim over `sub`, so this needs no call-site
+   change, which is what `core/tenant_scope.py` was written to allow;
+3. a backfill re-pointing existing `tenant_id` values from user ids to the
+   organisation id, per table, with the NULL rows `v231` deliberately left NULL
+   given an owner or an explicit global designation;
+4. only then `OE_RLS_STRICT`, which the readiness report will stop reporting
+   `tenant_is_user` for.
+
+Until step 1 exists, strict mode stays safely refused, and the refusal is logged,
+returned in the provisioning stats and visible in the readiness response.
+
 ### What was not verified
 
-- **No PostgreSQL server was available, so RLS provisioning was never executed against a
-  database.** No policy was created, `verify_rls_role` never ran, no migration was applied
-  and no backfill was measured. The evidence above is SQL-generation and decision-logic
-  evidence from tests that fake the connection. Nothing here is a claim that a migration or
-  a provisioning run was tested against a real, let alone a production, database.
-- **The full backend suite still cannot run here**: `requires-python >= 3.12` against
-  3.11.2, and 25 files under `backend/app` do not parse on 3.11.
-- **The 45 IDOR and cross-tenant integration files and `backend/tests/pg/` were not
-  executed**; they need embedded PostgreSQL. `tests/integration/test_rls_enforcement.py`
-  errors on collection for the same reason. **CI is the authority**, and its recorded state
-  at the audited commit is 46 of 46 check runs `success`.
-- **No claim is made that strict mode is safe to enable anywhere.** It is refused by design
-  until the readiness report is clean, and it has never been observed running.
+- **The application itself cannot boot in this environment.** `app/core/stats.py` line 25
+  declares `def percentile[Number: (float, Decimal)]`, which is Python 3.12 syntax, so on
+  3.11.2 anything that imports `app.main` or a module router dies at import with
+  `SyntaxError: expected '('`. That is the whole reason the HTTP-level suites were not
+  executed here: `tests/integration/test_tenant_isolation.py` fails during startup and
+  `tests/unit/test_idor_router_guards.py` reports 1192 failures against 715 passes, both
+  from that one file. Neither is a product result, and neither can be a regression from
+  this phase: `git diff --name-only HEAD` was empty while those runs were made, so the
+  selection ran against unmodified application code. **CI's `access-control` and
+  `backend-postgres` jobs on Python 3.12 are the authority for them**, and the 62-file
+  selection they run is spelled out in `.github/workflows/ci-postgres.yml`.
+- **Fourteen further runtime dependencies were not installed here** (pandas, pyarrow,
+  duckdb, opencv-python-headless, ezdxf, trimesh, pycollada, laspy, lazrs, boto3, celery,
+  pdfplumber, pypdf, pypdfium2), so suites importing them cannot collect locally either.
+  The RLS lane needs none of them, which is why it does run.
+- **No migration was executed and no backfill was measured against a populated database.**
+  The backfill observed above is a three-row probe table. Nothing here claims a migration
+  was tested against a production database, and Phase 02 added no migration.
+- **Strict mode is observed enforcing, refusing and rolling back, but only over probe
+  rows.** No claim is made that it is safe to enable on a real install: on a stock install
+  the readiness report refuses it for `tenant_is_user`, and clearing that is the
+  data-model change described above.
+- **The cluster observed is the embedded one, whose connecting role is the `postgres`
+  superuser.** A deployment that connects as a non-superuser application role exercises the
+  `GRANT "oe_app", "oe_system" TO CURRENT_USER` path in `_role_setup_statements`, which was
+  not observed here and is wrapped in an exception handler that swallows failure.
 
 ### Deployment prerequisites and rollback
 
@@ -262,15 +398,26 @@ Executed locally, for real, on Python 3.11.2 with pytest 8.4.2 and `--noconftest
 
 ### Remaining gaps
 
-1. **`tenant_is_user` blocks strict mode** on any install whose login issues no tenant
-   claim, because `resolve_tenant_id` falls back to `sub` and every user would become a
-   tenant of one, hiding colleagues' rows from each other. Fixing it is an authentication
-   change, not an RLS one. Until then `OE_RLS_STRICT=1` is refused with the blocker named,
-   which is the intended behaviour and not a failure.
+1. **`tenant_is_user` blocks strict mode**, and the investigation above established why it
+   cannot simply be switched off: no tenant claim is issued by any of the six token-minting
+   flows, `resolve_tenant_id` therefore always returns the user id, the `tenant_id` columns
+   store user ids by migration and by write site, and no organisation entity exists to
+   derive anything else from. Enforcing strict over that data would scope each user to their
+   own rows and hide colleagues from each other. The four-step prerequisite is listed under
+   "Tenant identity"; until step 1 exists `OE_RLS_STRICT=1` is refused with the blocker
+   named, which is the intended behaviour and not a failure.
 2. **A session that never resolved a tenant keeps the connecting role** — the cluster
-   superuser in a default install — and is therefore not policied at all. Agent runs and
-   scheduled jobs are exactly that case. Closing it means binding a tenant for background
-   work, which depends on gap 1.
+   superuser in a default install — and is therefore not policied at all. This is now
+   observed rather than read: on the real cluster a bound session ran as `oe_app` and read
+   two rows of four, and the next session, with the same `current_request_tenant()` answer
+   of `None`, ran as a superuser and read all four. The binding has exactly one call site in
+   the application, the global request dependency, which a unit test pins, so every path
+   outside a request is unpolicied by construction: the three agent run paths (which bind
+   `cost_scope.caller_scope` for cost visibility and no tenant), the scheduler, the event
+   bus, the job runner and the startup seeds. The listener names its own remedy — run
+   trusted system work under the `BYPASSRLS` role — and `oe_system` was observed reading
+   every row with a tenant bound. Closing the gap for agent runs means binding a tenant
+   there, which depends on gap 1, because the value available to bind today is a user id.
 3. **Coverage is still 29 `tenant_id` columns across 15 of 169 `models.py` files.** Phase 02
    added none, deliberately: a column nothing populates is a policy that hides rows from
    their owners.

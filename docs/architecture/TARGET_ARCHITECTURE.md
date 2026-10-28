@@ -283,6 +283,27 @@ owners. Six tables are explicitly *never* tenant-scoped — `oe_costs_item`,
 `oe_cost_item_resource` — and that exclusion list, not a `tenant_id IS NULL` escape, is how
 the platform defines a global record.
 
+**What a tenant actually is, verified in Phase 02.** The value in those columns is the
+owning *user's* id. No `tenant_id` claim is issued by any of the six token-minting flows, so
+`resolve_tenant_id` always falls through to `sub`; migration `v231_contact_tenant_id`
+backfilled `tenant_id = created_by` for that reason and says so; and there is no
+organisation entity to derive anything else from, because `User` carries no organisation
+reference and `LegalEntity` is a financial entity rather than a tenancy boundary. A strict
+policy over that data scopes each user to their own rows, which is right for a one-person
+install and wrong for a shared one, so the readiness report refuses it and names
+`tenant_is_user`. That refusal is the correct behaviour, not a defect to route around: the
+prerequisite is a tenancy entity with a membership relation from `User`, a `tenant_id` claim
+issued from it, and a backfill re-pointing the existing values. The evidence chain is in
+[ROADMAP_STATUS.md](./ROADMAP_STATUS.md#tenant-identity-what-the-investigation-found).
+
+Two further facts belong to the contract because they constrain any future policy. A
+transaction that never bound a tenant keeps the connecting role and is not policied at all,
+and the binding has exactly one call site, the global request dependency, so background work
+is unpolicied by construction; trusted system work that must see every row belongs under the
+`BYPASSRLS` role rather than under a widened policy. And bypassing is a property of the
+*role*, not of the session: `oe_system` reads every row with a tenant bound, while `oe_app`
+bound to the same tenant reads only its own.
+
 ### Database roles
 
 Three roles, and the connecting role is the one to watch:
@@ -311,6 +332,13 @@ the owner is bound too), and a `CREATE POLICY "oe_tenant_isolation"` guarded on
 - **strict** — `tenant_id::text = current_setting('app.current_tenant', true)`. No NULL arm,
   so an unowned row belongs to nobody, and an empty GUC matches nothing: an anonymous
   caller fails closed rather than widening to every row.
+
+Three consequences were observed on a real PostgreSQL 16 cluster and are part of the
+contract, not implementation detail: row-level security that is enabled with no policy at all
+denies every row, so a refused strict request must still install the permissive policy; the
+strict predicate also governs `WITH CHECK`, so a strict install refuses to *create* a row
+with no tenant and cannot grow the backlog it hides; and an unqualified `DELETE FROM t` is
+bounded by the policy exactly as a filtered one is.
 
 Strict is honoured only when the readiness report is clean; otherwise provisioning logs the
 refusal, reports `strict_refused`, and installs the permissive predicate, so asking for
