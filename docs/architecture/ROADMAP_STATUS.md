@@ -291,6 +291,54 @@ What PostgreSQL actually did:
 inside an explicit transaction, which is what lets provisioning create the roles in
 the same transaction that takes the advisory lock.
 
+### The CI run that carries this evidence
+
+Recorded because "the tests pass" is not checkable without naming where they
+passed, and because part of this is inference rather than observation and has to
+be labelled as such.
+
+At commit `4adcfd2`, which is the commit that carries these tests:
+
+| Workflow run | Result |
+|---|---|
+| CI (PostgreSQL) `40764424145` | `success`, 16 of 16 jobs, including `backend-postgres` and `Object ownership and cross-tenant access` |
+| Repo hygiene (both events) | `success` |
+| Authors Guard, Dependency Review, Secret scan (both events) | `success` |
+| CI `40764424102` | `failure`: 16 of 20 jobs `success`, 4 `cancelled` |
+| Check runs at that commit | 46 total, 42 `success`, 4 `cancelled` |
+
+The four cancelled jobs are all `macos-latest`: the three embedded-PostgreSQL
+Backend CI shards and Frontend CI. They never ran anything. Each has an empty
+runner name, **zero steps**, 21 minutes in the queue, and the annotation "The job
+was not acquired by Runner of type hosted even after multiple attempts" beside
+three notices that "jobs targeting macOS arm64 runners may experience longer
+queue times". Every Linux and Windows sibling in the same matrices succeeded, and
+the same pattern occurred earlier on this branch and resolved on its own, so this
+is runner capacity and not a result about the code. Both re-run endpoints refuse
+this token (`403 Resource not accessible by integration`), so it could not be
+retried from here; re-running those four jobs is an owner action.
+
+Which jobs executed the new tests, and why that is known rather than hoped:
+
+* `backend-postgres` runs `pytest tests/pg` with `OE_TEST_DB: pg` set at job
+  level. The lane skips only when that variable is absent, so the three new files
+  there ran rather than skipped.
+* `backend` runs `pytest tests/unit --splits 6` on Linux and `backend-cross-os`
+  runs the same directory `--splits 3` on Windows and macOS, so the new unit file
+  was collected on Linux and on Windows. The macOS shards are the cancelled ones.
+* All five files are in the tree at that commit, and a collection error makes
+  pytest exit non-zero, so a green step means they were collected and passed.
+
+What is inference: Actions job logs cannot be downloaded from this environment
+(the results blob host is outside its egress allowlist), so the per-test CI
+listing was never read. The claim above rests on the gate being set at job level,
+the files being present, and the steps concluding `success` - not on a log line
+naming each test. The behaviour itself was observed directly and locally, which
+is the stronger of the two: the cluster, the roles, the policies and the row
+counts in the table above were read from a running PostgreSQL 16.11, and the same
+files were separately confirmed to skip without `OE_TEST_DB=pg` and pass with it,
+so a green run cannot be a lane that never started.
+
 ### Tenant identity: what the investigation found
 
 `tenant_is_user` is not a defect in one login flow. It is the documented shape of
