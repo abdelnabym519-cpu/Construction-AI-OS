@@ -28,6 +28,12 @@ from app.core.demo_accounts import DEMO_ACCOUNT_EMAILS
 from app.core.email import get_email_service
 from app.core.events import event_bus
 from app.core.jwt_keys import decode_jwt, encode_jwt
+from app.core.tenant_scope import (
+    DEFAULT_ORGANIZATION_NAME,
+    DEFAULT_ORGANIZATION_SLUG,
+    MEMBERSHIP_ACTIVE,
+    TENANT_CLAIM,
+)
 
 _logger_ev = __import__("logging").getLogger(__name__ + ".events")
 
@@ -272,7 +278,9 @@ class UserService:
 
     # ── Sessions ───────────────────────────────────────────────────────
 
-    async def _issue_token_pair(self, user: User, *, sid: str | None = None) -> TokenResponse:
+    async def _issue_token_pair(
+        self, user: User, *, sid: str | None = None, organization_id: str | None = None
+    ) -> TokenResponse:
         """Mint an access/refresh pair belonging to one revocable session.
 
         The single place in this service that mints a pair. Every endpoint
@@ -282,17 +290,254 @@ class UserService:
         nobody can ever revoke, and it is invisible, because such a token
         works perfectly.
 
+        It is also why the tenant claim is added here and nowhere else. All six
+        flows that hand out tokens - login, demo login, desktop bootstrap, OIDC
+        login, refresh and password change - reach this method, so naming the
+        caller's organization in one place makes them behave identically by
+        construction rather than by six edits that could drift. A test reads this
+        file back and requires that those six are the complete set of callers.
+
         Passing ``sid`` rotates an existing session instead of opening a new
         one. That is what refresh does, and it is why refreshing does not
         multiply rows or escape a revocation: the new pair carries the same
-        name as the old, so the row that refuses one refuses the other.
+        name as the old, so the row that refuses one refuses the other. It is
+        also the recovery path for a credential issued before organizations
+        existed: the refresh token itself carries no tenant claim, and redeeming
+        one comes back through here, so the new access token names the
+        organization the caller has now.
+
+        ``organization_id`` is an explicit switch and is checked against the
+        caller's own active memberships.
         """
+        # Resolved before the session row is written. A refusal here must not
+        # leave behind the one thing ``_open_session`` exists to prevent: a
+        # session nobody can name, and therefore nobody can revoke.
+        tenant_id = await self._active_organization_id(user, requested=organization_id)
         sid = await self._open_session(user) if sid is None else await self._extend_session(sid, user)
         return TokenResponse(
-            access_token=create_access_token(user, self.settings, sid=sid),
+            access_token=create_access_token(user, self.settings, {TENANT_CLAIM: tenant_id}, sid=sid),
+            # The refresh token carries no tenant claim, deliberately. It is not a
+            # scoping credential, and freezing an organization into a 30-day
+            # credential would make a switch or a moved membership wait for it to
+            # expire. Redeeming it resolves the organization again, above.
             refresh_token=create_refresh_token(user, self.settings, sid=sid),
             expires_in=self.settings.jwt_expire_minutes * 60,
         )
+
+    async def _active_organization_id(self, user: User, *, requested: str | None = None) -> str:
+        """The organization this user's next token names.
+
+        This is the answer to "which tenant is the caller?" that
+        :func:`app.core.tenant_scope.resolve_tenant_id` used to fake by returning
+        the caller's own user id. It is resolved from the database at mint time
+        rather than carried in from the request, for the same reason ``role`` and
+        ``permissions`` are re-hydrated from the database on every request in
+        :func:`app.dependencies.get_current_user_payload`: a value somebody
+        asserts about themselves is not a value the system knows.
+
+        Resolution is the one ADR 005 specifies, and it is deterministic so that
+        an install with no ``is_default`` flag set, or with two, still always
+        produces the same answer: active memberships, the flagged one first, then
+        oldest, then by id. Note that ``created_at`` carries
+        ``server_default=now()``, which in PostgreSQL is the *transaction*
+        timestamp, so memberships written by one request tie on it and the id is
+        the effective tie-break. Deterministic is the property that matters: a
+        caller must not change tenant between two requests a second apart.
+
+        ``requested`` is an explicit switch. It is checked against the caller's
+        own active memberships and refused otherwise, because the alternative is a
+        token naming an organization the holder does not belong to, which is the
+        exact credential this claim exists to make unnecessary.
+
+        A user with no active membership still gets a tenant, because the flows
+        that reach here are the ones that create accounts: registration is
+        followed by a login, ``desktop_bootstrap`` provisions the owner, and OIDC
+        auto-creates on first sign-in. Refusing at this point does not ask anybody
+        a question, it just locks the account out. What the two shapes of install
+        get is different:
+
+        * one organization, or none. This is the single-company shape the boot
+          repair produces, so the answer is the one the repair would have given:
+          belong them to the install's organization, creating it if a fresh
+          database has none yet.
+        * several. Then which company this person belongs to is a fact nobody has
+          recorded, and joining one of the existing ones would put their data
+          inside a tenant they were never added to, which is the leak this claim
+          exists to prevent. They get an organization of their own instead: empty,
+          holding nobody else's rows, and one an administrator can move them out
+          of later. See :meth:`_create_organization_for`.
+
+        A caller whose memberships all exist but are none of them active is a third
+        shape, and it is refused rather than repaired. See the check below.
+        """
+        from app.modules.users.models import Membership, Organization
+
+        memberships = [
+            str(organization)
+            for organization in (
+                await self.session.execute(
+                    select(Membership.organization_id)
+                    .where(Membership.user_id == user.id, Membership.status == MEMBERSHIP_ACTIVE)
+                    .order_by(Membership.is_default.desc(), Membership.created_at, Membership.id)
+                )
+            ).scalars()
+        ]
+
+        if requested is not None:
+            if requested not in memberships:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Not an active member of that organization.",
+                )
+            return requested
+
+        if memberships:
+            return memberships[0]
+
+        # Memberships exist but not one of them is active. This is not the
+        # "belongs to no organization" case below and must not be answered the same
+        # way: joining the single organization, or minting a membership into it,
+        # would undo a suspension somebody made deliberately. It would not even
+        # report itself, because the unique pair makes the insert collide and
+        # :meth:`_create_membership` swallows that collision as the ordinary
+        # duplicate it usually is, leaving a token that names the organization the
+        # holder was removed from. Refusing keeps the suspension worth making.
+        #
+        # Reaching this branch takes a deliberate act today - nothing in the product
+        # writes a membership status other than ``active`` yet - so the refusal
+        # costs no existing flow anything, and it is the state Phase 02c's
+        # organization administration will need.
+        if (await self.session.scalar(select(Membership.id).where(Membership.user_id == user.id).limit(1))) is not None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Your membership of this organization is not active.",
+            )
+
+        organizations = [
+            str(organization)
+            for organization in (
+                await self.session.execute(select(Organization.id).order_by(Organization.created_at, Organization.id))
+            ).scalars()
+        ]
+        if len(organizations) > 1:
+            organization = await self._create_organization_for(user)
+        else:
+            organization = organizations[0] if organizations else await self._create_default_organization()
+        await self._create_membership(user, organization)
+        return organization
+
+    async def _create_default_organization(self) -> str:
+        """The install's one organization, created only if a fresh database has none.
+
+        The boot repair normally creates this long before anybody logs in. What
+        this covers is the ordering nobody can guarantee: a database built by
+        ``create_all`` and used before a repair pass has run, which is a shape
+        tests reach and a first run can.
+
+        Two logins racing here both find no row and both try to create one. The
+        slug is unique, so one of them wins and the loser reads the winner instead
+        of failing somebody's login over a race they cannot see. The savepoint is
+        what makes that recoverable: without it the failed insert would poison the
+        caller's whole transaction.
+        """
+        from sqlalchemy.exc import IntegrityError
+
+        from app.modules.users.models import Organization
+
+        existing = await self.session.scalar(
+            select(Organization.id).where(Organization.slug == DEFAULT_ORGANIZATION_SLUG)
+        )
+        if existing is not None:
+            return str(existing)
+
+        organization = Organization(
+            name=DEFAULT_ORGANIZATION_NAME,
+            slug=DEFAULT_ORGANIZATION_SLUG,
+            status="active",
+        )
+        try:
+            async with self.session.begin_nested():
+                self.session.add(organization)
+                await self.session.flush()
+        except IntegrityError:
+            winner = await self.session.scalar(
+                select(Organization.id).where(Organization.slug == DEFAULT_ORGANIZATION_SLUG)
+            )
+            if winner is None:
+                raise
+            return str(winner)
+        return str(organization.id)
+
+    async def _create_organization_for(self, user: User) -> str:
+        """An organization of the caller's own, for a caller no organization has.
+
+        Reached only where the install already has more than one organization, so
+        the single-company answer is unavailable and choosing an existing one would
+        be choosing a tenant for somebody else's data.
+
+        The slug is derived from the caller's id, which makes this idempotent per
+        caller and race-safe by the mechanism :meth:`_create_default_organization`
+        already relies on: a second concurrent login collides on the unique slug
+        and reads the winner instead of failing. Deriving it rather than generating
+        a random one is what stops a retried login from leaving a second empty
+        organization behind.
+        """
+        from sqlalchemy.exc import IntegrityError
+
+        from app.modules.users.models import Organization
+
+        slug = f"u-{user.id.hex}"[:64]
+        existing = await self.session.scalar(select(Organization.id).where(Organization.slug == slug))
+        if existing is not None:
+            return str(existing)
+
+        organization = Organization(
+            name=f"Workspace for {user.email}"[:255],
+            slug=slug,
+            # An organization's own lifecycle state. It reads like the membership
+            # constant and is not one: a suspended organization and a suspended
+            # membership are different facts about different rows.
+            status="active",
+        )
+        try:
+            async with self.session.begin_nested():
+                self.session.add(organization)
+                await self.session.flush()
+        except IntegrityError:
+            winner = await self.session.scalar(select(Organization.id).where(Organization.slug == slug))
+            if winner is None:
+                raise
+            return str(winner)
+        logger.info("User %s belonged to no organization in a multi-organization install; created %s", user.id, slug)
+        return str(organization.id)
+
+    async def _create_membership(self, user: User, organization_id: str) -> None:
+        """Belong a user to an organization, once.
+
+        The unique pair makes a concurrent duplicate impossible rather than merely
+        unlikely, so losing the race is nothing to report: the row that matters
+        exists either way.
+        """
+        from sqlalchemy.exc import IntegrityError
+
+        from app.modules.users.models import Membership
+
+        try:
+            async with self.session.begin_nested():
+                self.session.add(
+                    Membership(
+                        user_id=user.id,
+                        organization_id=organization_id,
+                        # Copied from the user's own role, so belonging to an
+                        # organization does not silently change what they may do.
+                        role=user.role,
+                        status=MEMBERSHIP_ACTIVE,
+                        is_default=True,
+                    )
+                )
+                await self.session.flush()
+        except IntegrityError:
+            logger.debug("Membership for user %s already exists; a concurrent login created it", user.id)
 
     async def _open_session(self, user: User) -> str:
         """Record a new session and return the ``sid`` its tokens will carry.
@@ -969,16 +1214,28 @@ class UserService:
                 )
                 self.session.add(user)
                 await self.session.flush()
+            else:
+                # No account matched the subject or the address and this install
+                # does not create one, so there is nothing to issue a token for.
+                #
+                # This branch used to sit one level down, as the ``else`` of the
+                # role sync below. The effect was that the condition tested was
+                # "your role already matches what the group map says" while the
+                # message claimed auto-creation was disabled, and a returning SSO
+                # user was refused a second sign-in on any install without
+                # ``OIDC_GROUP_ROLE_MAP`` configured - which is the default, and
+                # which is most of them. Found by the tenant-claim test for this
+                # flow, which signs the same subject in twice to check the
+                # organization it names does not move between requests.
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="No matching account found and auto-creation is disabled.",
+                )
         else:
             # Existing OIDC user - sync role from groups on every login
             if role_from_groups and user.role != role_from_groups:
                 user.role = role_from_groups
                 await self.session.flush()
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="No matching account found and auto-creation is disabled.",
-                )
 
         if not user.is_active:
             raise HTTPException(

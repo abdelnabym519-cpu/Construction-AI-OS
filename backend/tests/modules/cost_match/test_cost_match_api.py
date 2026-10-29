@@ -17,6 +17,8 @@ import uuid
 import pytest
 from httpx import AsyncClient
 
+from app.core.tenant_scope import TENANT_CLAIM
+
 BASE = "/api/v1/cost-match"
 
 WALL = "Reinforced concrete wall C30/37"
@@ -48,6 +50,18 @@ async def _create_run(
     return response.json()
 
 
+def _unverified_claims(token: str) -> dict:
+    """Claims of a token this test process just minted, read without verifying.
+
+    Verification is the door's job and is tested there. What these tests need is to
+    state what they minted, which is the same helper
+    ``tests/integration/test_one_session_can_be_revoked_alone.py`` uses.
+    """
+    from jose import jwt
+
+    return jwt.get_unverified_claims(token)
+
+
 async def _results(client: AsyncClient, header: dict[str, str], run_id: str, **params: object) -> dict:
     response = await client.get(f"{BASE}/runs/{run_id}/results", params=params, headers=header)
     assert response.status_code == 200, response.text
@@ -64,7 +78,7 @@ class TestHealth:
 
 class TestSubmitBatch:
     @pytest.mark.parametrize("submitted", ["omitted", "null", "forged"])
-    @pytest.mark.parametrize("claim", ["actor", "tenant", "non_uuid"])
+    @pytest.mark.parametrize("claim", ["tenant", "non_uuid"])
     async def test_run_tenant_comes_from_authenticated_scope(
         self, client, header, project_id, cost_base, monkeypatch, submitted, claim
     ):
@@ -82,9 +96,14 @@ class TestSubmitBatch:
         trusted = str(uuid.uuid4()) if claim == "tenant" else "external-tenant-key"
         async with async_session_factory() as session:
             user = await session.get(User, actor)
-            token = create_access_token(user, get_settings(), {} if claim == "actor" else {"tenant_id": trusted})
+            token = create_access_token(user, get_settings(), {TENANT_CLAIM: trusted})
         scoped_header = {"Authorization": f"Bearer {token}"}
-        expected = str(actor) if claim == "actor" else trusted if claim == "tenant" else None
+        # A claim that is not a UUID is dropped rather than stored: the router
+        # hands the tenant to ``_as_uuid`` before it reaches the row, so the run
+        # comes back with none. That expectation is unchanged by ADR 005 and stays
+        # here as the ``non_uuid`` case; what changed is that there is no longer a
+        # case where a missing claim answers with the caller's own id.
+        expected = trusted if claim == "tenant" else None
         published = []
         monkeypatch.setattr(
             event_bus,
@@ -105,6 +124,73 @@ class TestSubmitBatch:
         assert completed[0]["run_id"] == run["id"]
         assert completed[0]["tenant_id"] == expected
 
+    @pytest.mark.parametrize("submitted", ["omitted", "null", "forged"])
+    async def test_a_token_that_names_no_organization_is_refused(
+        self, client, header, project_id, cost_base, monkeypatch, submitted
+    ):
+        """No tenant claim means no run, whatever the body says.
+
+        This is the third case of the parametrization above, moved out and turned
+        round. It used to be ``claim="actor"``, which minted a token with no tenant
+        and asserted the run came back scoped to the caller's own user id - the
+        documented single-tenant fallback, where ``resolve_tenant_id`` answered
+        ``sub`` when the claim was missing. ADR 005 removes that fallback, because a
+        user id in a tenant column is what kept the ``tenant_is_user`` readiness
+        blocker raised no matter how carefully the rows were migrated.
+
+        The expectation is therefore a 401 and no row at all, rather than a row
+        owned by a person. It is a stronger assertion than the one it replaces: the
+        old case proved a scope was applied, this one proves the credential is not
+        accepted, nothing is written, and no event leaves the process - so a batch
+        submitted on a stale token cannot be matched against the wrong company's
+        cost base and then quietly forgotten.
+        """
+        from sqlalchemy import func, select
+
+        from app.config import get_settings
+        from app.database import async_session_factory
+        from app.modules.cost_match.models import MatchRun
+        from app.modules.cost_match.service import event_bus
+        from app.modules.users.models import User
+        from app.modules.users.service import create_access_token
+        from tests.modules.cost_match.conftest import TEST_REGION, TEST_SOURCE
+
+        me = await client.get("/api/v1/users/me", headers=header)
+        assert me.status_code == 200, me.text
+        actor = uuid.UUID(me.json()["id"])
+        async with async_session_factory() as session:
+            user = await session.get(User, actor)
+            token = create_access_token(user, get_settings())
+        assert TENANT_CLAIM not in _unverified_claims(token), "the fixture token was built with a tenant claim"
+
+        published = []
+        monkeypatch.setattr(event_bus, "publish_detached", lambda name, data, **kwargs: published.append((name, data)))
+        fields = {} if submitted == "omitted" else {"tenant_id": None if submitted == "null" else str(uuid.uuid4())}
+        async with async_session_factory() as session:
+            before = await session.scalar(select(func.count()).select_from(MatchRun))
+
+        response = await client.post(
+            f"{BASE}/runs/",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "project_id": project_id,
+                "name": f"Refused bill {uuid.uuid4().hex[:6]}",
+                "source_label": "Foreign subcontractor",
+                "source_locale": "en",
+                "cost_source": TEST_SOURCE,
+                "region": TEST_REGION,
+                "lines": [{"description": WALL, "unit": "m3", "quantity": "1"}],
+                **fields,
+            },
+        )
+
+        assert response.status_code == 401, response.text
+        assert response.headers.get("WWW-Authenticate") == "Bearer"
+        assert "no tenant" in response.json()["detail"].lower()
+        async with async_session_factory() as session:
+            assert await session.scalar(select(func.count()).select_from(MatchRun)) == before
+        assert published == [], "a refused request must not publish a match-completed event"
+
     async def test_tenant_attribution_does_not_grant_access_to_a_foreign_project(
         self, client, header, project_id, cost_base
     ):
@@ -116,7 +202,11 @@ class TestSubmitBatch:
         from app.modules.users.models import User
         from app.modules.users.service import create_access_token
 
-        owner = (await client.get("/api/v1/users/me", headers=header)).json()["id"]
+        # The value being forged is the owner's *tenant*, which since ADR 005 is
+        # their organization and not their user id. Reading it off the owner's own
+        # token keeps this an honest forgery: a body naming the company that owns
+        # the project, from a caller who does not belong to it.
+        owner = _unverified_claims(header["Authorization"].removeprefix("Bearer "))[TENANT_CLAIM]
         async with async_session_factory() as session:
             stranger = User(
                 email=f"cost-match-stranger-{uuid.uuid4().hex}@test.invalid",
