@@ -33,6 +33,7 @@ from app.core.tenant_scope import (
     DEFAULT_ORGANIZATION_SLUG,
     MEMBERSHIP_ACTIVE,
     TENANT_CLAIM,
+    active_organization_ids,
 )
 
 _logger_ev = __import__("logging").getLogger(__name__ + ".events")
@@ -372,16 +373,12 @@ class UserService:
         """
         from app.modules.users.models import Membership, Organization
 
-        memberships = [
-            str(organization)
-            for organization in (
-                await self.session.execute(
-                    select(Membership.organization_id)
-                    .where(Membership.user_id == user.id, Membership.status == MEMBERSHIP_ACTIVE)
-                    .order_by(Membership.is_default.desc(), Membership.created_at, Membership.id)
-                )
-            ).scalars()
-        ]
+        # The query itself lives in :mod:`app.core.tenant_scope`, because the
+        # background entry points that have no token to read a claim from have to
+        # answer the same question and must answer it the same way. Two copies of
+        # an ordering rule is how a caller ends up in a different company depending
+        # on who asked.
+        memberships = await active_organization_ids(self.session, user.id)
 
         if requested is not None:
             if requested not in memberships:

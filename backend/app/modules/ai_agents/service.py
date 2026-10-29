@@ -666,22 +666,39 @@ class AgentService:
         # cannot forge this - the runner strips any model-supplied
         # __agent_context__ and re-injects this dict). project_id is added only
         # when a project is in scope.
+        from app.core.rls import bound_tenant
+        from app.core.tenant_scope import active_organization_id
+
+        # No request is behind this call, so the tenant has to be resolved from the
+        # user the run acts as and bound here. See the router's run path for why
+        # ``None`` is bound rather than left unbound.
+        tenant_id = await active_organization_id(self.session, user_id)
+        if tenant_id is None:
+            logger.warning(
+                "Agent run %s runs as user %s, who belongs to no organization; "
+                "tenant-scoped rows will be invisible to it",
+                run_id,
+                user_id,
+            )
         context: dict[str, str] = {"user_id": str(user_id)}
+        if tenant_id is not None:
+            context["tenant_id"] = tenant_id
         if project_id:
             context["project_id"] = str(project_id)
 
         try:
-            result: AgentResult = await runner.run(
-                agent,
-                user_input,
-                context=context,
-                tool_registry=tool_registry,
-                # This is the path the scheduler and the event triggers use, so
-                # it has no HTTP request behind it: ``start_run`` resolves the
-                # agent's creator and runs as them, and the gate re-checks that
-                # user's permission and project access on every tool call.
-                authorizer=SessionToolAuthorizer(self.session),
-            )
+            async with bound_tenant(tenant_id):
+                result: AgentResult = await runner.run(
+                    agent,
+                    user_input,
+                    context=context,
+                    tool_registry=tool_registry,
+                    # This is the path the scheduler and the event triggers use, so
+                    # it has no HTTP request behind it: ``start_run`` resolves the
+                    # agent's creator and runs as them, and the gate re-checks that
+                    # user's permission and project access on every tool call.
+                    authorizer=SessionToolAuthorizer(self.session),
+                )
         except Exception as exc:  # pragma: no cover - defensive
             logger.exception("Agent run %s crashed", run_id)
             await self.run_repo.update_fields(

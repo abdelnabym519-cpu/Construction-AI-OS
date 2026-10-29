@@ -1693,6 +1693,8 @@ class AiEstimatorService:
         deterministic top-1 (index 0) when the agent flags-for-human or its
         answer references no real id - never invents.
         """
+        from app.core.rls import bound_tenant
+        from app.core.tenant_scope import active_organization_id
         from app.modules.ai_agents.tool_authorization import SessionToolAuthorizer
         from app.modules.ai_estimator.prompts import build_match_reasoning_input
 
@@ -1704,20 +1706,33 @@ class AiEstimatorService:
             unit=grp.chosen_unit or "",
             quantities_summary=quantities_summary,
         )
+        # The matcher reads the cost database on behalf of whoever started the run,
+        # and this is not a request: bind that user's organization so the reads are
+        # policied as theirs instead of running on the connecting superuser role,
+        # which is subject to no policy at all.
+        tenant_id = await active_organization_id(self.session, run.user_id)
+        context: dict[str, str] = {
+            "project_id": str(run.project_id),
+            "region": run.region or "",
+            "user_id": str(run.user_id),
+        }
+        if tenant_id is not None:
+            context["tenant_id"] = tenant_id
         try:
-            result = await runner.run(
-                agent,
-                user_input,
-                context={"project_id": str(run.project_id), "region": run.region or "", "user_id": str(run.user_id)},
-                # The matcher's tools read the cost database on behalf of the
-                # user who started the run, so the gate checks that user holds
-                # ``costs.read`` and can see this project on every call. A denial
-                # is not an exception on this path: it arrives as an observation,
-                # the model then cannot name a real candidate id, and this method
-                # already degrades to the deterministic top-1 rather than
-                # inventing one.
-                authorizer=SessionToolAuthorizer(self.session),
-            )
+            async with bound_tenant(tenant_id):
+                result = await runner.run(
+                    agent,
+                    user_input,
+                    context=context,
+                    # The matcher's tools read the cost database on behalf of the
+                    # user who started the run, so the gate checks that user holds
+                    # ``costs.read`` and can see this project on every call. A denial
+                    # is not an exception on this path: it arrives as an observation,
+                    # the model then cannot name a real candidate id, and this method
+                    # already degrades to the deterministic top-1 rather than
+                    # inventing one.
+                    authorizer=SessionToolAuthorizer(self.session),
+                )
         except Exception as exc:  # noqa: BLE001 - degrade to deterministic top-1
             logger.warning("ai_estimator agent pick failed for %s: %s", grp.group_key, exc)
             await self._log(run.id, "matching", "observation", {"agent_error": str(exc)[:200]})

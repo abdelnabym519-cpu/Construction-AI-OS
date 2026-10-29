@@ -23,7 +23,7 @@ and behave completely differently in the database, which is why the tests assert
 on ``current_user`` and row counts rather than on the reader.
 
 The *shape* of the gap is pinned beside the always-on unit lane rather than here,
-in ``test_the_rls_tenant_binding_has_one_call_site_so_background_work_is_unpolicied``:
+in ``test_which_paths_bind_a_tenant_and_which_still_do_not``:
 the binding has exactly one call site in the whole application, the global request
 dependency, so every path that opens a session outside a request is unpolicied by
 construction. That needs no database, and it should fail in every lane and not

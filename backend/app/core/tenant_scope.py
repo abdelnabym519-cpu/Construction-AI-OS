@@ -85,6 +85,7 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING, Any
+from uuid import UUID
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -167,6 +168,57 @@ def resolve_tenant_id(payload: dict[str, Any] | None) -> str | None:
 # / ``app.database`` import and thus pure-importable. It delegates to
 # :func:`resolve_tenant_id` above, and refuses a claimless access token before
 # any handler runs.
+
+
+async def active_organization_ids(session: AsyncSession, user_id: str | UUID) -> list[str]:
+    """Every organization a caller is an active member of, in the order that decides.
+
+    The order is the one ADR 005 specifies and the one the token mint uses: the
+    flagged default first, then oldest, then by id. ``created_at`` carries
+    ``server_default=now()``, which in PostgreSQL is the transaction timestamp, so
+    memberships written by one request tie on it and the id is the effective
+    tie-break. Determinism is the property that matters, because a caller must not
+    change tenant between two requests a second apart.
+
+    This is the only place that order is written down. Both the mint and the
+    background entry points call it, so a change to the rule changes every answer
+    at once rather than leaving a second copy to drift.
+
+    Read-only on purpose: it answers who a caller belongs to and never creates
+    anything. Deciding what to do when the answer is empty is the caller's policy,
+    and the two callers legitimately differ - a login creates an organization
+    because refusing would lock out a registration, while a background run has
+    nobody to ask and must fail closed instead.
+    """
+    from sqlalchemy import select
+
+    from app.modules.users.models import Membership
+
+    try:
+        identifier = user_id if isinstance(user_id, UUID) else UUID(str(user_id))
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"active_organization_ids needs a user id, got {user_id!r}") from exc
+    rows = (
+        await session.execute(
+            select(Membership.organization_id)
+            .where(Membership.user_id == identifier, Membership.status == MEMBERSHIP_ACTIVE)
+            .order_by(Membership.is_default.desc(), Membership.created_at, Membership.id)
+        )
+    ).scalars()
+    return [str(organization) for organization in rows]
+
+
+async def active_organization_id(session: AsyncSession, user_id: str | UUID) -> str | None:
+    """The organization this caller's work belongs to, or ``None`` if they have none.
+
+    What a background entry point needs: it has a user and no token, so the claim
+    that would have answered the question at the door does not exist and the answer
+    has to come from the same membership rows instead. ``None`` is a real answer and
+    not an error, and callers must treat it as the fail-closed case rather than
+    falling back to the user id, which is the confusion ADR 005 removes.
+    """
+    organizations = await active_organization_ids(session, user_id)
+    return organizations[0] if organizations else None
 
 
 async def tenant_scope_owner(

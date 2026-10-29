@@ -853,20 +853,45 @@ async def _run_in_background_as_user(
             # LLM cannot forge this - the runner strips any model-supplied
             # __agent_context__ and re-injects this dict). project_id is added
             # only when a project is in scope.
+            from app.core.rls import bound_tenant
+            from app.core.tenant_scope import active_organization_id
+
+            # The request that started this run is over, so nothing is bound for
+            # it and the session would keep the connecting superuser role, which
+            # bypasses every policy. Bind the initiating user's organization
+            # explicitly instead, and hand tools the same value through the
+            # trusted context the runner re-injects on every call and strips of
+            # anything the model supplied.
+            #
+            # ``None`` is bound rather than skipped when the user belongs to no
+            # organization. An empty tenant matches no rows, which is a run that
+            # finds nothing; not binding matches every company's rows, which is a
+            # leak. Only the first of those is safe to be wrong about.
+            tenant_id = await active_organization_id(bg_session, user_id)
+            if tenant_id is None:
+                logger.warning(
+                    "Agent run %s was started by user %s, who belongs to no organization; "
+                    "tenant-scoped rows will be invisible to it",
+                    run_id,
+                    user_id,
+                )
             context: dict[str, str] = {"user_id": str(user_id)}
+            if tenant_id is not None:
+                context["tenant_id"] = tenant_id
             if project_id:
                 context["project_id"] = str(project_id)
-            result = await runner.run(
-                target,
-                user_input,
-                context=context,
-                # The gate re-checks permission and project access on every tool
-                # call, against the invoking user and this background session.
-                # The HTTP-level ``RequirePermission`` only proved the caller
-                # could *start* the run, and a run can outlive the request that
-                # started it.
-                authorizer=SessionToolAuthorizer(bg_session),
-            )
+            async with bound_tenant(tenant_id):
+                result = await runner.run(
+                    target,
+                    user_input,
+                    context=context,
+                    # The gate re-checks permission and project access on every tool
+                    # call, against the invoking user and this background session.
+                    # The HTTP-level ``RequirePermission`` only proved the caller
+                    # could *start* the run, and a run can outlive the request that
+                    # started it.
+                    authorizer=SessionToolAuthorizer(bg_session),
+                )
 
             await service.run_repo.update_fields(
                 run_id,
