@@ -1,6 +1,6 @@
 # 005. The organization is the tenant
 
-Status: Proposed
+Status: Accepted
 Date: 2026-10-29
 
 ## Context

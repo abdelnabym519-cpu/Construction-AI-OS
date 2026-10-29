@@ -283,23 +283,55 @@ owners. Six tables are explicitly *never* tenant-scoped — `oe_costs_item`,
 `oe_cost_item_resource` — and that exclusion list, not a `tenant_id IS NULL` escape, is how
 the platform defines a global record.
 
-**What a tenant actually is, verified in Phase 02.** The value in those columns is the
-owning *user's* id. No `tenant_id` claim is issued by any of the six token-minting flows, so
-`resolve_tenant_id` always falls through to `sub`; migration `v231_contact_tenant_id`
-backfilled `tenant_id = created_by` for that reason and says so; and there is no
-organisation entity to derive anything else from, because `User` carries no organisation
-reference and `LegalEntity` is a financial entity rather than a tenancy boundary. A strict
-policy over that data scopes each user to their own rows, which is right for a one-person
-install and wrong for a shared one, so the readiness report refuses it and names
-`tenant_is_user`. That refusal is the correct behaviour, not a defect to route around: the
-prerequisite is a tenancy entity with a membership relation from `User`, a `tenant_id` claim
-issued from it, and a backfill re-pointing the existing values. The evidence chain is in
-[ROADMAP_STATUS.md](./ROADMAP_STATUS.md#tenant-identity-what-the-investigation-found).
+**What a tenant actually is.** *Verified in Phase 02, and changed by Phase 02b.* What Phase 02
+found is still true of the data that predates it: the value in those columns was the owning
+*user's* id, no `tenant_id` claim was issued by any of the six token-minting flows, so
+`resolve_tenant_id` always fell through to `sub`, migration `v231_contact_tenant_id`
+backfilled `tenant_id = created_by` for that reason and says so, and no organisation entity
+existed to derive anything else from, because `User` carried no organisation reference and
+`LegalEntity` is a financial entity rather than a tenancy boundary. A strict policy over that
+data scoped each user to their own rows, which is right for a one-person install and wrong for
+a shared one, so the readiness report refused it and named `tenant_is_user`.
+
+Phase 02b built the prerequisite that refusal was pointing at, and [ADR
+005](../adr/005-organization-is-the-tenant.md) records the decision: **a tenant is an
+`Organization`, and a person is a `Membership` of one.** The contract is now:
+
+* `oe_users_organization` and `oe_users_membership` exist, with `oe_projects_project`
+  carrying an `organization_id` that is `SET NULL` on delete, because a project outlives the
+  company record that named it and orphaning it is recoverable while deleting it is not.
+* Every access token carries a `tenant_id` claim naming the member's active organization,
+  minted through one code path shared by all six flows. A token without the claim is refused
+  with 401 and `WWW-Authenticate: Bearer`; it never degrades to the subject. The refresh
+  token deliberately carries no claim, because it is not a credential for data.
+* `resolve_tenant_id` returns the claim or `None`. There is no fall-through to `sub`, so a
+  person's id is never a tenant. `tenant_scope_owner` given `None` filters to nothing rather
+  than to everything, which is the only one of the two answers that is safe to be wrong about.
+* Existing installs are migrated by a boot-time data repair rather than by the alembic
+  revision, because this product does not run `alembic upgrade`: it creates the schema and
+  stamps the head. The repair adopts or creates one default organization, gives every user an
+  active membership, re-points every user-id tenant at that organization, records each
+  overwrite in `oe_users_tenant_backfill` before writing it, and links projects. It is
+  idempotent and it never invents an owner for a row it cannot attribute: those stay `NULL`
+  and stay visible to the readiness report, which is why `OE_RLS_STRICT=1` is still refused
+  until somebody who knows answers for them.
+
+The evidence chain for the Phase 02 finding is in
+[ROADMAP_STATUS.md](./ROADMAP_STATUS.md#tenant-identity-what-the-investigation-found), and for
+the Phase 02b change in
+[ROADMAP_STATUS.md](./ROADMAP_STATUS.md#phase-02b-delivered).
 
 Two further facts belong to the contract because they constrain any future policy. A
-transaction that never bound a tenant keeps the connecting role and is not policied at all,
-and the binding has exactly one call site, the global request dependency, so background work
-is unpolicied by construction; trusted system work that must see every row belongs under the
+transaction that never bound a tenant keeps the connecting role and is not policied at all.
+There are now two binders rather than one: the global request dependency, which reads the
+tenant off the caller's token, and `app.core.rls.bound_tenant`, a context manager for work
+that has no request to inherit from. The three agent run paths use the second one, resolving
+the organization of whoever started the run through the same membership rows the mint uses
+and passing it in explicitly; a run whose initiator belongs to no organization binds `None`,
+which stamps an empty `app.current_tenant` and so sees no tenant rows rather than every
+company's. Everything else that starts work outside a request is still unpolicied, and is
+listed in [Phase 02b delivered](./ROADMAP_STATUS.md#phase-02c-the-background-paths-that-still-bind-nothing);
+trusted system work that must see every row belongs under the
 `BYPASSRLS` role rather than under a widened policy. And bypassing is a property of the
 *role*, not of the session: `oe_system` reads every row with a tenant bound, while `oe_app`
 bound to the same tenant reads only its own.

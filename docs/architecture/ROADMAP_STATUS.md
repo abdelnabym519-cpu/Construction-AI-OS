@@ -21,6 +21,7 @@ code. That dangling reference is left alone here, because a path matching
 |---|---|---|
 | **01 — Foundation Audit** | Verify the live state, audit repository, architecture, capabilities and security, classify every capability, write these three documents | **Complete.** Documentation only. No code, dependency, schema, configuration or workflow change |
 | **02 — ERP Hardening** | Close the control gaps that must be closed before automated agents touch data | **In progress.** Scope items 1 and 2 — the RLS strict predicate behind a readiness gate, and the central agent authorization gate — are implemented and tested, and item 1's database behaviour is now observed on a real PostgreSQL cluster; items 3 to 11 are not started. See [Phase 02 delivered](#phase-02-delivered) |
+| **02b — Tenancy foundation** | Make a tenant a company rather than a person: `Organization` and `Membership`, a `tenant_id` claim on every access token, no fall-through to `sub`, a backfill for existing installs, and a tenant binding for work that has no request | **Delivered, with a listed remainder.** The blocker Phase 02 named, `tenant_is_user`, is cleared by the data model rather than by weakening the check, and the strict gate is observed opening and closing on a populated database. The agent run paths are bound; six other background paths are not, and are listed for 02c. See [Phase 02b delivered](#phase-02b-delivered) |
 | **03 — Intelligence Core foundations** | Versioned domain contract, ontology, graph and evidence projections, governed tool platform | Not started |
 | **04 — Reasoning** | Cross-domain dependency, impact and quantitative risk engines | Not started |
 | **05 — Interaction** | Unified simulation, ranked decision support, proactive detection, multimodal ingestion, voice | Not started |
@@ -246,6 +247,15 @@ it and pass with it, so a green run cannot be a collection that never happened.
 | `tests/pg/test_rls_ws_handshake.py` (existing) | 10 passed |
 | `tests/integration/test_rls_enforcement.py` (existing, previously unrunnable here) | 11 passed |
 | `tests/unit/test_the_rls_tenant_binding_has_one_call_site_so_background_work_is_unpolicied.py` (new) | 3 passed |
+
+*Corrected by Phase 02b:* that file is now
+`tests/unit/test_which_paths_bind_a_tenant_and_which_still_do_not.py`. Its name asserted an
+invariant - one call site - which was true when it was written and which Phase 02b changed on
+purpose, so keeping the name would have kept a false claim in the tree and keeping the
+assertion would have failed for exactly the reason it was written to detect. The pin survives,
+corrected: which paths bind a tenant, which still do not, and that the ones that still do not
+are the 02c list rather than an oversight nobody wrote down. The count in the row above is the
+count at the time it ran, and is left as it was.
 | the three Phase 02 unit suites | 50 passed |
 
 Fifty-one of those ran in the PostgreSQL lane in a single session, and the eleven in
@@ -446,26 +456,37 @@ returned in the provisioning stats and visible in the readiness response.
 
 ### Remaining gaps
 
-1. **`tenant_is_user` blocks strict mode**, and the investigation above established why it
-   cannot simply be switched off: no tenant claim is issued by any of the six token-minting
-   flows, `resolve_tenant_id` therefore always returns the user id, the `tenant_id` columns
-   store user ids by migration and by write site, and no organisation entity exists to
-   derive anything else from. Enforcing strict over that data would scope each user to their
-   own rows and hide colleagues from each other. The four-step prerequisite is listed under
-   "Tenant identity"; until step 1 exists `OE_RLS_STRICT=1` is refused with the blocker
-   named, which is the intended behaviour and not a failure.
+1. **`tenant_is_user` blocked strict mode. Closed by Phase 02b**, and the investigation above
+   is left standing because it is what established why the blocker could not simply be switched
+   off: no tenant claim was issued by any of the six token-minting flows, `resolve_tenant_id`
+   therefore always returned the user id, the `tenant_id` columns stored user ids by migration
+   and by write site, and no organisation entity existed to derive anything else from.
+   Enforcing strict over that data would have scoped each user to their own rows and hidden
+   colleagues from each other. The four-step prerequisite listed under "Tenant identity" is
+   what Phase 02b built, in that order: the tenancy entity and its membership relation, the
+   claim issued from it, the backfill re-pointing the existing values, and then the check
+   itself - unchanged. `rls_readiness_report` still refuses strict mode for the same reasons it
+   always did; what changed is the data. Measured on a populated database in
+   `tests/pg/test_tenancy_backfill_on_a_populated_database.py`: the blocker is raised before
+   the repair, gone after it, and the gate still stays shut while a row nobody can account for
+   remains `NULL`, then opens when that row is attributed explicitly and closes again when
+   another such row appears.
 2. **A session that never resolved a tenant keeps the connecting role** — the cluster
    superuser in a default install — and is therefore not policied at all. This is now
    observed rather than read: on the real cluster a bound session ran as `oe_app` and read
    two rows of four, and the next session, with the same `current_request_tenant()` answer
-   of `None`, ran as a superuser and read all four. The binding has exactly one call site in
-   the application, the global request dependency, which a unit test pins, so every path
-   outside a request is unpolicied by construction: the three agent run paths (which bind
-   `cost_scope.caller_scope` for cost visibility and no tenant), the scheduler, the event
-   bus, the job runner and the startup seeds. The listener names its own remedy — run
-   trusted system work under the `BYPASSRLS` role — and `oe_system` was observed reading
-   every row with a tenant bound. Closing the gap for agent runs means binding a tenant
-   there, which depends on gap 1, because the value available to bind today is a user id.
+   of `None`, ran as a superuser and read all four. *Narrowed by Phase 02b, not closed.* There
+   are now two binders: the global request dependency, and `app.core.rls.bound_tenant` for work
+   with no request to inherit from. The three agent run paths use the second one, resolving the
+   organization of whoever started the run through the same membership rows the mint uses and
+   passing it explicitly, so a run and the login that would have started it agree. A run whose
+   initiator belongs to no organization binds `None` rather than binding nothing: `None` stamps
+   an empty `app.current_tenant`, which a fail-closed policy matches no row against, so such a
+   run sees no tenant rows instead of every company's. What is still unpolicied by construction
+   is everything else that starts work outside a request, and it is listed with its call sites
+   under [Phase 02c](#phase-02c-the-background-paths-that-still-bind-nothing). The listener
+   names its own remedy — run trusted system work under the `BYPASSRLS` role — and `oe_system`
+   was observed reading every row with a tenant bound.
 3. **Coverage is still 29 `tenant_id` columns across 15 of 169 `models.py` files.** Phase 02
    added none, deliberately: a column nothing populates is a policy that hides rows from
    their owners.
@@ -481,6 +502,84 @@ returned in the provisioning stats and visible in the readiness response.
    platform's audit facility and the gate does not use it; the refusal is persisted on the
    run's own step record, which is queryable per run but is not an audit row. Whether a
    denied tool call belongs in `ActivityLog` is a decision for whoever owns that schema.
+
+## Phase 02b delivered
+
+Phase 02b is the tenancy foundation Phase 02's readiness gate was refusing to proceed without.
+It answers one question - what is a tenant - and then makes every credential, every write site
+and every background run agree with the answer.
+
+### The decision
+
+[ADR 005](../adr/005-organization-is-the-tenant.md), accepted. A tenant is an `Organization`; a
+person is a `Membership` of one; the active organization is chosen when the token is minted, by
+flagged default first, then oldest, then smallest id, so a caller cannot change tenant between
+two requests a second apart. `oe_projects_project` gains an `organization_id` that is `SET NULL`
+on delete, because a project outlives the company record that named it and orphaning it is
+recoverable while deleting it is not. The tenant stays a `varchar(36)` holding a UUID text,
+which is what every existing `tenant_id` column already is, so no column type anywhere had to
+change.
+
+### What changed
+
+| Area | Change |
+|---|---|
+| Schema | `oe_users_organization`, `oe_users_membership`, `oe_users_tenant_backfill` (the ledger), `oe_projects_project.organization_id`. Alembic revision `v3325_organization_tenancy`, inspector-guarded and reversible: the downgrade replays the ledger before dropping anything |
+| Existing installs | A boot-time data repair, `users_tenant_organization_backfill`, because this product does not run `alembic upgrade`: it creates the schema and stamps the head. It adopts or creates one default organization, gives every user an active membership, re-points every user-id tenant, records each overwrite in the ledger before writing it, links projects, and is idempotent |
+| Tokens | `_issue_token_pair` resolves the organization once and passes `tenant_id` through the existing `extra_claims` path, so all six flows - login, demo login, desktop bootstrap, OIDC login, refresh, password change - behave identically because they share one code path. The refresh token carries no claim: it is not a credential for data |
+| The door | `reject_token_without_a_tenant` refuses an access token with no claim, 401 plus `WWW-Authenticate: Bearer`, telling the caller to refresh or sign in again. `resolve_tenant_id` returns the claim or `None`, with no fall-through to `sub`, and `tenant_scope_owner` given `None` filters to nothing rather than to everything |
+| Readiness | `tenant_is_user` clears because the data changed, not because the check did. `rls_readiness_report` is untouched |
+| Write and read sites | Seven places wrote a person's id into a tenant column or compared a tenant column to one. Five are corrected - contacts, subcontractors, tendering, finance open-items import, and the contacts scope filter. Two are seeds, listed below |
+| Background work | `app.core.rls.bound_tenant`, and the three agent run paths use it, resolving the initiator's organization through the same membership rows the mint uses |
+
+### Where the evidence contradicted the plan
+
+The plan assumed a migration would carry the backfill, and this product does not run
+migrations: it creates the schema and stamps the head, so a backfill inside the revision would
+never have executed on any real install. It became a boot repair instead, and the revision
+stays DDL-only. The plan also did not mention write sites, and there were seven; did not mention
+that `_is_admin` looked a tenant id up as a user id; did not mention that `finance`'s open-items
+import filtered contacts by `tenant_id == owner OR (tenant_id IS NULL AND created_by == owner)`,
+which matches zero contacts after a backfill and was hidden by admin callers; assumed all six
+token flows worked, when `oidc_login`'s auto-creation-disabled refusal was attached to the role
+sync rather than to the missing account, so every returning SSO user was refused on an install
+with no `OIDC_GROUP_ROLE_MAP`; and assumed a populated install could reach `ready_for_strict`
+after a backfill, which it cannot while a row nobody can account for stays `NULL`. ADR 005's
+consequences section carries the full list, including the fixtures that had been relying on a
+person being a tenant and therefore never actually built two of them.
+
+### Phase 02c: the background paths that still bind nothing
+
+Named here rather than implemented, because each one needs a decision this phase does not have
+the evidence to make: whose tenant is a scheduled run, and is a startup seed writing to one
+company or to the install. `tests/unit/test_which_paths_bind_a_tenant_and_which_still_do_not.py`
+asserts that these paths still bind nothing, so closing one has to be a deliberate change that
+moves it to the bound list.
+
+| File | Call site | Required binding or role | Risk while it is open |
+|---|---|---|---|
+| `app/modules/dashboards/router.py` | `_tenant_id_from_payload` at :1640, used by eight routes (:174, :218, :266, :344, :423, :446, :468, :508) | Delegate to `app.core.tenant_scope.resolve_tenant_id` and delete the local copy | Highest of the six. This is a second tenant resolver with its own fall-through to `sub`, so eight dashboards routes bypass both the door's refusal and the no-fallback rule. Its docstring still reads "for the single-tenant shape we ship today, `tenant_id` equals the user id" |
+| `app/modules/pointcloud/seed.py` | :346, `tenant_id = owner_id` | Write the owner's organization id, or seed under an explicit install-level tenant | Seeds rows no token can name. On a demo install the seeded point clouds become invisible to the very users the seed ran for, once the claim is required |
+| `app/modules/value/seed.py` | :272, `tenant_id=owner_id` | The same | The same, for the value-engineering time factors |
+| `app/modules/ai_agents/scheduler.py` | :116, inside `with cost_scope.caller_scope(agent_user_id)` | Bind the schedule owner's active organization with `bound_tenant`, or run install-wide work under `oe_system` | A scheduled run keeps the connecting superuser and is not policied at all, so it can read every company's rows |
+| `app/modules/ai_agents/events.py` | :140, inside `with cost_scope.caller_scope(agent_user_id)` | Bind the originating user's organization | The same, for event-triggered runs |
+| `app/core/job_runner.py` | `_default_session_factory` at :86, which is where a job's session comes from | Bind per job from the job's owner, or run under `oe_system` for platform work | The same, for every queued job |
+| `app/modules/property_dev/service.py` | :3562, `resolved_tenant = tenant_id if tenant_id is not None else str(data.tenant_id)` | Confirm the tenant in use is the caller's and never one supplied in the request body | A tenant taken from a payload body would be caller-chosen, which is the one shape of this bug that is an authorization hole rather than a visibility one |
+
+### What was not verified locally, and why
+
+This sandbox had to build its own CPython 3.12 from source, because the image ships 3.11 and
+`app/core/stats.py` uses PEP 695 syntax that 3.11 cannot parse. That interpreter has no
+`_ctypes`: the image has `libffi.so.8` but no `ffi.h`, and generating one needs autotools the
+image does not have. The consequence is specific and worth recording rather than papering over.
+The module loader skips `oe_dashboards` when its import chain fails, so no dashboards route is
+mounted, and `tests/integration/test_tenant_isolation.py::test_tenant_b_cannot_delete_tenant_a_snapshot`
+fails locally on the assertion that tenant A can still read its own snapshot: the GET returns
+FastAPI's bare `{"detail": "Not Found"}`, which is a missing route and not a missing row. Every
+other dashboards assertion in that file accepts 403 or 404 and so passes without proving
+anything. A route census on `create_app()` reports zero dashboards routes, which is the
+evidence for the diagnosis. On a runner with a normal CPython the module mounts and the test
+exercises the real refusal.
 
 ## Blockers and limitations
 
