@@ -438,22 +438,47 @@ async def test_the_default_organization_wins_over_a_second_membership(session) -
 async def test_an_install_with_no_default_answers_the_same_way_twice(session) -> None:
     """Determinism where nothing flags a default, which is the shape a backfill leaves.
 
-    The documented order is default first, then oldest, then by id. Memberships
-    written by one request tie on ``created_at``, because PostgreSQL's ``now()`` is
-    the transaction timestamp, so the id is what decides. The property under test is
-    not which id wins but that the answer does not move: a caller must not change
-    tenant between two logins a second apart, or every row they wrote in between
-    would belong to a company they cannot see any more.
+    The documented order is default first, then oldest, then by id. ``created_at`` on
+    this model is a Python-side default rather than a database one, so two memberships
+    written one after the other do not tie on it and the older wins outright; the id is
+    the tie-break for rows that do tie. An earlier version of this test asserted
+    ``min(first, second)``, which is not the rule but a guess about clock resolution,
+    and it failed as soon as the two inserts landed a microsecond apart.
+
+    So the expected answer is computed here from the stored rows, in Python, in the
+    documented order, independently of the SQL the resolver runs. The property under
+    test is that two logins agree with it and with each other: a caller must not change
+    tenant between two logins a second apart, or every row they wrote in between would
+    belong to a company they cannot see any more.
     """
+    from sqlalchemy import select
+
+    from app.core.tenant_scope import MEMBERSHIP_ACTIVE
+    from app.modules.users.models import Membership
+
     user = await _make_user(session)
     first = await membership_in(session, user)
     second = await membership_in(session, user)
-    winner = min(first, second)
+
+    stored = (
+        await session.execute(
+            select(Membership.organization_id, Membership.created_at, Membership.id).where(
+                Membership.user_id == user.id,
+                Membership.status == MEMBERSHIP_ACTIVE,
+            )
+        )
+    ).all()
+    assert len(stored) == 2, stored
+    # default first (none flagged here), then oldest, then smallest id. The id is
+    # compared as text because that is how the column stores it, so this agrees with
+    # the database's own ordering rather than with Python's idea of a UUID.
+    expected = str(min(stored, key=lambda row: (row.created_at, str(row.id))).organization_id)
+    assert expected in {first, second}
 
     one = _claims((await _service(session).login(_form(user.email))).access_token)["tenant_id"]
     two = _claims((await _service(session).login(_form(user.email))).access_token)["tenant_id"]
 
-    assert one == two == winner
+    assert one == two == expected
 
 
 @pytest.mark.asyncio

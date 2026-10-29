@@ -293,17 +293,16 @@ async def test_a_member_of_two_organizations_sees_only_the_one_their_token_names
 
     # Move the default and the same caller's next token names the other company. The
     # rows they can see move with it, which is the whole content of "active".
-    async def _membership_of(org: str) -> Membership:
-        async with two_orgs.factory() as session:
-            return await session.scalar_one(
-                select(Membership)
-                .where(Membership.user_id == two_orgs.people["dual"])
-                .where(Membership.organization_id == uuid.UUID(org))
-            )
-
     async with two_orgs.factory() as session:
-        (await _membership_of(two_orgs.alpha)).is_default = False
-        (await _membership_of(two_orgs.beta)).is_default = True
+        for org, flag in ((two_orgs.alpha, False), (two_orgs.beta, True)):
+            row = (
+                await session.execute(
+                    select(Membership)
+                    .where(Membership.user_id == two_orgs.people["dual"])
+                    .where(Membership.organization_id == uuid.UUID(org))
+                )
+            ).scalar_one()
+            row.is_default = flag
         await session.commit()
 
     assert await _names(two_orgs, "dual") == two_orgs.beta
@@ -325,11 +324,13 @@ async def test_a_suspended_membership_names_no_organization_and_so_sees_nothing(
     from app.modules.users.models import Membership
 
     async with two_orgs.factory() as session:
-        row = await session.scalar_one(
-            select(Membership)
-            .where(Membership.user_id == two_orgs.people["a1"])
-            .where(Membership.organization_id == uuid.UUID(two_orgs.alpha))
-        )
+        row = (
+            await session.execute(
+                select(Membership)
+                .where(Membership.user_id == two_orgs.people["a1"])
+                .where(Membership.organization_id == uuid.UUID(two_orgs.alpha))
+            )
+        ).scalar_one()
         row.status = "suspended"
         await session.commit()
 
