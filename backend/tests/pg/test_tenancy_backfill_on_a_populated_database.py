@@ -734,3 +734,82 @@ async def test_the_role_observing_all_of_this_is_recorded(pg_session) -> None:  
     assert facts["current_user"], facts
     assert facts["current_user"] == facts["session_user"], f"the repair ran under a role switch: {facts}"
     assert isinstance(facts["rolsuper"], bool), facts
+
+
+def _codes(report: dict[str, object]) -> list[str]:
+    """The blocker codes in a readiness report, in the order the report gives them."""
+    return [str(blocker["code"]) for blocker in report["blockers"]]  # type: ignore[union-attr,index]
+
+
+async def test_the_strict_gate_opens_only_when_the_data_proves_ownership(pg_session) -> None:  # noqa: ANN001
+    """Readiness measured across the repair, on a populated install.
+
+    Phase 02 could not clear ``tenant_is_user`` without weakening the check, because
+    on a populated install the tenant columns really did hold people. This measures
+    the two halves of the answer Phase 02b gives instead: the backfill re-points every
+    person-shaped tenant at an organization, which is what makes the data prove
+    ownership, and the gate stays shut for as long as it honestly must.
+
+    ``apply_rls`` is deliberately not called here. ``CREATE ROLE`` is not
+    transactional and this session is rolled back when the test ends, so the
+    enable/refuse/rollback cycle is measured against a real cluster in
+    ``tests/pg/test_rls_strict_mode_is_refused_until_the_database_is_ready_and_rolls_back.py``,
+    driven by exactly this report. What that file cannot see, and this one can, is
+    that the tenancy backfill is what moves the report - and that it does not move it
+    by inventing an owner for a row nobody can account for.
+    """
+    from app.core.rls_setup import rls_readiness_report, tenant_tables
+    from app.database import Base
+
+    tables = tenant_tables(Base)
+    # The pg lane imports every module, so the tenant table set is the real one; an
+    # empty list here would make every assertion below vacuously true.
+    assert tables, "no tenant tables were discovered"
+
+    # Recorded beside the observations rather than assumed: this session is the
+    # connecting superuser, which is why the report is what is under test here and
+    # enforcement is not. A superuser bypasses every policy.
+    facts = await _role_facts(pg_session)
+    assert facts["rolsuper"] is True, facts
+
+    conn = await pg_session.connection()
+    state = await _populate(pg_session)
+
+    before = await rls_readiness_report(conn, tables)
+    assert before["ready_for_strict"] is False, before
+    assert "tenant_is_user" in _codes(before), _codes(before)
+    assert "null_tenant_rows" in _codes(before), _codes(before)
+
+    assert await _repair(pg_session) > 0
+
+    after = await rls_readiness_report(conn, tables)
+    # The blocker Phase 02 named is gone, and not because the check was relaxed: no
+    # tenant column holds a person's id any more.
+    assert "tenant_is_user" not in _codes(after), _codes(after)
+    # The gate is still shut, and still honestly: this install has a row nobody can
+    # account for. Attributing it inside the backfill would be the permissive
+    # ``tenant_id IS NULL`` bypass wearing a different hat.
+    assert after["ready_for_strict"] is False, after
+    assert "null_tenant_rows" in _codes(after), _codes(after)
+    assert await _tenant_of(pg_session, _NULLABLE_NO_CREATED_BY, state.null_unattributable) is None
+
+    # Somebody who knows answers the question, explicitly, and the gate opens. That is
+    # the only route to ``ready_for_strict`` on a populated install: a decision,
+    # recorded as data, rather than a relaxation of the check.
+    await pg_session.execute(
+        text(f"UPDATE {_NULLABLE_NO_CREATED_BY} SET tenant_id = :org WHERE id = :id"),
+        {"org": state.organization, "id": state.null_unattributable},
+    )
+    resolved = await rls_readiness_report(conn, tables)
+    assert resolved["blockers"] == [], resolved["blockers"]
+    assert resolved["ready_for_strict"] is True, resolved
+    assert await _tenant_of(pg_session, _NULLABLE_NO_CREATED_BY, state.null_unattributable) == state.organization
+
+    # And the report is a measurement, not a latch: one more row nobody can account
+    # for closes the gate again. This is what "refusal still works with an injected
+    # blocker" means for a report rather than for an installed policy.
+    injected = await _insert(pg_session, _NULLABLE_NO_CREATED_BY, tenant_id=None, kind="injected-blocker")
+    closed = await rls_readiness_report(conn, tables)
+    assert closed["ready_for_strict"] is False, closed
+    assert "null_tenant_rows" in _codes(closed), _codes(closed)
+    assert await _tenant_of(pg_session, _NULLABLE_NO_CREATED_BY, injected) is None
