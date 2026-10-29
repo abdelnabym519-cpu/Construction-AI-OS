@@ -133,7 +133,30 @@ jobs:
         # thread method because signal based timeouts are Unix-only and this
         # suite is expected to stay runnable on Windows developer machines.
         # -rs prints every skip with its reason, so a new module whose tests were skipped shows up by name.
-        run: pytest tests/pg -q -rs -p no:cacheprovider --timeout=300 --timeout-method=thread
+        run: >-
+          pytest tests/pg -q -rs -p no:cacheprovider --timeout=300 --timeout-method=thread
+          --junitxml="$RUNNER_TEMP/pg-lane.xml"
+      # This lane's logs are not downloadable from a fork, and a green conclusion
+      # does not say what ran: a job that collected nothing looks exactly like one
+      # that ran eleven tests, and a target test skipped because an environment
+      # variable was missing looks exactly like one that passed. Both have happened
+      # here. So the counts are read back out of the report the step above wrote
+      # and published where they can be read without the logs, and the step fails if
+      # a tenancy target collected nothing or skipped anything. Skips are the point:
+      # the pg lane skips silently unless OE_TEST_DB is set, which is the exact
+      # failure mode this makes visible.
+      - name: Publish the PostgreSQL tenancy test counts
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: >-
+          python ../scripts/publish_test_counts.py
+          --junit "$RUNNER_TEMP/pg-lane.xml"
+          --target tests/pg/test_tenancy_backfill_on_a_populated_database.py
+          --target tests/pg/test_two_organizations_are_isolated_under_the_application_role.py
+          --target tests/pg/test_a_strict_rls_policy_is_enforced_by_the_real_database_role.py
+          --target tests/pg/test_rls_strict_mode_is_refused_until_the_database_is_ready_and_rolls_back.py
+          --target tests/pg/test_a_background_session_keeps_the_connecting_role_and_is_not_policied.py
+          --target tests/pg/test_rls_readiness_report_measures_the_real_database.py
+          --fail-on-skip
       # Checks on what the demo seeder writes. Two families so far. Vocabulary:
       # the places where one list of allowed values is written down in a second
       # place that can drift from it. The seeder builds ORM rows directly, so
@@ -1115,7 +1138,9 @@ jobs:
       # is safe to wire inside a release window and the rest are not.
       - name: Run router-level ownership guards (no database)
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: pytest tests/unit/test_idor_router_guards.py -q -p no:cacheprovider
+        run: >-
+          pytest tests/unit/test_idor_router_guards.py -q -p no:cacheprovider
+          --junitxml="$RUNNER_TEMP/ac-router.xml"
       # Grouped into single steps on purpose. Each pytest process boots its own
       # embedded cluster, and the per-test database clone is what actually
       # scales, so splitting these into many small steps pays the boot cost
@@ -1155,7 +1180,7 @@ jobs:
           tests/pg/test_project_handbook_service_on_pg.py
           tests/pg/test_site_logistics_plan_idor.py
           tests/pg/test_hse_frame_idor.py
-          -q -p no:cacheprovider
+          -q -p no:cacheprovider --junitxml="$RUNNER_TEMP/ac-guards.xml"
       # Named one file at a time because no push gate runs them. Measured
       # 2026-08-29: tests/modules/property_dev holds 254 tests, and the two
       # selectors that reach tests/modules on a push, the tenant_isolation
@@ -1253,7 +1278,9 @@ jobs:
       # exists at all.
       - name: Run tenant isolation
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: pytest tests/integration/test_tenant_isolation.py -q -p no:cacheprovider
+        run: >-
+          pytest tests/integration/test_tenant_isolation.py -q -p no:cacheprovider
+          --junitxml="$RUNNER_TEMP/ac-tenant-isolation.xml"
       # Registers that answer with a page envelope, checked end to end. The
       # pagination waves moved these endpoints from a bare array to {items,
       # total, offset, limit} and moved every caller with them, and nothing
@@ -1381,6 +1408,39 @@ jobs:
           pytest tests/integration/test_demo_read_only.py
           tests/integration/test_demo_read_only_sockets.py
           -q -p no:cacheprovider --timeout=600 --timeout-method=thread
+
+      # Phase 02b's unit guards run in the CI workflow's unit shards as well, but a
+      # shard's aggregate says nothing about these files and this job already has the
+      # dependencies installed, so they are named here where their counts are
+      # published beside the isolation suites they support.
+      - name: Run the Phase 02b tenancy unit guards
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: >-
+          pytest tests/unit/test_tenant_scope.py
+          tests/unit/test_every_token_flow_names_an_organization.py
+          tests/unit/test_contact_tenancy.py
+          tests/unit/test_which_paths_bind_a_tenant_and_which_still_do_not.py
+          -q -rs -p no:cacheprovider --timeout=300 --timeout-method=thread
+          --junitxml="$RUNNER_TEMP/ac-tenancy-unit.xml"
+      # A green job without visible counts is not evidence. This publishes what the
+      # four steps above collected, passed, failed and skipped, per named target,
+      # and fails if a target collected nothing or skipped anything.
+      - name: Publish the access-control tenancy test counts
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: >-
+          python ../scripts/publish_test_counts.py
+          --junit "$RUNNER_TEMP/ac-router.xml"
+          --junit "$RUNNER_TEMP/ac-guards.xml"
+          --junit "$RUNNER_TEMP/ac-tenant-isolation.xml"
+          --junit "$RUNNER_TEMP/ac-tenancy-unit.xml"
+          --target tests/unit/test_idor_router_guards.py
+          --target tests/pg/test_quality_concept_idor.py
+          --target tests/integration/test_tenant_isolation.py
+          --target tests/unit/test_tenant_scope.py
+          --target tests/unit/test_every_token_flow_names_an_organization.py
+          --target tests/unit/test_contact_tenancy.py
+          --target tests/unit/test_which_paths_bind_a_tenant_and_which_still_do_not.py
+          --fail-on-skip
 
   frontend-tests:
     name: Frontend tests that block a merge
