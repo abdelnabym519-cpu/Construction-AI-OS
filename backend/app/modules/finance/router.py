@@ -62,6 +62,7 @@ from app.core.register_context import (
 )
 from app.core.upload_guards import reject_if_xlsx_bomb
 from app.dependencies import (
+    CurrentTenantId,
     CurrentUserId,
     RequirePermission,
     SessionDep,
@@ -1870,6 +1871,7 @@ async def get_open_items_template(
 )
 async def import_open_items(
     user_id: CurrentUserId,
+    tenant_id: CurrentTenantId,
     session: SessionDep,
     project_id: uuid.UUID = Query(...),
     cutover_date: str = Query(..., pattern=r"^\d{4}-\d{2}-\d{2}$"),
@@ -1936,6 +1938,7 @@ async def import_open_items(
         cutover_date=cutover_date,
         dry_run=dry_run,
         user_id=user_id,
+        tenant_id=tenant_id,
     )
     return OpenItemsImportResponse(**result)
 

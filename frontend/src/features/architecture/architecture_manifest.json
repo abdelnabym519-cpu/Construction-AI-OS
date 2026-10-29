@@ -56703,46 +56703,46 @@
           "path": "/",
           "handler": "list_contacts",
           "response_model": "ContactListResponse",
-          "request_schema": "None"
+          "request_schema": "CurrentTenantId"
         },
         {
           "method": "GET",
           "path": "/search/",
           "handler": "search_contacts",
           "response_model": "ContactListResponse",
-          "request_schema": "None"
+          "request_schema": "CurrentTenantId"
         },
         {
           "method": "GET",
           "path": "/stats/",
           "handler": "contact_stats",
           "response_model": "ContactStatsResponse",
-          "request_schema": "None"
+          "request_schema": "CurrentTenantId"
         },
         {
           "method": "GET",
           "path": "/tags/",
           "handler": "contact_tag_facets",
-          "request_schema": "None"
+          "request_schema": "CurrentTenantId"
         },
         {
           "method": "GET",
           "path": "/by-company/",
           "handler": "contacts_by_company",
           "response_model": "ContactListResponse",
-          "request_schema": "None"
+          "request_schema": "CurrentTenantId"
         },
         {
           "method": "POST",
           "path": "/import/file/",
           "handler": "import_contacts_file",
-          "request_schema": "UploadFile"
+          "request_schema": "CurrentTenantId"
         },
         {
           "method": "GET",
           "path": "/export/",
           "handler": "export_contacts",
-          "request_schema": "None"
+          "request_schema": "CurrentTenantId"
         },
         {
           "method": "GET",
@@ -119689,7 +119689,7 @@
           "path": "/open-items/import/",
           "handler": "import_open_items",
           "response_model": "OpenItemsImportResponse",
-          "request_schema": "UploadFile"
+          "request_schema": "CurrentTenantId"
         },
         {
           "method": "GET",
