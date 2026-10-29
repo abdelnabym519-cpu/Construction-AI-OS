@@ -23,6 +23,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.core.tenant_scope import active_organization_id
 from app.modules.quality_concept import evidence, hosting
 from app.modules.quality_concept.models import QualityConcept
 from app.modules.quality_concept.permissions import register_quality_concept_permissions
@@ -46,7 +47,26 @@ async def world():
 
 @asynccontextmanager
 async def client_as(w: World, user_id: uuid.UUID, role: str):
-    from app.dependencies import get_current_user_id, get_current_user_payload, get_session
+    """A client that reports ``user_id`` with ``role``, and the tenant the door would name.
+
+    The overrides stand in for a decoded access token, so they have to carry the
+    claim a real token carries. Phase 02b made ``tenant_id`` mandatory and removed
+    the fallback that resolved a tenant from ``sub``, so a payload without the claim
+    reaches the routes with an empty tenant scope and every tenant-owned lookup
+    answers "not yours" - which measures this fixture, not the product. Resolving it
+    the way the door does, from the caller's active membership, keeps the override
+    honest: a caller with no membership has no tenant, exactly as in production.
+
+    ``get_optional_user_payload`` is overridden too, because that - not
+    ``get_current_user_payload`` - is what :data:`CurrentTenantId` is built on, so
+    the router still runs the real :func:`resolve_tenant_id` over this payload.
+    """
+    from app.dependencies import (
+        get_current_user_id,
+        get_current_user_payload,
+        get_optional_user_payload,
+        get_session,
+    )
 
     app = FastAPI()
     app.include_router(router, prefix=BASE)
@@ -56,9 +76,14 @@ async def client_as(w: World, user_id: uuid.UUID, role: str):
             yield s
             await s.commit()
 
+    async with w.factory() as s:
+        tenant_id = await active_organization_id(s, user_id)
+    payload = {"sub": str(user_id), "role": role, "permissions": [], "tenant_id": tenant_id}
+
     app.dependency_overrides[get_session] = _session
     app.dependency_overrides[get_current_user_id] = lambda: str(user_id)
-    app.dependency_overrides[get_current_user_payload] = lambda: {"sub": str(user_id), "role": role, "permissions": []}
+    app.dependency_overrides[get_current_user_payload] = lambda: payload
+    app.dependency_overrides[get_optional_user_payload] = lambda: payload
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://qc-test") as c:
         yield c
 
@@ -289,25 +314,37 @@ async def test_a_catalogue_of_another_tenant_cannot_be_pinned_and_a_stored_pin_k
 
     register_kinds()
 
-    async def publish(tenant: uuid.UUID, code: str) -> str:
+    async def publish(tenant: str, code: str, actor: uuid.UUID) -> str:
+        """Publish a catalogue row for company ``tenant``, written by ``actor``.
+
+        The tenant column names a company and the actor is a person. This used to
+        pass one user id for both, which after ADR 005 is a row no token can name:
+        the store is fail-closed and answers 404 ``unknown_catalogue`` for it, so the
+        assertion below would have passed for the wrong reason.
+        """
         async with world.factory() as s:
             store = CatalogueStore(s)
             row = await store.create(
-                str(tenant),
+                tenant,
                 code=code,
                 name=code,
                 based_on_source="shipped",
                 based_on_id=DEFAULT_CATALOGUE_ID,
                 based_on_version=None,
-                actor_id=tenant,
+                actor_id=actor,
                 kind=QUALITY_CONCEPT_KIND,
             )
-            await store.publish(str(tenant), row.id, actor_id=tenant)
+            await store.publish(tenant, row.id, actor_id=actor)
             await s.commit()
             return str(row.id)
 
-    foreign = await publish(world.outsider, "foreign_quality")
-    own = await publish(world.manager, "own_quality")
+    # Two companies: the manager and the editor in one, the outsider in another. The
+    # world fixture only registers people, and since ADR 005 people who share an
+    # install share its single company - so without this the "foreign" catalogue would
+    # be the manager's own, and the refusal being asserted could not happen.
+    ours, theirs = await _two_companies(world)
+    foreign = await publish(theirs, "foreign_quality", world.outsider)
+    own = await publish(ours, "own_quality", world.manager)
     async with client_as(world, world.manager, "manager") as c:
         assert (await c.post(_p(world, "concept"))).status_code == 201
         pin = {"catalogue_source": "tenant", "catalogue_version": 1}
@@ -321,6 +358,41 @@ async def test_a_catalogue_of_another_tenant_cannot_be_pinned_and_a_stored_pin_k
         seen = await c.get(_p(world, "concept"))
         assert seen.status_code == 200, seen.text
         assert (await c.get(_p(world, "concept/catalogue"))).status_code == 200
+
+
+async def _two_companies(w: World) -> tuple[str, str]:
+    """One company for the manager and the editor, another for the outsider.
+
+    Memberships are written before any token is minted, because the active
+    organization is resolved at login and stamped into the access token as its
+    ``tenant_id`` claim.
+    """
+    from app.modules.users.models import Membership, Organization, User
+
+    async with w.factory() as s:
+        manager = await s.get(User, w.manager)
+        editor = await s.get(User, w.editor)
+        outsider = await s.get(User, w.outsider)
+        assert manager is not None and editor is not None and outsider is not None
+        ours = Organization(slug=f"qc-ours-{uuid.uuid4().hex[:8]}", name="Quality Company")
+        theirs = Organization(slug=f"qc-theirs-{uuid.uuid4().hex[:8]}", name="Rival Company")
+        s.add_all([ours, theirs])
+        await s.flush()
+        s.add_all(
+            [
+                Membership(
+                    user_id=w.manager, organization_id=ours.id, role=manager.role, status="active", is_default=True
+                ),
+                Membership(
+                    user_id=w.editor, organization_id=ours.id, role=editor.role, status="active", is_default=True
+                ),
+                Membership(
+                    user_id=w.outsider, organization_id=theirs.id, role=outsider.role, status="active", is_default=True
+                ),
+            ]
+        )
+        await s.commit()
+        return str(ours.id), str(theirs.id)
 
 
 async def _contact(w: World, owner: uuid.UUID, company: str) -> str:

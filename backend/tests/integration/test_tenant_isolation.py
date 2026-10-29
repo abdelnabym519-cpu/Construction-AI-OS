@@ -248,9 +248,59 @@ async def two_tenants(http_client):
     await _promote_to_admin(a_email)
     await _activate_user(b_email)
 
+    # ── Two companies, because two people are not two tenants ──────────────
+    # Since ADR 005 a tenant is a company and a person is a member of one, and the
+    # product's rule for a fresh caller on a single-company install is to join that
+    # company. Registering A and B therefore builds ONE tenant, and every isolation
+    # assertion below would then be vacuously true: A's rows would already be B's.
+    # Memberships are written before the tokens are minted, because the active
+    # organization is resolved at login and stamped into the access token.
+    from app.database import async_session_factory
+    from app.modules.users.models import Membership, Organization, User
+
+    async with async_session_factory() as session:
+        a_user = await session.get(User, uuid.UUID(a_uid))
+        b_user = await session.get(User, uuid.UUID(b_uid))
+        assert a_user is not None and b_user is not None
+        company_a = Organization(slug=f"iso-a-{uuid.uuid4().hex[:8]}", name="Isolation Company A")
+        company_b = Organization(slug=f"iso-b-{uuid.uuid4().hex[:8]}", name="Isolation Company B")
+        session.add_all([company_a, company_b])
+        await session.flush()
+        session.add_all(
+            [
+                Membership(
+                    user_id=uuid.UUID(a_uid),
+                    organization_id=company_a.id,
+                    role="admin",
+                    status="active",
+                    is_default=True,
+                ),
+                Membership(
+                    user_id=uuid.UUID(b_uid),
+                    organization_id=company_b.id,
+                    role="viewer",
+                    status="active",
+                    is_default=True,
+                ),
+            ]
+        )
+        await session.commit()
+        a_company, b_company = str(company_a.id), str(company_b.id)
+
     # Re-login both to pick up role claim (and to obtain bearer tokens).
     a_headers = await _re_login(http_client, a_email, a_password)
     b_headers = await _re_login(http_client, b_email, b_password)
+
+    # The fixture's whole purpose is two tenants, so prove the two tokens really do
+    # name different ones here, rather than discovering it as a LEAK in a test that
+    # cannot tell a product defect from a fixture that never built two companies.
+    from jose import jwt
+
+    a_claims = jwt.get_unverified_claims(a_headers["Authorization"].removeprefix("Bearer "))
+    b_claims = jwt.get_unverified_claims(b_headers["Authorization"].removeprefix("Bearer "))
+    assert a_claims["tenant_id"] == a_company
+    assert b_claims["tenant_id"] == b_company
+    assert a_company != b_company
 
     # ── Tenant A creates a project ─────────────────────────────────────────
     proj = await http_client.post(
@@ -289,7 +339,11 @@ async def two_tenants(http_client):
         snap = Snapshot(
             id=snapshot_id,
             project_id=uuid.UUID(project_id),
-            tenant_id=str(a_uid),  # router uses sub→tenant_id fallback
+            # The tenant column names the company, not the person. This used to
+            # write str(a_uid) and relied on the router resolving a tenant from the
+            # token's subject; Phase 02b removed that fallback, so a row owned by a
+            # user id is a row no token can name.
+            tenant_id=a_company,
             label=f"A-baseline-{uuid.uuid4().hex[:6]}",
             parquet_dir=f"snapshots/{project_id}/{snapshot_id}",
             total_entities=0,
