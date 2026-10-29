@@ -566,6 +566,40 @@ moves it to the bound list.
 | `app/core/job_runner.py` | `_default_session_factory` at :86, which is where a job's session comes from | Bind per job from the job's owner, or run under `oe_system` for platform work | The same, for every queued job |
 | `app/modules/property_dev/service.py` | :3562, `resolved_tenant = tenant_id if tenant_id is not None else str(data.tenant_id)` | Confirm the tenant in use is the caller's and never one supplied in the request body | A tenant taken from a payload body would be caller-chosen, which is the one shape of this bug that is an authorization hole rather than a visibility one |
 
+### Evidence, executed locally
+
+Run in this sandbox on CPython 3.12.8, which had to be built from source here because the
+image ships 3.11 and `app/core/stats.py` uses syntax 3.11 cannot parse. The PostgreSQL lane ran
+against a real embedded PostgreSQL 16 cluster, not a mock, and the counts below were read back
+out of JUnit reports by `scripts/publish_test_counts.py` - the same script the workflow now
+runs, so this table is its output and not a transcription of a log.
+
+| What ran | Result |
+|---|---|
+| the whole access-control job, replayed locally from the workflow's own step list (66 files, 10 steps) | **2583 passed, 1 failed, 1 xfailed, 0 skipped**, 27 min |
+| `tests/unit/test_idor_router_guards.py` | 1907 passed |
+| the 30-file module and unit ownership-guard step | 307 passed |
+| `tests/pg/test_quality_concept_idor.py` (fixture corrected) | 11 passed |
+| `tests/integration/test_tenant_isolation.py` (fixture corrected) | 33 passed, 1 failed |
+| `tests/unit/test_tenant_scope.py` | 19 passed |
+| `tests/unit/test_every_token_flow_names_an_organization.py` | 19 passed |
+| `tests/unit/test_contact_tenancy.py` | 11 passed |
+| `tests/unit/test_which_paths_bind_a_tenant_and_which_still_do_not.py` (renamed and corrected) | 16 passed |
+| `tests/pg/test_tenancy_backfill_on_a_populated_database.py` (one test added) | 21 passed |
+| `tests/pg/test_two_organizations_are_isolated_under_the_application_role.py` (new) | 11 passed |
+| the four existing row-level-security PostgreSQL files | 41 passed |
+
+Nothing was skipped in any of it, which matters more than it looks: the PostgreSQL lane skips
+silently unless `OE_TEST_DB=pg` is set, and a skipped target is indistinguishable from a passing
+one in a job conclusion. That is why the publisher fails a step on a skipped target rather than
+merely reporting it.
+
+Before this phase's fixture corrections the same replay gave 2516 passed and 3 failed over 62
+files. Two of those three failures were fixtures that asserted cross-tenant isolation while
+building one tenant, and one was a payload override that minted a caller the product no longer
+accepts. The remaining failure is the environment described below, and the four added files are
+the 65 tests in the last four rows.
+
 ### What was not verified locally, and why
 
 This sandbox had to build its own CPython 3.12 from source, because the image ships 3.11 and
