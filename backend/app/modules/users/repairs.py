@@ -57,6 +57,11 @@ logger = logging.getLogger(__name__)
 #: rather than one held open by a transaction nobody can reason about.
 _BATCH = 5000
 
+#: Stable application-defined key for ``pg_try_advisory_xact_lock``, so two workers
+#: booting against the same database run this repair once between them rather than
+#: racing over the same rows. Arbitrary, and must stay constant across releases.
+_ADVISORY_LOCK_KEY = 573910446
+
 _ORGANIZATION_TABLE = "oe_users_organization"
 _MEMBERSHIP_TABLE = "oe_users_membership"
 _LEDGER_TABLE = "oe_users_tenant_backfill"
@@ -372,6 +377,30 @@ async def _run_tenant_organization_backfill(session: AsyncSession) -> int:
             # nothing to repair into yet, and saying so is better than guessing.
             logger.debug("Tenant backfill skipped: %s does not exist yet", required)
             return 0
+
+    # Two workers can boot against the same database at once, and this repair
+    # rewrites the same rows in batches. Concurrent re-pointing is how two
+    # transactions deadlock, and a deadlock here surfaces as a failed repair on a
+    # boot that otherwise looked healthy - the runner catches it, logs it, and the
+    # data stays wrong until the next start. The key is arbitrary but must stay
+    # constant across releases, and it is not the auto-migration heal key: that lock
+    # guards DDL and is waited on, this one guards a row rewrite and is not.
+    #
+    # The poll is the non-blocking form on purpose. A second worker never waits for
+    # the first, because the work is idempotent and is already being done, so
+    # returning without writing is the whole of what it owes - and a boot that could
+    # be delayed by another worker's backfill is a boot that can be delayed at all.
+    # The lock is transaction-scoped, so the runner's commit releases it and a crash
+    # releases it with the connection.
+    acquired = (
+        await session.execute(text("SELECT pg_try_advisory_xact_lock(:key)"), {"key": _ADVISORY_LOCK_KEY})
+    ).scalar_one()
+    if not acquired:
+        logger.info(
+            "Data repair %r skipped: another worker holds the advisory lock and is running it now.",
+            USERS_TENANT_ORGANIZATION_BACKFILL.repair_id,
+        )
+        return 0
 
     organization_id = await _ensure_default_organization(session)
     if organization_id is None:
