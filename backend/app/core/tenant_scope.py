@@ -80,6 +80,24 @@ logger = logging.getLogger(__name__)
 TENANT_CLAIM = "tenant_id"
 SUBJECT_CLAIM = "sub"
 
+# The tenancy vocabulary ADR 005 introduces, kept here rather than in
+# ``app.modules.users.models`` because that module imports ``app.database``, which
+# builds an engine at import time. Both the boot repair that backfills an
+# organization (``app.modules/users/repairs.py``) and the token mint that names one
+# (``app/modules/users/service.py``) read them from here, so the two halves of the
+# tenancy work cannot drift apart on what the install's organization is called or
+# which membership state counts.
+#: The slug of the organization a single-tenant install gets. Unique across the
+#: table, so two boots racing to create it collide on purpose and one wins.
+DEFAULT_ORGANIZATION_SLUG = "default"
+
+#: The human-readable name of that organization.
+DEFAULT_ORGANIZATION_NAME = "Default organization"
+
+#: The only membership state that entitles a caller to a token naming that
+#: organization. A suspended membership is not one you may act in.
+MEMBERSHIP_ACTIVE = "active"
+
 
 def resolve_tenant_id(payload: dict[str, Any] | None) -> str | None:
     """Resolve the caller's tenant id from a decoded JWT payload.

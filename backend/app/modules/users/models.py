@@ -6,12 +6,16 @@ Tables:
     oe_users_user - registered users
     oe_users_api_key - API keys for programmatic access
     oe_users_session - login sessions, so one can be revoked without the rest
+    oe_users_organization - the tenant (ADR 005)
+    oe_users_membership - which users belong to which organization
+    oe_users_tenant_backfill - the ledger of what the boot repair rewrote, so a
+        downgrade can put every value back
 """
 
 import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import GUID, Base
@@ -200,3 +204,117 @@ class UserSession(Base):
     def __repr__(self) -> str:
         state = "revoked" if self.revoked_at else "active"
         return f"<UserSession {self.sid[:8]}... ({state})>"
+
+
+class Organization(Base):
+    """The tenant.
+
+    ADR 005. This is the entity every ``tenant_id`` column in the schema names,
+    and the value the ``tenant_id`` claim in an access token carries. Before it
+    existed there was nothing for those columns to point at, which is why the
+    resolver answered with a user id and why the readiness blocker is called
+    ``tenant_is_user``.
+
+    It has no ``tenant_id`` column of its own: an organization is not inside a
+    tenant, it is one. That is not an oversight to be completed later - a tenant
+    column here would put this table in ``tenant_tables()`` and give it a policy
+    comparing its own identity with the caller's.
+    """
+
+    __tablename__ = "oe_users_organization"
+
+    name: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    # Unique, and the reason the boot repair and the token mint can both create
+    # an organization without coordinating: two boots racing to establish the
+    # install's organization collide here on purpose, and the loser reads the
+    # winner instead of failing somebody's login over a race they cannot see.
+    # Also how a caller with no membership in a multi-organization install gets
+    # an organization of their own exactly once, however often they retry.
+    slug: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    # ``active`` / ``suspended``. Suspended is a fact about the organization, and
+    # is kept separate from a suspended *membership*, which is a fact about one
+    # person's place in it.
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="active")
+
+    def __repr__(self) -> str:
+        return f"<Organization {self.slug} ({self.status})>"
+
+
+class Membership(Base):
+    """A user's place in an organization.
+
+    The middle edge of the ownership graph ``Organization -> Membership -> User``.
+    It is a table rather than a column on ``User`` because the graph has to
+    support a person belonging to more than one organization, and because the
+    role a person holds can differ per organization: an admin of one company is
+    not an admin of another, and a ``role`` column on ``User`` would say they
+    were.
+
+    The membership, not the user row, is what a token's ``tenant_id`` claim is
+    resolved from, and only an ``active`` one counts.
+    """
+
+    __tablename__ = "oe_users_membership"
+    __table_args__ = (
+        # One membership per (user, organization). Makes a concurrent duplicate
+        # impossible rather than merely unlikely, so the mint path can treat a
+        # collision as "the row that matters exists" and carry on.
+        UniqueConstraint("user_id", "organization_id", name="uq_oe_users_membership_user_org"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        GUID(),
+        ForeignKey("oe_users_user.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        GUID(),
+        ForeignKey("oe_users_organization.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    # Copied from the user's own role when the membership is created, so
+    # belonging to an organization does not silently change what they may do.
+    role: Mapped[str] = mapped_column(String(50), nullable=False, default="editor")
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="active")
+    # Which organization a token names when a person belongs to several and has
+    # not chosen one. Exactly one per user is the intent; nothing enforces it,
+    # because the resolution is deterministic without it (flagged first, then
+    # oldest, then by id) and refusing a login over two flags would be worse than
+    # picking one the same way every time.
+    is_default: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    def __repr__(self) -> str:
+        return f"<Membership user={self.user_id} org={self.organization_id} ({self.status})>"
+
+
+class TenantBackfillEntry(Base):
+    """One row of the ledger of what the tenant backfill rewrote.
+
+    Written by :mod:`app.modules.users.repairs` for every row whose ``tenant_id``
+    it changes, holding the value that was there before - including ``NULL``,
+    which is a value and not the absence of one. It exists so that
+    ``v3325_organization_tenancy.downgrade()`` can put a populated database back
+    the way it was instead of dropping the tables and taking the evidence with
+    them, and so an operator can answer "what did that boot do to my data?" from
+    the database rather than from a log file that has already rotated.
+
+    The unique ``(table_name, row_id)`` pair is what makes the repair safe to run
+    on every boot: a row already in the ledger has already been accounted for.
+    """
+
+    __tablename__ = "oe_users_tenant_backfill"
+    __table_args__ = (UniqueConstraint("table_name", "row_id", name="uq_oe_users_tenant_backfill_row"),)
+
+    table_name: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    # ``VARCHAR(36)``: every primary key in this schema is a ``GUID``.
+    row_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    # ``VARCHAR(64)`` because that is the widest ``tenant_id`` in the schema
+    # (``oe_governance_catalogue`` and ``oe_procurement_concept_framework``), and
+    # a ledger that truncated the value it was keeping would restore the wrong
+    # one. Nullable because ``NULL`` is a previous value worth recording.
+    previous_tenant_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<TenantBackfillEntry {self.table_name}:{self.row_id} was {self.previous_tenant_id!r}>"

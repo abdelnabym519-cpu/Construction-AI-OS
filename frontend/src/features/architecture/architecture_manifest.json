@@ -183386,6 +183386,14 @@
               "fk_target": "oe_users_user.id"
             },
             {
+              "name": "organization_id",
+              "annotation": "Mapped[uuid.UUID | None]",
+              "sql_type": "GUID",
+              "nullable": true,
+              "is_fk": true,
+              "fk_target": "oe_users_organization.id"
+            },
+            {
               "name": "country_code",
               "annotation": "Mapped[str | None]",
               "sql_type": "String",
@@ -267422,6 +267430,7 @@
         "manifest.py",
         "models.py",
         "permissions.py",
+        "repairs.py",
         "repository.py",
         "router.py",
         "schemas.py",
@@ -267669,6 +267678,100 @@
               "name": "last_used_at",
               "annotation": "Mapped[datetime | None]",
               "sql_type": "DateTime",
+              "nullable": true
+            }
+          ],
+          "relationships": []
+        },
+        {
+          "class_name": "Organization",
+          "tablename": "oe_users_organization",
+          "docstring": "The tenant.\n\nADR 005. This is the entity every ``tenant_id`` column in the schema names,\nand the value the ``tenant_id`` claim in an access token carries. Before it\nexisted there was nothing for those columns to point at, which is why the\nresolver answered with a user id and why the readiness blocker is called\n``tenant_is_user``.\n\nIt has no ``tenant_id`` column of its own: an organization is not inside a\ntenant, it is one. That is not an oversight to be completed later - a tenant\ncolumn here would put this table in ``tenant_tables()`` and give it a policy\ncomparing its own identity with the caller's.",
+          "columns": [
+            {
+              "name": "name",
+              "annotation": "Mapped[str]",
+              "sql_type": "String",
+              "nullable": false
+            },
+            {
+              "name": "slug",
+              "annotation": "Mapped[str]",
+              "sql_type": "String",
+              "nullable": false
+            },
+            {
+              "name": "status",
+              "annotation": "Mapped[str]",
+              "sql_type": "String",
+              "nullable": false
+            }
+          ],
+          "relationships": []
+        },
+        {
+          "class_name": "Membership",
+          "tablename": "oe_users_membership",
+          "docstring": "A user's place in an organization.\n\nThe middle edge of the ownership graph ``Organization -> Membership -> User``.\nIt is a table rather than a column on ``User`` because the graph has to\nsupport a person belonging to more than one organization, and because the\nrole a person holds can differ per organization: an admin of one company is\nnot an admin of another, and a ``role`` column on ``User`` would say they\nwere.\n\nThe membership, not the user row, is what a token's ``tenant_id`` claim is\nresolved from, and only an ``active`` one counts.",
+          "columns": [
+            {
+              "name": "user_id",
+              "annotation": "Mapped[uuid.UUID]",
+              "sql_type": "GUID",
+              "nullable": false,
+              "is_fk": true,
+              "fk_target": "oe_users_user.id"
+            },
+            {
+              "name": "organization_id",
+              "annotation": "Mapped[uuid.UUID]",
+              "sql_type": "GUID",
+              "nullable": false,
+              "is_fk": true,
+              "fk_target": "oe_users_organization.id"
+            },
+            {
+              "name": "role",
+              "annotation": "Mapped[str]",
+              "sql_type": "String",
+              "nullable": false
+            },
+            {
+              "name": "status",
+              "annotation": "Mapped[str]",
+              "sql_type": "String",
+              "nullable": false
+            },
+            {
+              "name": "is_default",
+              "annotation": "Mapped[bool]",
+              "sql_type": "Boolean",
+              "nullable": false
+            }
+          ],
+          "relationships": []
+        },
+        {
+          "class_name": "TenantBackfillEntry",
+          "tablename": "oe_users_tenant_backfill",
+          "docstring": "One row of the ledger of what the tenant backfill rewrote.\n\nWritten by :mod:`app.modules.users.repairs` for every row whose ``tenant_id``\nit changes, holding the value that was there before - including ``NULL``,\nwhich is a value and not the absence of one. It exists so that\n``v3325_organization_tenancy.downgrade()`` can put a populated database back\nthe way it was instead of dropping the tables and taking the evidence with\nthem, and so an operator can answer \"what did that boot do to my data?\" from\nthe database rather than from a log file that has already rotated.\n\nThe unique ``(table_name, row_id)`` pair is what makes the repair safe to run\non every boot: a row already in the ledger has already been accounted for.",
+          "columns": [
+            {
+              "name": "table_name",
+              "annotation": "Mapped[str]",
+              "sql_type": "String",
+              "nullable": false
+            },
+            {
+              "name": "row_id",
+              "annotation": "Mapped[str]",
+              "sql_type": "String",
+              "nullable": false
+            },
+            {
+              "name": "previous_tenant_id",
+              "annotation": "Mapped[str | None]",
+              "sql_type": "String",
               "nullable": true
             }
           ],
@@ -278983,12 +279086,12 @@
   "statistics": {
     "backend_modules": 215,
     "modules_with_manifests": 213,
-    "total_models": 788,
-    "total_columns": 9172,
+    "total_models": 791,
+    "total_columns": 9184,
     "total_relationships": 240,
     "total_routes": 4627,
     "total_schemas": 4120,
-    "total_python_files": 2811,
+    "total_python_files": 2812,
     "frontend_features": 208,
     "frontend_ts_files": 3579,
     "frontend_backend_mapped": 187
