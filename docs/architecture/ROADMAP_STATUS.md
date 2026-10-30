@@ -570,6 +570,90 @@ moves it to the bound list.
 | `app/core/job_runner.py` | `_default_session_factory` at :86, which is where a job's session comes from | Bind per job from the job's owner, or run under `oe_system` for platform work | The same, for every queued job |
 | `app/modules/property_dev/service.py` | :3562, `resolved_tenant = tenant_id if tenant_id is not None else str(data.tenant_id)` | Confirm the tenant in use is the caller's and never one supplied in the request body | A tenant taken from a payload body would be caller-chosen, which is the one shape of this bug that is an authorization hole rather than a visibility one |
 
+**Ordered work, and what must come first.** The rows above are background paths that bind no
+tenant. One further item belongs on this list and ahead of them in consequence, because it gates a
+switch rather than a code path.
+
+1. **Project participant grants** - [ADR 006](../adr/006-project-participant-grants.md). Design
+   only: nothing implemented, no model, no migration, no route, no policy on the tree. A project
+   belongs to one organization and other organizations participate through explicit grants, and
+   the target predicate is "the caller's organization owns the row, **or** it holds a live grant on
+   the project the row belongs to". **This must precede enabling `OE_RLS_STRICT` on any default
+   path, and must precede Phase 03.** The reason is specific rather than procedural: strict mode
+   installs the single-arm equality predicate
+   `(tenant_id)::text = current_setting('app.current_tenant', true)`, which cannot express
+   participation, so turning it on before grants exist refuses every cross-company project read
+   that works today - starting with the `project_frameworks` union, which is how a project member
+   currently reads the project's company's frameworks. Size of the job, measured on this tree:
+   **30** `tenant_id` columns across **16** model files against **419** `project_id` columns across
+   **147**, with **11** files carrying both. The both-column files are where a grant can be
+   enforced with no schema change at all; the project-only majority cannot be policied by
+   `tenant_id` because they do not have one, and adding it to all of them is the mechanical sweep
+   Phase 02 rejected.
+2. **The six background paths in the table above**, in the order listed, each closed by a
+   deliberate change that moves it out of the unbound list asserted by
+   `tests/unit/test_which_paths_bind_a_tenant_and_which_still_do_not.py`.
+3. **Only then strict mode**, and only with ADR 006 stage 4's million-row measurements in hand.
+
+### Operating the tenancy repair on first boot
+
+The tenancy backfill is a `DataRepair` and runs inside application startup, before the module
+loader and therefore before the server socket opens. Operators need three numbers and one rule.
+
+**What a first boot costs.** Measured on a real embedded PostgreSQL 16.11 in this sandbox, on
+1,000,000 rows spread over four tenant-carrying tables at 250,000 each, with the set-based
+batching the repair now uses (`_BATCH = 100_000`):
+
+| Table | Rows per second |
+|---|---|
+| `oe_contacts_contact` | 26,857 |
+| `oe_compliance_dsl_rule` | 25,691 |
+| `oe_activity_log` | 24,557 |
+| `oe_eac_block_graph` | 23,141 |
+
+Preparation cost 0.011 s. At the slowest measured table a million rows is about 43 s, and summing
+the four tables as measured gives about 40 s; **the figure to plan with is ~47 s per million
+rows**, which is the slowest observed rate plus headroom for a busier install. Before the batching
+change the same volume ran at 2,645 to 2,994 rows/s, so a million rows held a boot for roughly six
+minutes. **The second and every later pass costs 0.674 s and changes 0 rows** - that is what a
+normal boot pays, and it is the number that matters for steady state rather than for the first
+start after an upgrade.
+
+**What a health check must tolerate.** Starlette runs every startup handler to completion before
+the socket opens, so during the repair the process answers nothing: not HTTP, not a readiness
+endpoint. A liveness probe that expects an HTTP answer inside the repair window kills a healthy
+boot and restarts it, and because the repair is idempotent and ledgered the restart begins again
+from a scan, so an aggressive probe turns a 47-second boot into a crash loop.
+
+* Use a **startup probe**, or an `initialDelaySeconds` sized to the install: `failureThreshold x
+  periodSeconds` must exceed the expected repair time. For an install with a million
+  tenant-carrying rows budget at least 120 s, about 2.5x the measured 47 s.
+* A **TCP** liveness check is worse than useless here. The port is not open yet, so it reports
+  exactly the same failure as a dead process.
+* Do not shorten the repair by disabling it. A skipped repair leaves rows this release expects to
+  have been corrected, and `init-db` logs that as a failure rather than hiding it.
+
+**Multiple workers do not multiply the wait.** The repair takes a non-blocking,
+transaction-scoped advisory lock, `pg_try_advisory_xact_lock(573910446)`. A second worker that
+finds the lock held returns in **8 ms** and boots without running the repair; the worker holding it
+does the work once. Scaling out is therefore safe. That lock is distinct from the migration heal
+lock, `826340271`, so the two never confuse each other.
+
+**When to run it as an explicit admin command instead.** Above roughly **a million tenant-carrying
+rows** - that is, above about **47 s** of first-boot wait - run the repair before boot rather than
+inside it:
+
+    openconstructionerp init-db --data-dir DIR
+
+`init-db` runs the same repair registry as startup, through `app/core/data_repairs.py`, and every
+entry is idempotent and ledgered, so the boot that follows performs a scan that finds nothing and
+costs under a second. Below that threshold the in-boot path is the right default: it needs no
+operator, no extra deployment step, and no change to how the install is started.
+
+The threshold is a planning figure derived from the measurements above, not a limit enforced in
+code. Nothing in the application refuses to boot on a large install. It just takes longer, and the
+probe has to know that.
+
 ### Evidence, executed locally
 
 Run in this sandbox on CPython 3.12.8, which had to be built from source here because the
