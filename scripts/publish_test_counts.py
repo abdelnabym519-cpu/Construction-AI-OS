@@ -54,10 +54,7 @@ def _module_of(classname: str) -> str:
         return ""
     for index in range(len(parts), 0, -1):
         candidate = Path(*parts[:index])
-        if (
-            candidate.with_suffix(".py").exists()
-            or (candidate / "__init__.py").exists()
-        ):
+        if candidate.with_suffix(".py").exists() or (candidate / "__init__.py").exists():
             return ".".join(parts[:index])
     return classname
 
@@ -120,9 +117,7 @@ def failures(junit_paths: list[Path]) -> list[dict[str, str]]:
             message = (node.get("message") or node.text or "").strip().splitlines()
             found.append(
                 {
-                    "file": _row_name(_module_of(classname))
-                    if classname.strip(".")
-                    else "",
+                    "file": _row_name(_module_of(classname)) if classname.strip(".") else "",
                     "line": case.get("line") or "",
                     "test": f"{classname}::{case.get('name')}",
                     "kind": kind,
@@ -132,9 +127,7 @@ def failures(junit_paths: list[Path]) -> list[dict[str, str]]:
     return found
 
 
-def annotate(
-    rows: list[tuple[str, dict[str, int]]], found: list[dict[str, list]], prefix: str
-) -> None:
+def annotate(rows: list[tuple[str, dict[str, int]]], found: list[dict[str, list]], prefix: str) -> None:
     """Emit the counts and the failures as workflow commands.
 
     A step summary is only readable in the web UI: the REST API returns an empty
@@ -149,8 +142,7 @@ def annotate(
     }
     for target, bucket in rows[: _ANNOTATION_LIMIT - 1]:
         counts = " ".join(
-            f"{key}={bucket.get(key, 0)}"
-            for key in ("collected", "passed", "failed", "errored", "skipped")
+            f"{key}={bucket.get(key, 0)}" for key in ("collected", "passed", "failed", "errored", "skipped")
         )
         print(f"::notice::{_escape(f'{target}: {counts}')}")
     omitted_rows = len(rows) - (_ANNOTATION_LIMIT - 1)
@@ -172,9 +164,7 @@ def annotate(
         where = f"file={prefix}{item['file']}" if item["file"] else ""
         if where and item["line"]:
             where += f",line={item['line']}"
-        print(
-            f"::error{' ' + where if where else ''}::{_escape(item['test'] + ' ' + item['message'])}"
-        )
+        print(f"::error{' ' + where if where else ''}::{_escape(item['test'] + ' ' + item['message'])}")
 
 
 def render(rows: list[tuple[str, dict[str, int]]], title: str) -> str:
@@ -257,9 +247,7 @@ def main(argv: list[str] | None = None) -> int:
     rows: list[tuple[str, dict[str, int]]] = []
     problems: list[str] = []
     if not args.target:
-        rows = [
-            (_row_name(module), bucket) for module, bucket in sorted(counts.items())
-        ]
+        rows = [(_row_name(module), bucket) for module, bucket in sorted(counts.items())]
         if args.fail_on_skip:
             problems.extend(
                 f"{target} skipped {bucket['skipped']} test(s)"
@@ -280,11 +268,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1 if problems else 0
 
     for target in args.target:
-        relative = (
-            Path(target).relative_to(root)
-            if Path(target).is_absolute()
-            else Path(target)
-        )
+        relative = Path(target).relative_to(root) if Path(target).is_absolute() else Path(target)
         module = ".".join(relative.with_suffix("").parts)
         bucket = counts.get(module, {})
         rows.append((str(relative), bucket))
