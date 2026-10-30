@@ -18,6 +18,7 @@ import pytest
 
 from app.config import Settings
 from app.core.email import (
+    BRAND_NAME,
     ConsoleEmailBackend,
     DeliveryResult,
     EmailAttachment,
@@ -260,7 +261,7 @@ class TestEmailService:
         service = EmailService(mem)
         result = await service.send_document(
             "buyer@example.com",
-            subject="Handover Certificate - OpenConstructionERP",
+            subject="Handover Certificate - Construction AI OS",
             document_name="Handover Certificate",
             attachment=EmailAttachment(
                 filename="handover-certificate.pdf",
@@ -419,7 +420,7 @@ class TestTemplates:
     def test_wrap_contains_boilerplate(self):
         html = wrap("Title", "<p>Body</p>")
         assert "<!DOCTYPE html>" in html
-        assert "OpenConstructionERP" in html
+        assert BRAND_NAME in html
         assert "Title" in html
         assert "<p>Body</p>" in html
 
@@ -434,7 +435,7 @@ class TestTemplates:
             reset_url="https://x.y/r?token=T",
             token_lifetime_minutes=45,
         )
-        assert "Reset your OpenConstructionERP password" in subject
+        assert f"Reset your {BRAND_NAME} password" in subject
         assert "Alice" in html
         assert "https://x.y/r?token=T" in html
         assert "45 minutes" in html

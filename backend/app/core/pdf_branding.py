@@ -67,8 +67,32 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
+def _resolve_default_brand() -> str:
+    """Read the display name from the one constant, ``app_name`` in config.
+
+    Kept import-safe for the same reason :func:`_read_branding` below is: this
+    module is imported from PDF exporters and unit tests that must not require
+    the whole app package to construct. Reading the setting is best-effort -
+    if config cannot be imported or yields nothing, fall back to the literal
+    default the config field itself declares, so the letterhead never renders
+    an empty brand. ``tests/unit/test_the_display_name_is_one_constant.py``
+    holds this and the config default to the same string.
+    """
+    try:
+        from app.config import get_settings
+
+        name = str(get_settings().app_name or "").strip()
+        if name:
+            return name
+    except Exception:  # noqa: BLE001 - degrade to the literal default
+        logger.debug("Could not read app_name for the default brand", exc_info=True)
+    return "Construction AI OS"
+
+
 #: The brand shown when no workspace branding is set (or it cannot be read).
-DEFAULT_BRAND = "OpenConstructionERP"
+#: One source: the ``app_name`` setting (see :func:`_resolve_default_brand`).
+DEFAULT_BRAND = _resolve_default_brand()
 
 #: Footer text colour and header brand colour - the platform default accent.
 #: Kept module-level (not configurable in this MVP) so every PDF stays

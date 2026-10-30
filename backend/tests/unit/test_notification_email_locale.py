@@ -18,7 +18,7 @@ import uuid
 
 import pytest
 
-from app.core.email import EmailService
+from app.core.email import BRAND_NAME, EmailService
 from app.core.email.memory import MemoryEmailBackend
 from app.core.events import Event
 from app.modules.deadlines import sweeper
@@ -154,7 +154,7 @@ def _frame(name: str | None, locale: str | None) -> str:
 def test_the_frame_of_the_email_is_in_the_recipients_language() -> None:
     html_tr = _frame("Ayşe Yılmaz", "tr")
     assert "Merhaba Ayşe Yılmaz," in html_tr
-    assert "OpenConstructionERP üzerinde aç" in html_tr
+    assert f"{BRAND_NAME} üzerinde aç" in html_tr
     assert "bildirim ayarlarınız" in html_tr
     assert 'href="https://erp.example.com/rfi"' in html_tr
     for english in ("Hello", "Open in", "You receive"):
@@ -180,14 +180,14 @@ def test_a_digest_is_written_in_the_recipients_language() -> None:
         ],
     }
     subject, body = render_email_parts("notifications.digest", payload, *_TURKISH)
-    assert subject == "OpenConstructionERP: Bildirim özeti (2)"
+    assert subject == f"{BRAND_NAME}: Bildirim özeti (2)"
     assert "Son bildirimler:" in body
     assert "[Kule Projesi] Gecikmiş: Bilgi Talebi (RFI) RFI-007" in body
     assert "[Kule Projesi] İlave İş onaylandı: VR-012" in body
     assert "Recent notifications" not in body and "{" not in body
 
     subject_en, body_en = render_email_parts("notifications.digest", payload, *_ENGLISH)
-    assert subject_en == "OpenConstructionERP: Notification digest (2)"
+    assert subject_en == f"{BRAND_NAME}: Notification digest (2)"
     assert "Recent notifications:" in body_en
 
 

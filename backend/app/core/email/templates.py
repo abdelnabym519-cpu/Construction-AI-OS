@@ -8,8 +8,12 @@ password-reset).  Each template returns ``(subject, html_body)`` so the
 caller can decide whether to wrap it in an ``EmailMessage`` and push it
 through the service, or inspect it directly in unit tests.
 
-Kept template-only - no I/O, no settings, no side effects - so it can
-be imported from tests without touching the rest of the stack.
+Kept template-only - no I/O and no side effects - so it can be imported from
+tests without touching the rest of the stack. The one deliberate exception is
+the brand name below, which is read once from the ``app_name`` setting, the
+single display-name constant in :mod:`app.config`; the read is guarded and
+falls back to that constant's default, so importing this module still never
+requires a configured environment.
 """
 
 from __future__ import annotations
@@ -20,8 +24,28 @@ _LOGO_URL = "https://openconstructionerp.com/logo-128.png"
 
 #: The product name every outgoing email carries: the ``From:`` display name,
 #: the line beside the logo and the closing line of the footer. It is a brand,
-#: so it is never translated or shortened, in any language.
-BRAND_NAME = "OpenConstructionERP"
+#: so it is never translated or shortened, in any language. Read from the one
+#: constant (``app_name`` in :mod:`app.config`), guarded so importing this
+#: module never requires a configured environment.
+def _resolve_brand_name() -> str:
+    """Read the display name from the one constant, ``app_name`` in config.
+
+    Mirrors ``app.core.pdf_branding._resolve_default_brand`` so a PDF and an
+    email can never disagree about the product name. ``tests/unit/
+    test_the_display_name_is_one_constant.py`` pins the agreement.
+    """
+    try:
+        from app.config import get_settings
+
+        name = str(get_settings().app_name or "").strip()
+        if name:
+            return name
+    except Exception:  # noqa: BLE001 - degrade to the literal default
+        pass
+    return "Construction AI OS"
+
+
+BRAND_NAME = _resolve_brand_name()
 _APP_NAME = BRAND_NAME
 
 # The footer line of mail that a person receives because they subscribed to
@@ -168,7 +192,7 @@ def template_password_reset(
     to copy-paste or forwarded-email attack paths.
     """
     greeting = f"Hi {recipient_name}," if recipient_name else "Hello,"
-    subject = "Reset your OpenConstructionERP password"
+    subject = f"Reset your {_APP_NAME} password"
     body = (
         f"<p>{greeting}</p>"
         f"<p>We received a request to reset the password on your "

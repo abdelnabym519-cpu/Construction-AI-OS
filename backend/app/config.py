@@ -293,7 +293,16 @@ class Settings(BaseSettings):
         )
 
     # ── App ──────────────────────────────────────────────────────────────
-    app_name: str = "OpenConstructionERP"
+    # The ONE product display-name constant. Everything that renders the
+    # name to a user - the OpenAPI title, the PDF letterhead's DEFAULT_BRAND
+    # (app.core.pdf_branding), the email From:/footer brand
+    # (app.core.email.templates) - reads this field, and the frontend keeps
+    # its copy in frontend/src/shared/lib/brandName.ts. The two sides are
+    # held to agreement by
+    # tests/unit/test_the_display_name_is_one_constant.py. Operators can
+    # override per install with APP_NAME / OE_APP_NAME; the CustomBranding
+    # feature remains the per-workspace white-label override on top.
+    app_name: str = "Construction AI OS"
     app_version: str = Field(default_factory=_detect_version)
     app_env: Literal["development", "staging", "production"] = "development"
     # Off unless asked for. Debug switches on verbose 422 bodies (the raw
