@@ -92,6 +92,7 @@ async def _fire_subscribed_agents(trigger: str, data: dict) -> int:  # type: ign
     awaited sequentially so one event does not spawn an unbounded burst of
     concurrent LLM calls on the single-process deploy.
     """
+    from app.core import cost_scope
     from app.modules.ai_agents.service import AgentService
 
     project_id = _coerce_project_id(data.get("project_id"))
@@ -129,13 +130,21 @@ async def _fire_subscribed_agents(trigger: str, data: dict) -> int:  # type: ign
             if owner_id_s != str(agent_user_id) and not await is_project_member(session, project_id, agent_user_id):
                 continue
             try:
-                await service.start_run(
-                    user_id=agent_user_id,
-                    agent_name=agent_name,
-                    user_input=user_input,
-                    project_id=project_id,
-                    trigger_source=f"event:{trigger}",
-                )
+                # An event-triggered run has no request around it either, and it
+                # belongs to the subscriber's creator exactly as a scheduled run
+                # belongs to the agent's owner - ``scheduler._fire_due_agent`` and
+                # the HTTP background task both bind this scope. Without it the
+                # same agent reads a wider cost catalogue when an event fires it
+                # than when its own schedule does, which is the kind of difference
+                # nobody notices until two runs of one agent disagree.
+                with cost_scope.caller_scope(agent_user_id):
+                    await service.start_run(
+                        user_id=agent_user_id,
+                        agent_name=agent_name,
+                        user_input=user_input,
+                        project_id=project_id,
+                        trigger_source=f"event:{trigger}",
+                    )
                 fired += 1
             except Exception:  # noqa: BLE001 - one bad agent never stalls the bus
                 logger.exception("Event-triggered run for agent %s (%s) failed to start", agent_name, trigger)

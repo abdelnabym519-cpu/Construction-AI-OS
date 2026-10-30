@@ -556,6 +556,31 @@ class Settings(BaseSettings):
     # regional indices, catalogs) is never tenant-scoped. Env: ``OE_RLS_ENFORCE``.
     rls_enforce: bool = False
 
+    # Strict tenant predicate, a sub-mode of ``rls_enforce``. When True the
+    # policy installed on each tenant table drops the ``tenant_id IS NULL``
+    # arm, so a row with no tenant belongs to nobody and is hidden from
+    # everybody, and an anonymous caller (empty GUC) matches no row at all.
+    # The permissive arm exists to make a first rollout non-breaking; it is
+    # also why the rollout mode is not the end state, because a row whose
+    # tenant was never set is readable and writable by every tenant on the
+    # install.
+    #
+    # Strict is honoured only when ``GET /api/v1/admin/rls/readiness`` reports
+    # the database ready: no NULL-tenant rows, and tenant values that are not
+    # merely user ids (the login issues no tenant claim, so ``resolve_tenant_id``
+    # falls back to ``sub`` and every user would otherwise become a tenant of
+    # their own, hiding a colleague's rows from everybody else). A refused
+    # request is logged, reported in the provisioning stats as
+    # ``strict_refused``, and provisioned permissive instead, so asking for
+    # strict can never leave a database with no policy at all.
+    #
+    # Default False: the emitted SQL is byte-identical to the rollout behaviour.
+    # Turning it off after a strict boot is a real rollback - provisioning drops
+    # a policy whose installed mode differs from the requested one and recreates
+    # it, rather than leaving the strict predicate in place behind a guard that
+    # only ever creates. Env: ``OE_RLS_STRICT``.
+    rls_strict: bool = False
+
     # ── Public read-only demo ────────────────────────────────────────────
     # When True, the deployment refuses every request that would change
     # persistent state and answers 403 with ``{"error": "demo_read_only",

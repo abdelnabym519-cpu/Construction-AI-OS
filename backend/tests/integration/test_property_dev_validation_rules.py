@@ -1044,10 +1044,21 @@ async def auth_headers(seeded_dev):
     same loop in earlier iterations).
     """
     from app.config import get_settings
+    from app.core.tenant_scope import TENANT_CLAIM
+    from app.database import async_session_factory
     from app.modules.users.service import create_access_token
+    from tests._pg import organization_for
 
     settings = get_settings()
-    token = create_access_token(seeded_dev["owner"], settings)
+    owner = seeded_dev["owner"]
+    # The owner is seeded, not registered, so no membership exists for them and a
+    # directly minted token would name no organization - which the door refuses
+    # (ADR 005). One is created here rather than the claim being invented, so the
+    # endpoints under test see the tenant the seeded rows belong to.
+    async with async_session_factory() as session:
+        organization = await organization_for(session, owner)
+        await session.commit()
+    token = create_access_token(owner, settings, {TENANT_CLAIM: organization})
     return {"Authorization": f"Bearer {token}"}
 
 

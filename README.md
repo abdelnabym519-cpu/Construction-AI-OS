@@ -4,24 +4,16 @@
 
 ### A leading open-source workspace for construction project management
 
-<img src="docs/screenshots/hero-overview.png" alt="OpenConstructionERP - open-source construction ERP for BOQ, BIM takeoff, DWG/PDF quantification and 5D cost modeling" width="900" />
-
 Professional BOQ, CAD and BIM takeoff, 4D scheduling, 5D cost model, and tendering - all in one self-hosted platform.
 
 **Like WordPress for construction companies** - pick modules from the marketplace, drop in your own, or replace ours with custom-built ones. Same plug-and-play model, but for BOQ, scheduling, cost control, BIM, and tendering.
 
-[▶ Watch the 12-min walkthrough](https://www.youtube.com/watch?v=X06cIaroAeI) · [Demo](https://openconstructionerp.com) · [Documentation](https://openconstructionerp.com/docs) · [Build on it](DEVELOPING.md) · [Community chat (Telegram)](https://t.me/datadrivenconstruction) · [Report Bug](https://github.com/datadrivenconstruction/OpenConstructionERP/issues)
+[Demo](https://openconstructionerp.com) · [Documentation](https://openconstructionerp.com/docs) · [Build on it](DEVELOPING.md) · [Community chat (Telegram)](https://t.me/datadrivenconstruction) · [Report Bug](https://github.com/datadrivenconstruction/OpenConstructionERP/issues)
 
 <!-- Each badge row is one source line on purpose. A newline between two badges
      renders as a line break here, which stacks them into a single column. -->
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE) [![Version](https://img.shields.io/github/v/release/datadrivenconstruction/OpenConstructionERP?label=version&color=green)](https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest) [![Release downloads](https://img.shields.io/github/downloads/datadrivenconstruction/OpenConstructionERP/total?label=downloads&color=brightgreen)](https://github.com/datadrivenconstruction/OpenConstructionERP/releases) [![PyPI](https://img.shields.io/pypi/v/openconstructionerp?color=informational&label=pypi)](https://pypi.org/project/openconstructionerp/) [![Downloads (pepy · per month)](https://static.pepy.tech/personalized-badge/openconstructionerp?period=month&units=international_system&left_color=grey&right_color=blue&left_text=downloads%20(pepy%20%C2%B7%20per%20month))](https://pepy.tech/project/openconstructionerp) [![Stars](https://img.shields.io/github/stars/datadrivenconstruction/OpenConstructionERP?style=flat&logo=github)](https://github.com/datadrivenconstruction/OpenConstructionERP/stargazers) [![Last commit](https://img.shields.io/github/last-commit/datadrivenconstruction/OpenConstructionERP?color=informational)](https://github.com/datadrivenconstruction/OpenConstructionERP/commits/main)
 ![Languages](https://img.shields.io/badge/languages-44-orange) ![Cost Items](https://img.shields.io/badge/cost_items-120%2C000%2B-red) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/datadrivenconstruction/OpenConstructionERP/badge)](https://securityscorecards.dev/viewer/?uri=github.com/datadrivenconstruction/OpenConstructionERP) [![CodeQL](https://github.com/datadrivenconstruction/OpenConstructionERP/actions/workflows/codeql.yml/badge.svg)](https://github.com/datadrivenconstruction/OpenConstructionERP/actions/workflows/codeql.yml) [![Signed releases](https://img.shields.io/badge/releases-Sigstore_signed-8250df)](SECURITY.md)
-
-<video src="https://github.com/user-attachments/assets/20b9b585-93ac-4829-a3dc-0ede9ca9e2fc" controls width="800" playsinline>
-  <a href="https://github.com/datadrivenconstruction/OpenConstructionERP/releases/download/v2.0.0/oce_full_demo.mp4">▶ 1-minute teaser</a>
-</video>
-
-<sub><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/device-camera-video-dark.svg"><img src="docs/readme-icons/device-camera-video-light.svg" width="14" align="center" alt=""></picture> <b>1-minute teaser above</b> · for the full 12-minute walkthrough → <a href="https://www.youtube.com/watch?v=X06cIaroAeI"><b>watch on YouTube</b></a> · onboarding → BOQ → BIM → DWG → PDF → AI → dashboard</sub>
 
 <img src="docs/screenshots/banner.png" alt="OpenConstructionERP: a honeycomb of the eight company types and fifteen professional roles the platform is built around, over a second honeycomb of its 190+ backend modules and the two shared libraries drawn beside them, each cell coloured by the category its own manifest declares and shaded by how many of the others it is wired to" width="800" />
 
@@ -65,7 +57,6 @@ Professional BOQ, CAD and BIM takeoff, 4D scheduling, 5D cost model, and tenderi
 <td valign="top">
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/rocket-dark.svg"><img src="docs/readme-icons/rocket-light.svg" width="14" align="center" alt=""></picture> **Get Started**
-- [Video guides](#video-guides)
 - [Why OpenConstructionERP?](#why-openconstructionerp)
 - [A Look Inside](#a-look-inside)
 - [Quick Start](#quick-start)
@@ -121,87 +112,6 @@ Professional BOQ, CAD and BIM takeoff, 4D scheduling, 5D cost model, and tenderi
 ---
 
 > **Ready to try it?** See the **[Getting Started guide](docs/getting-started.md)** for three ways to install (desktop app, pip, Docker) with prerequisites and step-by-step instructions, or jump straight to the **[Quick Start](#quick-start)** section below.
-
----
-
-## Video guides
-
-Short, practical videos, most of them from the [OpenConstruction Academy](https://www.youtube.com/channel/UCQ3IWLMLnBFwNeG5VBxXQ5Q) YouTube channel. Each one follows a real task in the app, from installing it to getting paid. Videos marked DE are in German, the rest are in English.
-
-**Start here, estimating and BOQ**
-
-<table>
-<tr>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=WjDK-uk9b1w"><img src="https://i.ytimg.com/vi/WjDK-uk9b1w/hqdefault.jpg" alt="Install and set up your first project" width="100%"></a><br/><sub><b>Install and set up your first project</b> · 4:41</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=X06cIaroAeI"><img src="https://i.ytimg.com/vi/X06cIaroAeI/hqdefault.jpg" alt="Full product walkthrough" width="100%"></a><br/><sub><b>Full product walkthrough</b> · 12:00</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=zGgfX19b3gc"><img src="https://i.ytimg.com/vi/zGgfX19b3gc/hqdefault.jpg" alt="Build an estimate step by step" width="100%"></a><br/><sub><b>Build an estimate step by step</b> · 4:48</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=FRI5_7CsZT0"><img src="https://i.ytimg.com/vi/FRI5_7CsZT0/hqdefault.jpg" alt="Overhead, profit and contingency" width="100%"></a><br/><sub><b>Overhead, profit and contingency</b> · 3:54</sub></td>
-</tr>
-<tr>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=LejLQ4skfvM"><img src="https://i.ytimg.com/vi/LejLQ4skfvM/hqdefault.jpg" alt="Price a construction job" width="100%"></a><br/><sub><b>Price a construction job</b> · 4:49</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=tZEdPehNE6Q"><img src="https://i.ytimg.com/vi/tZEdPehNE6Q/hqdefault.jpg" alt="Ein Leistungsverzeichnis aufbauen" width="100%"></a><br/><sub><b>Ein Leistungsverzeichnis aufbauen</b> · 5:02 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=OJ1FMzwY3FM"><img src="https://i.ytimg.com/vi/OJ1FMzwY3FM/hqdefault.jpg" alt="Vom vollständigen LV zur Kostenbasis" width="100%"></a><br/><sub><b>Vom vollständigen LV zur Kostenbasis</b> · 10:15 · DE</sub></td>
-<td width="25%" align="center" valign="middle"><a href="https://www.youtube.com/channel/UCQ3IWLMLnBFwNeG5VBxXQ5Q/videos"><img src="https://img.shields.io/badge/More_videos-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="More videos"></a><br/><sub>All guides on the OpenConstruction Academy channel</sub></td>
-</tr>
-</table>
-
-**Cost databases, quantities and schedule**
-
-<table>
-<tr>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=kEN-F92hNZc"><img src="https://i.ytimg.com/vi/kEN-F92hNZc/hqdefault.jpg" alt="Check a unit rate in the cost database" width="100%"></a><br/><sub><b>Check a unit rate in the cost database</b> · 4:02</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=qFGKRIXHM8w"><img src="https://i.ytimg.com/vi/qFGKRIXHM8w/hqdefault.jpg" alt="Einheitspreise und Kosten nachvollziehen" width="100%"></a><br/><sub><b>Einheitspreise und Kosten nachvollziehen</b> · 6:36 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=uBhNqXw2dm0"><img src="https://i.ytimg.com/vi/uBhNqXw2dm0/hqdefault.jpg" alt="Kostenquellen und Ressourcen anpassen" width="100%"></a><br/><sub><b>Kostenquellen und Ressourcen anpassen</b> · 7:35 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=YEk8F3W28po"><img src="https://i.ytimg.com/vi/YEk8F3W28po/hqdefault.jpg" alt="Mengen aus PDF und DWG ermitteln" width="100%"></a><br/><sub><b>Mengen aus PDF und DWG ermitteln</b> · 5:55 · DE</sub></td>
-</tr>
-<tr>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=KI6e3s7XScY"><img src="https://i.ytimg.com/vi/KI6e3s7XScY/hqdefault.jpg" alt="BIM-Modelle verstehen und nutzen" width="100%"></a><br/><sub><b>BIM-Modelle verstehen und nutzen</b> · 5:41 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=bGUpude30wc"><img src="https://i.ytimg.com/vi/bGUpude30wc/hqdefault.jpg" alt="Abhängigkeiten und Ressourceneinsatz planen" width="100%"></a><br/><sub><b>Abhängigkeiten und Ressourceneinsatz planen</b> · 4:31 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=fKGh2e6pJqc"><img src="https://i.ytimg.com/vi/fKGh2e6pJqc/hqdefault.jpg" alt="Schedule to substantial performance" width="100%"></a><br/><sub><b>Schedule to substantial performance</b> · 4:49</sub></td>
-<td width="25%" align="center" valign="middle"><a href="https://www.youtube.com/watch?v=IM9hK6kCZCs"><img src="https://img.shields.io/badge/German_series-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="German series"></a><br/><sub>The Landshut learning project from start to finish · DE</sub></td>
-</tr>
-</table>
-
-**Tendering, procurement, finance and contracts**
-
-<table>
-<tr>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=7u7Ur3ZFe94"><img src="https://i.ytimg.com/vi/7u7Ur3ZFe94/hqdefault.jpg" alt="Tender work to subcontractors" width="100%"></a><br/><sub><b>Tender work to subcontractors</b> · 4:23</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=T3FBggAeFJ4"><img src="https://i.ytimg.com/vi/T3FBggAeFJ4/hqdefault.jpg" alt="GAEB-Dateien kontrolliert austauschen" width="100%"></a><br/><sub><b>GAEB-Dateien kontrolliert austauschen</b> · 5:34 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=75sjLEjXiBc"><img src="https://i.ytimg.com/vi/75sjLEjXiBc/hqdefault.jpg" alt="Angebote prüfen und Vergabe vorbereiten" width="100%"></a><br/><sub><b>Angebote prüfen und Vergabe vorbereiten</b> · 3:04 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=G0a5pEiXaS4"><img src="https://i.ytimg.com/vi/G0a5pEiXaS4/hqdefault.jpg" alt="Material und Teillieferung verfolgen" width="100%"></a><br/><sub><b>Material und Teillieferung verfolgen</b> · 7:01 · DE</sub></td>
-</tr>
-<tr>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=b-qv_emcDwc"><img src="https://i.ytimg.com/vi/b-qv_emcDwc/hqdefault.jpg" alt="Monthly progress draw (CCDC 2)" width="100%"></a><br/><sub><b>Monthly progress draw (CCDC 2)</b> · 4:58</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=aQlkuS7ShCM"><img src="https://i.ytimg.com/vi/aQlkuS7ShCM/hqdefault.jpg" alt="The construction payment clock" width="100%"></a><br/><sub><b>The construction payment clock</b> · 4:35</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=tj7McUl37X0"><img src="https://i.ytimg.com/vi/tj7McUl37X0/hqdefault.jpg" alt="Manage change orders" width="100%"></a><br/><sub><b>Manage change orders</b> · 4:45</sub></td>
-<td width="25%" align="center" valign="middle"><a href="https://www.youtube.com/watch?v=CMuMMej0zwM"><img src="https://img.shields.io/badge/French_series-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="French series"></a><br/><sub>Québec: estimating, BSDQ tenders, billing and handover · FR</sub></td>
-</tr>
-</table>
-
-**Playlists by country and language**
-
-Each series follows one construction project in one country, in that country's language, with its own contracts, standards and payment rules.
-
-| | Series | Language | Videos | What it covers |
-|:-:|---|---|:-:|---|
-| 🇺🇸 | [Builder's Playbook USA](https://www.youtube.com/playlist?list=PLWgzwe9nHkSc) | English | 10 | Install, estimate, bid leveling, budget vs actual, schedule, subcontractors, site log, KPIs |
-| 🇬🇧 | [Builder's Playbook UK](https://www.youtube.com/playlist?list=PLTRtkYLR23qM) | English | 6 | NRM 2 tender, subcontractor bids, JCT interim payments, pay less notice, CIS and VAT reverse charge, variations |
-| 🇨🇦 | [Builder's Playbook Canada](https://www.youtube.com/playlist?list=PLPZV4i5ViBm8) | English | 6 | Pricing, tendering, CCDC 2 progress draw, prompt payment, change orders, substantial performance |
-| ⚜️ | [Builder's Playbook Québec](https://www.youtube.com/playlist?list=PLey59QidNON0) | Français, English | 5 | Getting started, estimating, BSDQ bids, billing and legal hypothec, handover |
-| 🇫🇷 | [OpenConstructionERP en français, gérer un chantier](https://www.youtube.com/playlist?list=PLEhAODe5YAXM) | Français | 4 | Budget, purchasing and stock, site hours and equipment, invoice and payment |
-| 🇩🇪 | [OpenConstructionERP auf Deutsch, Projekt Landshut](https://www.youtube.com/playlist?list=PLKN9p-CuMMkE) | Deutsch | 12 | Projektstart, Planmanagement, Mengen, BIM, LV, Einheitspreise, GAEB, Vergabe, Bauablauf, Material, Kostenbasis |
-| 🇩🇪 | [Kosten nach DIN 276](https://www.youtube.com/playlist?list=PLEvGjPeBbuxQ) | Deutsch | 8 | Kostenrahmen, Kostenschätzung, Kostenberechnung, LV und GAEB, Vergabe, Baustart, Nachträge, Abnahme und Schlussrechnung |
-| 🇪🇸 | [Builder's Playbook España](https://www.youtube.com/playlist?list=PLHgtnDPr3Rjg) | Español | 8 | Certificaciones, oferta desde BC3, comparativo, precios contradictorios, cierre mensual, recepción, retención, partes de obra |
-| 🇮🇹 | [Builder's Playbook Italia](https://www.youtube.com/playlist?list=PLObqqyP8chDs) | Italiano | 7 | Computo metrico, ribasso, subappalto, giornale di cantiere, SAL, conto finale, collaudo |
-| 🇧🇬 | [Builder's Playbook България](https://www.youtube.com/playlist?list=PLfSvz7emI6lQ) | Български | 9 | Акт 19, КСС, анализ на цена, договор и график, подизпълнители, заменителна таблица, окончателен акт, паричен поток, дневник |
-| 🇭🇷 | [Builder's Playbook Hrvatska](https://www.youtube.com/playlist?list=PLP4TpwP1yVyI) | Hrvatski | 5 | Ugovoreni troškovnik, ulazni računi, podizvođači, privremena situacija, višak radova |
-| 🇨🇳 | [Builder's Playbook 中国](https://www.youtube.com/playlist?list=PLOCZ6EOWyC_A) | 中文 | 8 | 工程量清单报价, 预付款, 暂估价招标, 进度款, 签证变更, 材料调差, 成本核算, 结算审计 |
-
-Also on the channel: [The uberization of construction (ETH Zürich)](https://www.youtube.com/watch?v=R_PQQHXY-rQ) (14:22), a talk on where construction software is heading.
-
-**[Browse every video on the OpenConstruction Academy channel](https://www.youtube.com/channel/UCQ3IWLMLnBFwNeG5VBxXQ5Q/videos)**
-
 
 ---
 
@@ -275,85 +185,25 @@ The entire UI ships in **44 languages**, including full right-to-left support fo
 
 ## A Look Inside
 
-A quick tour of the main workspaces. Every screen is the real application running the 70-project demo spanning 30+ countries that ships with a fresh install.
+A quick tour of the main workspaces. Each one runs against the 70-project demo spanning 30+ countries that ships with a fresh install.
 
-<table>
-<tr>
-<td align="center" width="50%">
-<strong>Portfolio Dashboard</strong><br/>
-<em>Every project on one live map, with multi-currency totals that are grouped by currency, never blended.</em><br/><br/>
-<img src="docs/screenshots/gallery/portfolio-dashboard.jpg" alt="Portfolio dashboard with world map and KPIs" width="420" />
-</td>
-<td align="center" width="50%">
-<strong>Projects</strong><br/>
-<em>Localized projects worldwide. Each card carries its site map, BIM / DWG / PDF badges and live value.</em><br/><br/>
-<img src="docs/screenshots/gallery/projects.jpg" alt="Projects overview with localized project cards" width="420" />
-</td>
-</tr>
-<tr>
-<td align="center">
-<strong>BOQ Editor</strong><br/>
-<em>Keyboard-first bill of quantities with sections, assemblies, a live quality score and grand total.</em><br/><br/>
-<img src="docs/screenshots/gallery/boq-editor.jpg" alt="Bill of Quantities editor" width="420" />
-</td>
-<td align="center">
-<strong>Cost Database</strong><br/>
-<em>120,000+ priced items across 9 cost bases, bilingual, searchable by code, unit or class.</em><br/><br/>
-<img src="docs/screenshots/gallery/cost-database.jpg" alt="Regional cost databases" width="420" />
-</td>
-</tr>
-<tr>
-<td align="center">
-<strong>3D BIM Viewer</strong><br/>
-<em>Federated models in the browser with a category and storey breakdown. Converted with DDC Converters 2.0.</em><br/><br/>
-<img src="docs/screenshots/gallery/bim-3d-viewer.jpg" alt="3D BIM viewer with element summary" width="420" />
-</td>
-<td align="center">
-<strong>Clash Detection</strong><br/>
-<em>Geometric coordination across federated models, with a clash matrix and BCF export.</em><br/><br/>
-<img src="docs/screenshots/gallery/clash-detection.jpg" alt="Clash detection across federated models" width="420" />
-</td>
-</tr>
-<tr>
-<td align="center">
-<strong>PDF Takeoff</strong><br/>
-<em>Drop a drawing, let AI extract the quantities, then push them straight into the BOQ.</em><br/><br/>
-<img src="docs/screenshots/gallery/pdf-takeoff.jpg" alt="AI-assisted PDF takeoff" width="420" />
-</td>
-<td align="center">
-<strong>AI Estimate</strong><br/>
-<em>Turn text, a photo, a PDF or a spreadsheet into a scoped BOQ in seconds, with confidence scores.</em><br/><br/>
-<img src="docs/screenshots/gallery/ai-estimate.jpg" alt="AI quick estimate" width="420" />
-</td>
-</tr>
-<tr>
-<td align="center">
-<strong>Validation</strong><br/>
-<em>Built-in DIN 276, NRM and MasterFormat rules score every BOQ with a traffic-light report.</em><br/><br/>
-<img src="docs/screenshots/gallery/validation.jpg" alt="Validation report with traffic-light score" width="420" />
-</td>
-<td align="center">
-<strong>Cross-Project Analytics</strong><br/>
-<em>Portfolio KPIs grouped by currency: budget, actuals and variance, project by project.</em><br/><br/>
-<img src="docs/screenshots/gallery/analytics.jpg" alt="Cross-project analytics grouped by currency" width="420" />
-</td>
-</tr>
-<tr>
-<td align="center" colspan="2">
-<strong>Finance &amp; Earned Value</strong><br/>
-<em>Budgets, invoices, payments and earned value tracked against the estimate.</em><br/><br/>
-<img src="docs/screenshots/gallery/finance.jpg" alt="Finance and earned value management" width="420" />
-</td>
-</tr>
-</table>
+- **Portfolio Dashboard** - every project on one live map, with multi-currency totals grouped by currency, never blended
+- **Projects** - localized projects worldwide; each card carries its site map, BIM / DWG / PDF badges and live value
+- **BOQ Editor** - keyboard-first bill of quantities with sections, assemblies, a live quality score and grand total
+- **Cost Database** - 120,000+ priced items across 9 cost bases, bilingual, searchable by code, unit or class
+- **3D BIM Viewer** - federated models in the browser with a category and storey breakdown, converted with DDC Converters 2.0
+- **Clash Detection** - geometric coordination across federated models, with a clash matrix and BCF export
+- **PDF Takeoff** - drop a drawing, let AI extract the quantities, then push them straight into the BOQ
+- **AI Estimate** - turn text, a photo, a PDF or a spreadsheet into a scoped BOQ in seconds, with confidence scores
+- **Validation** - built-in DIN 276, NRM and MasterFormat rules score every BOQ with a traffic-light report
+- **Cross-Project Analytics** - portfolio KPIs grouped by currency: budget, actuals and variance, project by project
+- **Finance & Earned Value** - budgets, invoices, payments and earned value tracked against the estimate
 
 ---
 
 ## Key Features
 
 ### <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/graph-dark.svg"><img src="docs/readme-icons/graph-light.svg" width="14" align="center" alt=""></picture> Bill of Quantities (BOQ) Management
-
-<img src="docs/screenshots/feature-boq.jpg" alt="BOQ Editor - Create, manage and analyze Bills of Quantities" width="800" />
 
 Build professional cost estimates with a powerful BOQ editor. The full lifecycle - from first sketch to final tender submission:
 
@@ -369,8 +219,6 @@ Build professional cost estimates with a powerful BOQ editor. The full lifecycle
 
 ### <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/database-dark.svg"><img src="docs/readme-icons/database-light.svg" width="14" align="center" alt=""></picture> Cost Databases & Resource Catalog
 
-<img src="docs/screenshots/feature-databases.jpg" alt="Cost Database - 120,000+ items across 9 cost bases" width="800" />
-
 - **Cost bases** - 120,000+ cost items across 9 bases and 40+ markets: the global CWICR database covering all major construction trades, plus 8 national bases built on each country's own norm system (China, Turkey, Brazil, Spain, Italy, Greece, Vietnam, Indonesia)
 - **Smart search** - Find items by description, code, or classification. AI-powered semantic search matches meaning, not just keywords ("concrete wall" finds "reinforced partition C30/37")
 - **Resource catalog** - 7,000+ materials, equipment, labor rates, and operators. Build custom assemblies from catalog items
@@ -378,8 +226,6 @@ Build professional cost estimates with a powerful BOQ editor. The full lifecycle
 - **Import your data** - Upload your own cost database from Excel, CSV, or connect via API
 
 ### <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/tools-dark.svg"><img src="docs/readme-icons/tools-light.svg" width="14" align="center" alt=""></picture> CAD/BIM Takeoff & AI Estimation
-
-<img src="docs/screenshots/feature-takeoff-ai.jpg" alt="CAD/BIM Takeoff and AI-powered estimation" width="800" />
 
 Extract quantities from any source - drawings, models, text, or photos:
 
@@ -724,9 +570,6 @@ has the details.
   </a>
   <a href="https://www.linkedin.com/company/78381569" target="_blank">
     <img src="https://custom-icon-badges.demolab.com/badge/LinkedIn-0A66C2?logo=linkedin-white&logoColor=fff" alt="Connect on LinkedIn">
-  </a>
-  <a href="https://www.youtube.com/watch?v=X06cIaroAeI" target="_blank">
-    <img src="https://img.shields.io/badge/▶_Watch_demo-12_min_walkthrough-FF0000?logo=youtube&logoColor=white" alt="Watch the 12-minute walkthrough">
   </a>
 </p>
 

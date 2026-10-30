@@ -39,6 +39,7 @@ from app.core.file_signature import (
 from app.core.file_signature import require as require_signature
 from app.core.storage import module_uploads_dir
 from app.dependencies import (
+    CurrentTenantId,
     CurrentUserId,
     RequirePermission,
     SessionDep,
@@ -412,12 +413,16 @@ async def list_subcontractor_contacts(
 async def create_subcontractor_contact(
     data: SubcontractorContactCreate,
     session: SessionDep,
+    # ``_user`` stays: it is the door that makes this endpoint authenticated. The
+    # tenant is a second fact about the same caller, and it used to be derived
+    # from the first, which is the person-as-tenant confusion ADR 005 removes.
     _user: CurrentUserId,
+    _tenant_id: CurrentTenantId,
     _perm: None = Depends(RequirePermission("subcontractors.update")),
 ) -> SubcontractorContactResponse:
     """Add a contact under a subcontractor."""
     svc = SubcontractorService(session)
-    entity = await svc.create_contact(data, tenant_id=str(_user))
+    entity = await svc.create_contact(data, tenant_id=_tenant_id)
     return SubcontractorContactResponse.model_validate(entity)
 
 
@@ -427,11 +432,12 @@ async def update_subcontractor_contact(
     data: SubcontractorContactUpdate,
     session: SessionDep,
     _user: CurrentUserId,
+    _tenant_id: CurrentTenantId,
     _perm: None = Depends(RequirePermission("subcontractors.update")),
 ) -> SubcontractorContactResponse:
     """Update a subcontractor contact."""
     svc = SubcontractorService(session)
-    entity = await svc.update_contact(contact_id, data, tenant_id=str(_user))
+    entity = await svc.update_contact(contact_id, data, tenant_id=_tenant_id)
     return SubcontractorContactResponse.model_validate(entity)
 
 

@@ -1,7 +1,7 @@
 // DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 // Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 //
-// Where the Learn section (Videos and Cases) goes when it is hidden from the
+// Where the Learn section (Cases and Packs) goes when it is hidden from the
 // top of the menu: one graduation cap in the top bar. Clicking it puts the
 // section back and the cap leaves. It shows at every width, a phone included,
 // because it is the only way back.
@@ -18,8 +18,8 @@ export function LearnTopBarButton() {
   const setGroupHidden = useModuleStore((s) => s.setGroupHidden);
   if (!hidden) return null;
 
-  const label = t('sidebar.learn.show', { defaultValue: 'Show video guides & use cases' });
-  const hint = t('sidebar.learn.show_hint', { defaultValue: 'Put Video guides and Use cases back at the top of the menu' });
+  const label = t('sidebar.learn.show', { defaultValue: 'Show cases & packs' });
+  const hint = t('sidebar.learn.show_hint', { defaultValue: 'Put Cases and Packs back at the top of the menu' });
 
   return (
     <button

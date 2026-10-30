@@ -3279,6 +3279,7 @@ class FinanceService:
         cutover_date: str,
         dry_run: bool,
         user_id: str | None,
+        tenant_id: str | None,
     ) -> dict[str, Any]:
         """Carry the open receivables and payables of another system over to a project.
 
@@ -3315,13 +3316,34 @@ class FinanceService:
         ).all():
             existing[(direction, str(number).casefold())] = isinstance(meta, dict) and bool(meta.get("opening_item"))
 
-        owner = await tenant_scope_owner(self.session, user_id)
+        # Two different values, and they used to be one. ``tenant_id`` is the
+        # caller's organization, which is what ``Contact.tenant_id`` holds since
+        # the ADR 005 backfill; ``user_id`` is the caller, which is what
+        # ``created_by`` holds and always held. Passing the user id in as the
+        # tenant, as this did before, matched nothing at all once the backfill had
+        # run, so an open-items import would have found no contact for any row and
+        # reported every line of a valid file as unmatched.
+        #
+        # ``actor_id`` is likewise the caller and not the tenant: the admin check
+        # behind ``tenant_scope_owner`` looks its argument up in the users table,
+        # and an organization id is not in it.
+        #
+        # ``tenant_id`` has no default on purpose. The only caller is the router,
+        # and a forgotten argument should fail at the call rather than import a
+        # file against an empty contact list.
+        owner = await tenant_scope_owner(self.session, tenant_id, actor_id=user_id)
         stmt = select(Contact).where(Contact.is_active.is_(True))
         if owner is not None:
             from sqlalchemy import and_, or_
 
             stmt = stmt.where(
-                or_(Contact.tenant_id == owner, and_(Contact.tenant_id.is_(None), Contact.created_by == owner))
+                or_(
+                    Contact.tenant_id == owner,
+                    # The legacy arm: a row with no tenant that this caller wrote.
+                    # Keyed on the person, which is the only thing ``created_by``
+                    # has ever held.
+                    and_(Contact.tenant_id.is_(None), Contact.created_by == user_id),
+                )
             )
         contacts = list((await self.session.execute(stmt)).scalars().all())
         by_tax: dict[str, list[Any]] = {}
