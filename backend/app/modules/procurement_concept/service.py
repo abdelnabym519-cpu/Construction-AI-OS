@@ -2082,13 +2082,30 @@ class ProcurementConceptService:
         the owner here compares a person against rows that carry a company: the project
         half of :meth:`project_frameworks` then matches nothing and a member of the
         project can no longer see the project's own frameworks.
+
+        A project whose company was never filled in falls back to its owner's preferred
+        active organization. That is the same derivation the tenancy repair writes into
+        the column and the same one a token mint uses, so the read path cannot disagree
+        with either of them; the repair's own comment makes matching them the point.
+        Where the owner has no active membership there is nothing honest to derive, so
+        the answer stays ``None`` and the project-scoped reads stay narrow rather than
+        widening to a guess. ``tests/pg/test_a_legacy_project_with_no_organization_names_its_owners_company.py``
+        pins both halves.
         """
+        from app.core.tenant_scope import active_organization_id
         from app.modules.projects.models import Project
 
-        organization = (
-            await self.session.execute(select(Project.organization_id).where(Project.id == project_id))
-        ).scalar_one_or_none()
-        return str(organization) if organization else None
+        row = (
+            await self.session.execute(
+                select(Project.organization_id, Project.owner_id).where(Project.id == project_id)
+            )
+        ).one_or_none()
+        if row is None:
+            return None
+        organization, owner = row
+        if organization is not None:
+            return str(organization)
+        return await active_organization_id(self.session, owner) if owner is not None else None
 
     async def list_frameworks(self, tenant_id: str | None) -> list[FrameworkAgreement]:
         if not tenant_id:

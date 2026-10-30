@@ -673,3 +673,48 @@ async def test_a_project_without_a_phase_model_answers_unknown_and_empty_pickers
             attempt = GateAttempt(uuid.uuid4(), "any_gate", 1)
             (item,) = await concept_ready(s, w.project_id, attempt, SimpleNamespace(code="any_area"))
         assert (item.state, item.detail) == ("unknown", "procurement_area_unresolved")
+
+
+async def test_a_project_member_reads_another_companys_frameworks_because_no_grant_exists_yet(world: World) -> None:
+    """CHARACTERIZATION. Today's behaviour, recorded so that it cannot change silently.
+
+    ``project_frameworks`` unions the project's company's frameworks with the caller's
+    own, and the only gate in front of it is ``verify_project_access``: owner, admin or
+    team member. So any team member of a project reads the framework agreements of a
+    company they do not belong to - with no grant, no scope, no expiry and no audit row.
+    The reader below is on the project's team and belongs to a different company, and the
+    framework does not appear in their own company's list, so the visibility comes from
+    the project arm of the union and from nothing else.
+
+    This is not an endorsement and it is not the target shape. ADR 006,
+    ``docs/adr/006-project-participant-grants.md``, records the owner's decision that
+    cross-organization participation goes through an explicit project participant grant,
+    names this call site as the first thing that predicate replaces, and lists it on the
+    Phase 02c list as a security item. Changing what this test asserts is therefore a
+    deliberate act that has to happen together with the grant feature and not before it.
+    """
+    body = {
+        "code": "FW-NO-GRANT",
+        "title": "Rebar",
+        "package_kinds": ["supply"],
+        "lots": [],
+        "max_value": "500000",
+        "currency": "EUR",
+        "start_date": "2026-01-01",
+        "end_date": "2028-12-31",
+    }
+    async with client_as(world, world.manager, "manager") as c:
+        made = await c.post(f"{BASE}/frameworks", json=body)
+    assert made.status_code == 201, made.text
+    fw_id = made.json()["id"]
+
+    # The reader is a member of the project's team and belongs to a different company.
+    # That the two companies differ is the whole content of "no grant": there is no
+    # participation record of any kind behind the read that succeeds below.
+    assert world.tenants[world.area_owner] != world.tenants[world.manager]
+    async with client_as(world, world.area_owner, "editor") as c:
+        through_the_project = await c.get(_p(world, "/frameworks"))
+        their_own_company = await c.get(f"{BASE}/frameworks")
+    assert through_the_project.status_code == 200, through_the_project.text
+    assert [f["id"] for f in through_the_project.json()["items"]] == [fw_id]
+    assert their_own_company.json()["items"] == []
