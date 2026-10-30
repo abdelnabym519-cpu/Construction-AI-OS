@@ -507,7 +507,9 @@ returned in the provisioning stats and visible in the readiness response.
 
 Phase 02b is the tenancy foundation Phase 02's readiness gate was refusing to proceed without.
 It answers one question - what is a tenant - and then makes every credential, every write site
-and every background run agree with the answer.
+and every background run agree with the answer. A reading order for reviewers, with the commits
+grouped by theme and the riskiest files named, is in
+[PHASE_02B_REVIEW_GUIDE.md](./PHASE_02B_REVIEW_GUIDE.md).
 
 ### The decision
 
