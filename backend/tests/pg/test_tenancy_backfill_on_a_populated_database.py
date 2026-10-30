@@ -432,15 +432,26 @@ async def test_users_without_a_membership_get_an_active_default_one(pg_session) 
     state = await _populate(pg_session)
     await _repair(pg_session)
 
+    # Scoped to the three users this test created, and that is the point of the
+    # scoping rather than a way to make a number come out. This runs on the lane's
+    # shared database, where an earlier file may have committed a user of its own;
+    # the repair gives every user it finds a default membership, so an unscoped
+    # count here measures the whole lane and not this test. Counting the rows that
+    # belong to the people named below keeps the assertion about the repair.
     rows = (
         await pg_session.execute(
             text(
                 f"SELECT user_id::text AS user_id, organization_id::text AS organization_id, role, status, is_default "
-                f"  FROM {_MEMBERSHIP} ORDER BY created_at, id"
-            )
+                f"  FROM {_MEMBERSHIP} "
+                f" WHERE user_id::text IN (:owner, :colleague, :suspended) ORDER BY created_at, id"
+            ),
+            {"owner": state.owner, "colleague": state.colleague, "suspended": state.suspended},
         )
     ).all()
-    assert len(rows) == 3, f"expected the pre-existing suspended row plus two new ones, got {len(rows)}"
+    assert len(rows) == 3, (
+        "expected the pre-existing suspended row plus two new ones for the three users this test "
+        f"created, got {len(rows)}"
+    )
 
     created = [row for row in rows if row.user_id in (state.owner, state.colleague)]
     assert len(created) == 2
@@ -560,6 +571,11 @@ async def test_a_second_and_a_third_pass_change_nothing(pg_session) -> None:  # 
     progress forever. A repair that only ran once would pass every other test here.
     """
     state = await _populate(pg_session)
+    # Read before the first pass, because every count below is about what the three
+    # passes added and not about what the database holds. This is the lane's shared
+    # database: an earlier file can commit a user, and the repair gives every user it
+    # finds a default membership, so absolute counts here measure the whole lane.
+    ledger_before = await pg_session.scalar(text(f"SELECT count(*) FROM {_LEDGER}"))
     first = await _repair(pg_session)
     assert first > 0
 
@@ -568,12 +584,24 @@ async def test_a_second_and_a_third_pass_change_nothing(pg_session) -> None:  # 
     assert second == 0, f"the second pass still changed {second} rows"
     assert third == 0, f"the third pass still changed {third} rows"
 
-    ledger = await pg_session.scalar(text(f"SELECT count(*) FROM {_LEDGER}"))
-    memberships = await pg_session.scalar(text(f"SELECT count(*) FROM {_MEMBERSHIP}"))
-    organizations = await pg_session.scalar(text(f"SELECT count(*) FROM {_ORGANIZATION}"))
-    assert ledger == 4, f"the ledger grew to {ledger} entries across three passes"
-    assert memberships == 3
-    assert organizations == 1
+    ledger = await pg_session.scalar(text(f"SELECT count(*) FROM {_LEDGER}")) - ledger_before
+    memberships = await pg_session.scalar(
+        text(f"SELECT count(*) FROM {_MEMBERSHIP}  WHERE user_id::text IN (:owner, :colleague, :suspended)"),
+        {"owner": state.owner, "colleague": state.colleague, "suspended": state.suspended},
+    )
+    organizations = await pg_session.scalar(
+        text(
+            f"SELECT count(DISTINCT organization_id) FROM {_MEMBERSHIP} "
+            f" WHERE user_id::text IN (:owner, :colleague, :suspended)"
+        ),
+        {"owner": state.owner, "colleague": state.colleague, "suspended": state.suspended},
+    )
+    assert ledger == 4, f"three passes added {ledger} ledger entries, expected the 4 rows this test populated"
+    assert memberships == 3, f"the three users this test created hold {memberships} memberships, expected 3"
+    assert organizations == 1, (
+        f"the repair spread this test's users over {organizations} organizations; both new memberships "
+        "belong in the one that already existed"
+    )
 
     # The rows that were honestly unresolvable are still unresolvable, and still
     # say so rather than having been quietly filled in on a later pass.
