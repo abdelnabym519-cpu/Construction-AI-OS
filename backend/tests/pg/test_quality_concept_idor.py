@@ -363,36 +363,32 @@ async def test_a_catalogue_of_another_tenant_cannot_be_pinned_and_a_stored_pin_k
 async def _two_companies(w: World) -> tuple[str, str]:
     """One company for the manager and the editor, another for the outsider.
 
+    The world now gives every caller a company of their own with an active default
+    membership in it, so this builds on those rather than inventing two more. That
+    matters and is not a simplification: a second ``is_default`` membership beside
+    the world's own ties, and ``active_organization_id`` breaks the tie by age, so
+    the caller's token would name the world's company while the catalogue rows below
+    are published under this one, and the pin would resolve to 404
+    ``unknown_catalogue``. The manager keeps the company the world gave them, the
+    editor is moved into it - one membership, still the default, so nothing ties -
+    and the outsider's own company is the foreign one.
+
     Memberships are written before any token is minted, because the active
     organization is resolved at login and stamped into the access token as its
     ``tenant_id`` claim.
     """
-    from app.modules.users.models import Membership, Organization, User
+    from sqlalchemy import update
 
+    from app.modules.users.models import Membership
+
+    ours = str(w.tenants[w.manager])
+    theirs = str(w.tenants[w.outsider])
     async with w.factory() as s:
-        manager = await s.get(User, w.manager)
-        editor = await s.get(User, w.editor)
-        outsider = await s.get(User, w.outsider)
-        assert manager is not None and editor is not None and outsider is not None
-        ours = Organization(slug=f"qc-ours-{uuid.uuid4().hex[:8]}", name="Quality Company")
-        theirs = Organization(slug=f"qc-theirs-{uuid.uuid4().hex[:8]}", name="Rival Company")
-        s.add_all([ours, theirs])
-        await s.flush()
-        s.add_all(
-            [
-                Membership(
-                    user_id=w.manager, organization_id=ours.id, role=manager.role, status="active", is_default=True
-                ),
-                Membership(
-                    user_id=w.editor, organization_id=ours.id, role=editor.role, status="active", is_default=True
-                ),
-                Membership(
-                    user_id=w.outsider, organization_id=theirs.id, role=outsider.role, status="active", is_default=True
-                ),
-            ]
+        await s.execute(
+            update(Membership).where(Membership.user_id == w.editor).values(organization_id=w.tenants[w.manager])
         )
         await s.commit()
-        return str(ours.id), str(theirs.id)
+    return ours, theirs
 
 
 async def _contact(w: World, owner: uuid.UUID, company: str) -> str:
