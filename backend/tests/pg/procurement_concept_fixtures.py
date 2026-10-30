@@ -354,7 +354,7 @@ async def build_world(
         # one instead of settling either, because the two views in that test are
         # meant to disagree about who owns what.
         tenants = {u: await add_organization(s, u) for u in (manager, area_owner, editor, outsider)}
-        pid = await add_project(s, manager, [area_owner, editor])
+        pid = await add_project(s, manager, [area_owner, editor], organization_id=tenants[manager])
         source, model_id = "shipped", MODEL_ID
         if from_start or not tagged:
             source, model_id = (

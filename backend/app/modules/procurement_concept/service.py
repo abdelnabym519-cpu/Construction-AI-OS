@@ -2074,13 +2074,21 @@ class ProcurementConceptService:
         return row
 
     async def project_tenant(self, project_id: uuid.UUID) -> str | None:
-        """The company a project belongs to: its owner's tenant (the platform has no other company key)."""
+        """The company a project belongs to: its ``organization_id``.
+
+        This used to read ``owner_id``, which was the right answer while a person was
+        their own tenant and the platform had no other company key. ADR 005 made an
+        organization the tenant and gave the project an ``organization_id``, so reading
+        the owner here compares a person against rows that carry a company: the project
+        half of :meth:`project_frameworks` then matches nothing and a member of the
+        project can no longer see the project's own frameworks.
+        """
         from app.modules.projects.models import Project
 
-        owner = (
-            await self.session.execute(select(Project.owner_id).where(Project.id == project_id))
+        organization = (
+            await self.session.execute(select(Project.organization_id).where(Project.id == project_id))
         ).scalar_one_or_none()
-        return str(owner) if owner else None
+        return str(organization) if organization else None
 
     async def list_frameworks(self, tenant_id: str | None) -> list[FrameworkAgreement]:
         if not tenant_id:

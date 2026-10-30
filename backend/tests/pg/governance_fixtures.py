@@ -125,13 +125,33 @@ async def add_user(session: AsyncSession, role: str) -> uuid.UUID:
     return uid
 
 
-async def add_project(session: AsyncSession, owner: uuid.UUID, members: list[uuid.UUID]) -> uuid.UUID:
+async def add_project(
+    session: AsyncSession,
+    owner: uuid.UUID,
+    members: list[uuid.UUID],
+    *,
+    organization_id: uuid.UUID | None = None,
+) -> uuid.UUID:
+    """A project, its team, and the company it belongs to.
+
+    ``organization_id`` is optional so the callers that predate ADR 005 keep working,
+    but a world that mints tokens should pass one: anything reading the project's
+    company now reads this column and not the owner's person id.
+    """
     from app.modules.projects.models import Project
     from app.modules.teams.models import Team, TeamMembership
 
     pid = uuid.uuid4()
     session.add(
-        Project(id=pid, name=f"Gov {pid.hex[:6]}", currency="EUR", status="active", owner_id=owner, metadata_={})
+        Project(
+            id=pid,
+            name=f"Gov {pid.hex[:6]}",
+            currency="EUR",
+            status="active",
+            owner_id=owner,
+            organization_id=organization_id,
+            metadata_={},
+        )
     )
     await session.flush()
     team = Team(project_id=pid, name="Core")
@@ -211,7 +231,7 @@ async def build_world(
         editor = await add_user(s, "editor")
         outsider = await add_user(s, "manager")
         tenants = {u: await add_organization(s, u) for u in (manager, decider, owner, editor, outsider)}
-        pid = await add_project(s, manager, [decider, owner, editor])
+        pid = await add_project(s, manager, [decider, owner, editor], organization_id=tenants[manager])
         w = World(factory, pid, manager, decider, owner, editor, outsider)
         w.tenants = tenants
         if routes:
