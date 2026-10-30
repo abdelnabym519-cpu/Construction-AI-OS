@@ -227,6 +227,29 @@ jobs:
           pytest tests/unit -q -ra --durations=25
           --timeout=300 --timeout-method=signal
           --splits 6 --group ${{ matrix.shard }}
+          --junitxml="${{ runner.temp }}/unit-shard.xml"
+
+      - name: Annotate every failure this shard produced
+        if: always()
+        # A red shard here used to say nothing but "Process completed with exit
+        # code 1". The job log is not downloadable from every environment and the
+        # REST API returns an empty output.summary for a job, so the only place the
+        # failing test's name existed was a log nobody could fetch. Annotations are
+        # readable through /check-runs/<id>/annotations, so this parses the JUnit
+        # report the step above wrote and turns every failure into one, naming the
+        # file and line, plus a notice per target with its collected, passed,
+        # failed and skipped counts. GitHub keeps ten annotations of each level per
+        # step; the script folds what it could not emit into the totals notice
+        # rather than let a reader mistake ten for the whole answer.
+        #
+        # runner.temp is used instead of $RUNNER_TEMP because the Windows runners
+        # this job also runs on default to pwsh, where that spelling expands to
+        # nothing at all and the report would be written to the working directory.
+        run: >-
+          python ../scripts/publish_test_counts.py
+          --junit "${ runner.temp }/unit-shard.xml"
+          --annotate
+          --title "### Backend unit shard ${{ matrix.shard }}/6 (${{ matrix.os }})"
 
   backend-gate:
     name: Backend CI
@@ -786,3 +809,26 @@ jobs:
           pytest tests/unit -q -ra --durations=25
           --timeout=300 --timeout-method=thread
           --splits 3 --group ${{ matrix.shard }}
+          --junitxml="${{ runner.temp }}/unit-shard.xml"
+
+      - name: Annotate every failure this shard produced
+        if: always()
+        # A red shard here used to say nothing but "Process completed with exit
+        # code 1". The job log is not downloadable from every environment and the
+        # REST API returns an empty output.summary for a job, so the only place the
+        # failing test's name existed was a log nobody could fetch. Annotations are
+        # readable through /check-runs/<id>/annotations, so this parses the JUnit
+        # report the step above wrote and turns every failure into one, naming the
+        # file and line, plus a notice per target with its collected, passed,
+        # failed and skipped counts. GitHub keeps ten annotations of each level per
+        # step; the script folds what it could not emit into the totals notice
+        # rather than let a reader mistake ten for the whole answer.
+        #
+        # runner.temp is used instead of $RUNNER_TEMP because the Windows runners
+        # this job also runs on default to pwsh, where that spelling expands to
+        # nothing at all and the report would be written to the working directory.
+        run: >-
+          python ../scripts/publish_test_counts.py
+          --junit "${ runner.temp }/unit-shard.xml"
+          --annotate
+          --title "### Backend unit shard ${{ matrix.shard }}/3 (${{ matrix.os }})"

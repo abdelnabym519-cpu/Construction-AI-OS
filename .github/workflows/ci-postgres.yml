@@ -157,6 +157,7 @@ jobs:
           --target tests/pg/test_a_background_session_keeps_the_connecting_role_and_is_not_policied.py
           --target tests/pg/test_rls_readiness_report_measures_the_real_database.py
           --target tests/pg/test_the_tenancy_boot_repair_is_atomic_idempotent_and_locked.py
+          --annotate
           --fail-on-skip
       # Checks on what the demo seeder writes. Two families so far. Vocabulary:
       # the places where one list of allowed values is written down in a second
@@ -1445,6 +1446,7 @@ jobs:
           --target tests/unit/test_which_paths_bind_a_tenant_and_which_still_do_not.py
           --target tests/unit/test_no_route_resolves_a_tenant_from_the_token_subject.py
           --target tests/integration/test_a_legacy_token_is_refused_until_a_refresh_replaces_it.py
+          --annotate
           --fail-on-skip
 
   frontend-tests:
