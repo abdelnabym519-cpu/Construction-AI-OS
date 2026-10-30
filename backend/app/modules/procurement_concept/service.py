@@ -2193,14 +2193,28 @@ class ProcurementConceptService:
         return await self._ledger_of(row)
 
     async def _tenant_project_ids(self, tenant_id: str) -> set[uuid.UUID]:
-        """Projects of the framework's company (those its tenant owns)."""
+        """Projects of the framework's company: those whose ``organization_id`` is that company.
+
+        This used to read ``Project.owner_id``, which treats the tenant as a person and
+        matches the projects that person owns. Since ADR 005 the tenant is a company, so
+        the comparison matched nothing at all and the ledger came back empty: no purchase
+        orders counted, a remainder that looked fully known when it was not, and a
+        foreign-currency entry that stopped being reported as unconverted. A project with
+        no company of its own is not in any tenant's set, which is the narrow answer;
+        ``project_tenant`` derives one for it from the owner's membership, and a project
+        whose owner has none is the ambiguity an administrator has to resolve.
+        """
         from app.modules.projects.models import Project
 
         try:
-            owner = uuid.UUID(tenant_id)
-        except ValueError:
+            organization = uuid.UUID(tenant_id)
+        except (AttributeError, TypeError, ValueError):
             return set()
-        return set((await self.session.execute(select(Project.id).where(Project.owner_id == owner))).scalars().all())
+        return set(
+            (await self.session.execute(select(Project.id).where(Project.organization_id == organization)))
+            .scalars()
+            .all()
+        )
 
     async def _ledger_of(self, row: FrameworkAgreement) -> dict[str, Any]:
         """Everything that consumes the framework, and what is left of it.
