@@ -554,13 +554,15 @@ person being a tenant and therefore never actually built two of them.
 
 Named here rather than implemented, because each one needs a decision this phase does not have
 the evidence to make: whose tenant is a scheduled run, and is a startup seed writing to one
-company or to the install. `tests/unit/test_which_paths_bind_a_tenant_and_which_still_do_not.py`
+company or to the install. One row below is struck through because it was closed after the list
+was first written; it stays on the list, since a closed gap that disappears from the record
+looks like a gap nobody ever found. `tests/unit/test_which_paths_bind_a_tenant_and_which_still_do_not.py`
 asserts that these paths still bind nothing, so closing one has to be a deliberate change that
 moves it to the bound list.
 
 | File | Call site | Required binding or role | Risk while it is open |
 |---|---|---|---|
-| `app/modules/dashboards/router.py` | `_tenant_id_from_payload` at :1640, used by eight routes (:174, :218, :266, :344, :423, :446, :468, :508) | Delegate to `app.core.tenant_scope.resolve_tenant_id` and delete the local copy | Highest of the six. This is a second tenant resolver with its own fall-through to `sub`, so eight dashboards routes bypass both the door's refusal and the no-fallback rule. Its docstring still reads "for the single-tenant shape we ship today, `tenant_id` equals the user id" |
+| ~~`app/modules/dashboards/router.py`~~ **closed** | `_tenant_id_from_payload`, used by **twenty-six** routes, not the eight an earlier truncated census reported; and its exact twin in `app/modules/compliance/router.py`, four more | Both private resolvers deleted and every call site moved to `app.core.tenant_scope.resolve_tenant_id` | Was the highest risk of the list: a second tenant resolver with its own fall-through to `sub`, so thirty routes across two modules bypassed both the door's refusal and the no-fallback rule, and its docstring still read "for the single-tenant shape we ship today, `tenant_id` equals the user id". Closed by `cf8e4c4`; `tests/unit/test_no_route_resolves_a_tenant_from_the_token_subject.py` fails if either comes back |
 | `app/modules/pointcloud/seed.py` | :346, `tenant_id = owner_id` | Write the owner's organization id, or seed under an explicit install-level tenant | Seeds rows no token can name. On a demo install the seeded point clouds become invisible to the very users the seed ran for, once the claim is required |
 | `app/modules/value/seed.py` | :272, `tenant_id=owner_id` | The same | The same, for the value-engineering time factors |
 | `app/modules/ai_agents/scheduler.py` | :116, inside `with cost_scope.caller_scope(agent_user_id)` | Bind the schedule owner's active organization with `bound_tenant`, or run install-wide work under `oe_system` | A scheduled run keeps the connecting superuser and is not policied at all, so it can read every company's rows |
