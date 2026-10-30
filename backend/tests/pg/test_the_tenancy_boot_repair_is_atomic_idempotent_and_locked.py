@@ -184,7 +184,7 @@ async def test_running_it_twice_changes_nothing_the_second_time(populated) -> No
     assert await _counts(populated.engine) == after_first
 
 
-async def test_a_worker_that_finds_the_lock_taken_does_nothing(populated) -> None:  # noqa: ANN001
+async def test_a_worker_that_finds_the_lock_taken_does_nothing(populated, record_property) -> None:  # noqa: ANN001
     """Serialized, observed directly: another holder means this worker writes nothing.
 
     A second worker is held outside, in its own transaction, holding the same advisory
@@ -208,8 +208,16 @@ async def test_a_worker_that_finds_the_lock_taken_does_nothing(populated) -> Non
         ).scalar_one()
         assert taken, "the test could not take the lock it is holding against the repair"
 
+        # Timed, because the point of a non-blocking poll is that this worker's boot
+        # is not delayed by another worker's backfill. A worker that waited for the
+        # holder would be correct and slow, and correct-and-slow is what makes a
+        # rolling restart take as long as the rewrite.
+        started = time.perf_counter()
         changed = await _run_once(populated.factory)
+        waited = time.perf_counter() - started
+        record_property("seconds_skipped_while_locked", round(waited, 4))
         assert changed == 0, f"the repair ran while another worker held the lock: {changed} row(s)"
+        assert waited < 5.0, f"a worker that found the lock taken still took {waited:.2f}s"
         assert await _counts(populated.engine) == before
 
     # The lock is transaction-scoped, so the holder's commit released it, and the next
