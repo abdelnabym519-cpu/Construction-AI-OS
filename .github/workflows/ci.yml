@@ -231,6 +231,12 @@ jobs:
 
       - name: Annotate every failure this shard produced
         if: always()
+        # Continue-on-error is scoped to this one step and is here because of an
+        # incident, not as a default: this step once exited on a shell error of its
+        # own making and turned three shards whose tests had all passed into three
+        # red jobs. A step that only reports must not be able to decide the build.
+        # The tests decide it, in the step above, whose conclusion is not softened.
+        continue-on-error: true
         # A red shard here used to say nothing but "Process completed with exit
         # code 1". The job log is not downloadable from every environment and the
         # REST API returns an empty output.summary for a job, so the only place the
@@ -247,7 +253,7 @@ jobs:
         # nothing at all and the report would be written to the working directory.
         run: >-
           python ../scripts/publish_test_counts.py
-          --junit "${ runner.temp }/unit-shard.xml"
+          --junit "${{ runner.temp }}/unit-shard.xml"
           --annotate
           --title "### Backend unit shard ${{ matrix.shard }}/6 (${{ matrix.os }})"
 
@@ -813,6 +819,12 @@ jobs:
 
       - name: Annotate every failure this shard produced
         if: always()
+        # Continue-on-error is scoped to this one step and is here because of an
+        # incident, not as a default: this step once exited on a shell error of its
+        # own making and turned three shards whose tests had all passed into three
+        # red jobs. A step that only reports must not be able to decide the build.
+        # The tests decide it, in the step above, whose conclusion is not softened.
+        continue-on-error: true
         # A red shard here used to say nothing but "Process completed with exit
         # code 1". The job log is not downloadable from every environment and the
         # REST API returns an empty output.summary for a job, so the only place the
@@ -829,6 +841,6 @@ jobs:
         # nothing at all and the report would be written to the working directory.
         run: >-
           python ../scripts/publish_test_counts.py
-          --junit "${ runner.temp }/unit-shard.xml"
+          --junit "${{ runner.temp }}/unit-shard.xml"
           --annotate
           --title "### Backend unit shard ${{ matrix.shard }}/3 (${{ matrix.os }})"
