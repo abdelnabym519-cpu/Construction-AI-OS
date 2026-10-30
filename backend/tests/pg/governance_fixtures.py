@@ -101,6 +101,8 @@ class World:
     gate_route_id: uuid.UUID | None = None
     change_route_id: uuid.UUID | None = None
     containers: dict[str, uuid.UUID] = field(default_factory=dict)
+    #: caller -> company; see add_organization above for why it is one-to-one.
+    tenants: dict[uuid.UUID, uuid.UUID] = field(default_factory=dict)
 
 
 async def add_user(session: AsyncSession, role: str) -> uuid.UUID:
@@ -180,6 +182,25 @@ async def add_container(session: AsyncSession, project_id: uuid.UUID, code: str)
     return c.id
 
 
+async def add_organization(session: AsyncSession, user: uuid.UUID) -> uuid.UUID:
+    """The company this caller belongs to, as the organization id a token names.
+
+    Delegates to ``tests._pg.organization_for``, the shared helper written for
+    exactly this question. It creates the organization *and* the active default
+    membership behind it, which is the part a hand-rolled insert keeps missing:
+    an organization nobody is a member of is not a company a caller can act in,
+    so the door would refuse the very token the fixture went on to mint.
+    """
+    from app.modules.users.models import User
+    from tests._pg import organization_for
+
+    # organization_for reads the caller's memberships in the order the mint uses,
+    # so it wants the persisted person, not the bare id this fixture threads about.
+    person = await session.get(User, user)
+    assert person is not None, "add_organization was called before the user was flushed"
+    return uuid.UUID(await organization_for(session, person))
+
+
 async def build_world(
     factory: async_sessionmaker[AsyncSession], *, routes: bool = True, catalogue_id: str = "neutral"
 ) -> World:
@@ -189,8 +210,10 @@ async def build_world(
         owner = await add_user(s, "editor")
         editor = await add_user(s, "editor")
         outsider = await add_user(s, "manager")
+        tenants = {u: await add_organization(s, u) for u in (manager, decider, owner, editor, outsider)}
         pid = await add_project(s, manager, [decider, owner, editor])
         w = World(factory, pid, manager, decider, owner, editor, outsider)
+        w.tenants = tenants
         if routes:
             w.gate_route_id = await add_route(s, pid, "phase_gate", decider)
             w.change_route_id = await add_route(s, pid, "frame_change", decider)
@@ -204,7 +227,7 @@ async def build_world(
             version=None,
             four_eyes=True,
             actor_id=manager,
-            tenant_id=str(manager),
+            tenant_id=str(tenants[manager]),
         )
         if routes:
             # Governance reads only a pinned route; nothing is found by project or kind.
