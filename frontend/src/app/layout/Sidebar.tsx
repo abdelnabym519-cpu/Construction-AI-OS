@@ -1224,7 +1224,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         {/* Brand block — white-labellable. When the user has set a
             custom logo or company name (via the pencil-on-hover edit
             affordance), this renders their brand large with a small
-            "powered by OpenConstructionERP" attribution beneath. */}
+            "powered by <product>" attribution beneath. */}
         <CustomBranding iconified={iconified} />
         {!iconified && onClose && (
           <button

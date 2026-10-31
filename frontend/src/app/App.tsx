@@ -772,12 +772,6 @@ const CasesPage = lazy(() =>
 const CaseEditorPage = lazy(() =>
   import('@/features/cases').then((m) => ({ default: m.CaseEditorPage }))
 );
-// Inside track - backers-only early-look panel (donation perk). Lazy so the
-// changelog it reuses does not weigh down the boot bundle.
-const InsidePage = lazy(() =>
-  import('@/features/inside').then((m) => ({ default: m.InsidePage }))
-);
-
 // Module UIs that sit behind their backend counterpart (no data without
 // the backend module enabled).
 const JobsPage = lazy(() =>
@@ -1559,11 +1553,6 @@ export default function App() {
         <Route path="/cases/new" element={<P title="Cases"><CaseEditorPage /></P>} />
         <Route path="/cases/:playbookId/edit" element={<P title="Cases"><CaseEditorPage /></P>} />
         <Route path="/cases/:playbookId" element={<P title="Cases"><CasesPage /></P>} />
-        {/* Inside track - backers-only early-look panel (donation perk):
-            recent releases (reused from the /about changelog) + a short
-            coming-next list. Gated client-side by a supporter access code
-            remembered in localStorage; never gates the AGPL code itself. */}
-        <Route path="/inside" element={<P title="Inside track"><InsidePage /></P>} />
         <Route path="/project-intelligence" element={<P title="Project Intelligence"><ProjectIntelligencePage /></P>} />
         {/* Architecture Map — internal tool, admin-only. Surfaces module
             dependency graph + DDC integrity audit; not for day-to-day use. */}

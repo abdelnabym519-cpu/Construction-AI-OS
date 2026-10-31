@@ -3,6 +3,7 @@
 /** Modal that mints a signed download URL with a chosen TTL. */
 
 import { useEffect, useState } from 'react';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { X, Loader2, Copy, Mail, Clock, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import clsx from 'clsx';
@@ -100,7 +101,7 @@ export function EmailDialog({ open, row, onClose }: EmailDialogProps) {
   const sampleBody = link
     ? t('files.email.sample_body', {
         defaultValue:
-          'Hi,\n\nHere is the file you asked about - {{name}} ({{size}}).\nDownload link (expires {{expires}}):\n{{url}}\n\n- sent from OpenConstructionERP',
+          `Hi,\n\nHere is the file you asked about - {{name}} ({{size}}).\nDownload link (expires {{expires}}):\n{{url}}\n\n- sent from ${APP_NAME}`,
         name: row.name,
         size: fmtBytes(link.size_bytes),
         expires: new Date(link.expires_at).toLocaleString(getIntlLocale()),

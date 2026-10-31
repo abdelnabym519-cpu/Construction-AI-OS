@@ -1,6 +1,7 @@
 // DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 // Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 import { useState, useEffect, useRef } from 'react';
+import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { X, Bug, Lightbulb, MessageCircle, ExternalLink, Loader2 } from 'lucide-react';
@@ -23,7 +24,7 @@ const CATEGORIES: { key: FeedbackCategory; icon: typeof Bug; labelKey: string; d
 ];
 
 const GITHUB_ISSUES_URL =
-  'https://github.com/datadrivenconstruction/OpenConstructionERP/issues/new';
+  `${SOURCE_REPO_URL}/issues/new`;
 
 export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
   const { t } = useTranslation();
