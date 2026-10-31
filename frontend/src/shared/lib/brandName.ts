@@ -10,3 +10,9 @@
 // sets overrides this name in the UI; this constant is what a user sees
 // when no override is set.
 export const APP_NAME = 'Construction AI OS';
+
+// The ONE frontend source of the public source-code link (AGPL-3.0-or-later
+// requires the corresponding source to be reachable from the product UI).
+// Every "GitHub" / "Source code" link in the app reads this constant; the
+// backend mirrors it (app/cli.py REPO_URL, core/self_upgrade.py RELEASES_URL).
+export const SOURCE_REPO_URL = 'https://github.com/abdelnabym519-cpu/Construction-AI-OS';

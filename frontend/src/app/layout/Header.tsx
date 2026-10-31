@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation, useMatch } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, ChevronDown, ChevronRight, LogOut, User, Settings, Menu, MessageSquarePlus, FolderOpen, CheckCircle2, XCircle, Bug, BookOpen, Loader2, Upload, HelpCircle, GraduationCap, Mail, ExternalLink, Github, Sun, Moon, Monitor, Globe } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, LogOut, User, Settings, Menu, FolderOpen, CheckCircle2, XCircle, Bug, Loader2, Upload, HelpCircle, GraduationCap, ExternalLink, Github, Sun, Moon, Monitor, Globe } from 'lucide-react';
 import clsx from 'clsx';
 import { SUPPORTED_LANGUAGES, getLanguageByCode, changeLanguage } from '../i18n';
 import { sortLanguagesByName } from '@/shared/lib/languageOrder';
@@ -17,7 +17,6 @@ import { usePartnerPack } from '@/shared/hooks/usePartnerPack';
 import { NotificationBell } from '@/shared/ui/NotificationBell';
 import { LearnTopBarButton } from './LearnTopBarButton';
 import { ProcessesButton } from '@/features/processes/ProcessesButton';
-import { HeaderNewsButton } from '@/shared/ui/HeaderNewsButton';
 import { ModuleBuilderButton } from '@/features/module-builder';
 import { fetchProjectList } from '@/shared/lib/projectList';
 import { copyToClipboard } from '@/shared/lib/browser';
@@ -32,8 +31,7 @@ import { APP_VERSION, APP_BUILD_FINGERPRINT } from '@/shared/lib/version';
 import { useToastStore } from '@/stores/useToastStore';
 import { useI18nReady } from '@/shared/lib/useI18nReady';
 import { isTauri, openAppInBrowser, openLink } from '@/shared/lib/desktop';
-import { SupportUsButton } from './SupportUsButton';
-import { SubscribeButton } from './SubscribeButton';
+import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
 import { ProjectJourneyButton } from './ProjectJourney';
 import { PresenceAvatarStack } from '@/features/global_presence';
 import { getRouteIcon } from './routeIcons';
@@ -492,13 +490,7 @@ export function Header({ title, onMenuClick }: HeaderProps) {
       {/* Right side — three zones separated by hairline dividers.
           Zone 2: Search · Zone 3: Notifications + Help · Zone 4: Account
           (Upload + Language + User). Each zone has internal `gap-1`,
-          dividers between zones are 1px hairlines.
-
-          SubscribeButton lives in Zone 3 next to HelpMenu as an icon-only
-          square with the Help footprint. It used to sit absolutely
-          centred across the header but that created awkward visual
-          tension with the project switcher on the left; planted next
-          to Support/Help, the two CTAs read as a coherent cluster. */}
+          dividers between zones are 1px hairlines. */}
       <div className="flex items-center gap-2 shrink-0">
         {/* ── Journey (orientation) ─────────────────────────────────
             Names the lifecycle phase the current screen belongs to and
@@ -549,11 +541,10 @@ export function Header({ title, onMenuClick }: HeaderProps) {
         {/* Hairline divider between Zone 2 and Zone 3. */}
         <div className="hidden sm:block h-4 w-px bg-border-light/70" aria-hidden />
 
-        {/* ── Zone 3 (Notifications + Subscribe + Bug + Help) ──────
-            Order: NotificationBell · What's new · SupportUs · Subscribe · BugReport · Help.
-            The "ask the user for something" CTAs (Support / Subscribe) stay
-            adjacent; Bug + Help sit on the right edge so a user filing a
-            report doesn't have to scan past the marketing CTAs. */}
+        {/* ── Zone 3 (Notifications + Bug + Help) ──────────────────
+            Order: NotificationBell · BugReport · Help. Bug + Help sit on
+            the right edge, one click from wherever the user noticed the
+            problem. */}
         {/* Only while the Learn card is hidden from the menu: its way back,
             at every width. */}
         <LearnTopBarButton />
@@ -561,17 +552,14 @@ export function Header({ title, onMenuClick }: HeaderProps) {
             width, because it is the way back to a feature that stopped. */}
         <ProcessesButton />
         <NotificationBell />
-        <HeaderNewsButton />
         {/* Building a module is something you do from wherever you noticed the
             platform was missing one, so it lives here rather than in the
             sidebar. Renders nothing for anyone who may not install one.
             Hidden below xl to reduce crowding on narrower screens. */}
         {/* Shown from 2xl only: at 125% and 150% text size a 1280-1440px bar
-            had no room for these three next to the project picker, and the
-            right cluster ran off screen. */}
+            had no room for it next to the project picker, and the right
+            cluster ran off screen. */}
         <div className="hidden 2xl:block"><ModuleBuilderButton /></div>
-        <div className="hidden 2xl:block"><SupportUsButton /></div>
-        <div className="hidden 2xl:block"><SubscribeButton /></div>
         <BugReportMenu />
         <HelpMenu />
 
@@ -641,8 +629,6 @@ function ThemeToggle() {
    the user pick the channel:
 
      - GitHub Issue (pre-filled with last error + env)
-     - Email the team (mailto: with the same payload)
-     - Web feedback form (richer fields, captures attachments server-side)
      - Download log JSON (for manual sharing)
 
    A red dot on the icon flags that errors were captured this session,
@@ -651,8 +637,8 @@ function ThemeToggle() {
 /**
  * Shortest description we will file a report with, in trimmed characters.
  *
- * The two channels that transmit a report body (GitHub, e-mail) are disabled
- * below this, and the requirement is stated above the field before anyone
+ * The channel that transmits a report body (GitHub) is disabled below
+ * this, and the requirement is stated above the field before anyone
  * types rather than discovered on the way out. Roughly four words: enough to
  * name what was clicked and what happened, which is exactly the question we
  * would otherwise have to ask in a reply a day later, and low enough that a
@@ -660,9 +646,9 @@ function ThemeToggle() {
  */
 export const MIN_DESCRIPTION_LENGTH = 20;
 
-/** File name for the session error log both menus offer for download. */
+/** File name for the session error log the bug menu offers for download. */
 function errorLogFilename(): string {
-  return `openconstructionerp-log-${new Date().toISOString().slice(0, 10)}.json`;
+  return `construction-ai-os-log-${new Date().toISOString().slice(0, 10)}.json`;
 }
 
 export function BugReportMenu() {
@@ -753,36 +739,6 @@ export function BugReportMenu() {
     });
   };
 
-  const handleEmail = () => {
-    if (descriptionTooShort) return;
-    setOpen(false);
-    setDescription('');
-    const { body, title } = buildBugReportUrl(trimmedDescription);
-    const subject = `OpenConstructionERP Issue - ${title}`;
-    // mailto bodies are also length-limited (~2000 chars in Chrome),
-    // so we trim aggressively. The downloaded log JSON is the long form.
-    const safeBody = body.length > 1500 ? `${body.slice(0, 1500)}\n\n_[truncated - attach the JSON log if needed]_` : body;
-    // Through openLink, not `window.location.href`: the desktop webview does
-    // not hand a navigation to mailto: to the mail client, so assigning it
-    // there did nothing at all. openLink sends it to the OS opener instead.
-    openLink(
-      `mailto:info@datadrivenconstruction.io?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(safeBody)}`,
-    );
-  };
-
-  const handleFeedbackForm = () => {
-    setOpen(false);
-    if (errorCount > 0) {
-      triggerDownload(exportErrorReport(), errorLogFilename());
-    }
-    const params = new URLSearchParams({
-      report: 'true',
-      app_version: APP_VERSION,
-      platform: navigator.userAgent.includes('Win') ? 'Windows' : navigator.userAgent.includes('Mac') ? 'macOS' : 'Linux',
-    });
-    openLink(`https://openconstructionerp.com/contact.html?${params}`);
-  };
-
   const handleDownloadLog = () => {
     setOpen(false);
     triggerDownload(exportErrorReport(), errorLogFilename());
@@ -800,11 +756,10 @@ export function BugReportMenu() {
     desc: string;
     onClick: () => void;
     /**
-     * True for the channels that file a written report and therefore need the
-     * description. The other two are not reports: the web form asks for the
-     * story again in its own fields, and downloading the log is usually the
-     * step BEFORE writing anything. Gating those would block a user from
-     * getting the JSON they were about to attach.
+     * True for the channel that files a written report and therefore needs
+     * the description. Downloading the log is not a report: it is usually
+     * the step BEFORE writing anything, and gating it would block a user
+     * from getting the JSON they were about to attach.
      */
     requiresDescription: boolean;
   };
@@ -820,22 +775,6 @@ export function BugReportMenu() {
       desc: t('bug.channel_github_desc', { defaultValue: 'Pre-filled with the last error and environment. Public.' }),
       onClick: handleGithub,
       requiresDescription: true,
-    },
-    {
-      icon: Mail,
-      iconColor: 'text-oe-blue',
-      title: t('bug.channel_email', { defaultValue: 'Email the team' }),
-      desc: t('bug.channel_email_desc', { defaultValue: 'Opens your mail client with the report attached.' }),
-      onClick: handleEmail,
-      requiresDescription: true,
-    },
-    {
-      icon: MessageSquarePlus,
-      iconColor: 'text-emerald-500',
-      title: t('bug.channel_form', { defaultValue: 'Web feedback form' }),
-      desc: t('bug.channel_form_desc', { defaultValue: 'Richer fields and screenshots on openconstructionerp.com.' }),
-      onClick: handleFeedbackForm,
-      requiresDescription: false,
     },
     {
       icon: Upload,
@@ -1059,22 +998,6 @@ function HelpMenu() {
     return () => document.removeEventListener('keydown', handler);
   }, [open]);
 
-  // Open the contact form pre-tagged as "Send Feedback". Mirrors the
-  // pre-consolidation amber-Feedback button (which used to live in the
-  // header). Downloads the in-session error log if there are any
-  // errors so the user can attach it.
-  const handleFeedback = () => {
-    setOpen(false);
-    if (getErrorCount() > 0) {
-      triggerDownload(exportErrorReport(), errorLogFilename());
-    }
-    const params = new URLSearchParams({
-      feedback: 'true',
-      app_version: APP_VERSION,
-    });
-    openLink(`https://openconstructionerp.com/contact.html?${params}`);
-  };
-
   return (
     <div className="relative hidden sm:block" ref={ref} data-testid="header-help-menu">
       <button
@@ -1114,23 +1037,10 @@ function HelpMenu() {
           </button>
           <div className="my-1 border-t border-border-light" role="separator" />
 
-          {/* External resources. Documentation points at the official docs
-              site so users land on the maintained guides, not the raw repo. */}
+          {/* Source code: the repository this install is built from. */}
           <a
             role="menuitem"
-            href="https://openconstructionerp.com/docs"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setOpen(false)}
-            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-content-primary hover:bg-surface-secondary transition-colors"
-          >
-            <BookOpen size={14} className="text-content-tertiary shrink-0" />
-            <span className="flex-1">{t('nav.docs', { defaultValue: 'Documentation' })}</span>
-            <ExternalLink size={11} className="text-content-quaternary shrink-0" />
-          </a>
-          <a
-            role="menuitem"
-            href="https://github.com/datadrivenconstruction/OpenConstructionERP"
+            href={SOURCE_REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => setOpen(false)}
@@ -1172,32 +1082,10 @@ function HelpMenu() {
             </button>
           )}
 
-          <div className="my-1 border-t border-border-light" role="separator" />
-
-          {/* Feedback / report flows */}
-          <button
-            type="button"
-            role="menuitem"
-            onClick={handleFeedback}
-            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-content-primary hover:bg-surface-secondary transition-colors"
-          >
-            <MessageSquarePlus size={14} className="text-content-tertiary shrink-0" />
-            <span>{t('feedback.title', { defaultValue: 'Send feedback' })}</span>
-          </button>
-          {/* Bug-reporting lives in the dedicated Bug menu (the bug-icon button
-              next to this one), which already offers a pre-filled GitHub issue,
-              the web form, an email channel and a log download. Keeping those
-              flows out of here leaves Help for docs and general feedback and
-              gives bug reporting a single, obvious home. */}
-          <a
-            role="menuitem"
-            href="mailto:info@datadrivenconstruction.io?subject=OpenConstructionERP%20Issue%20Report"
-            onClick={() => setOpen(false)}
-            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-content-primary hover:bg-surface-secondary transition-colors"
-          >
-            <Mail size={14} className="text-content-tertiary shrink-0" />
-            <span>{t('header.email_issues', { defaultValue: 'Email the team' })}</span>
-          </a>
+          {/* Bug-reporting lives in the dedicated Bug menu (the bug-icon
+              button next to this one), which offers a pre-filled GitHub
+              issue and a log download. Keeping that flow out of here gives
+              bug reporting a single, obvious home. */}
         </div>
       )}
     </div>
@@ -1285,7 +1173,7 @@ function LanguageSwitcher({
 /* ── User Menu ─────────────────────────────────────────────────────────── */
 
 /** GitHub repo slug for "Report a bug". Empty string = clipboard fallback. */
-const GITHUB_REPO = 'datadrivenconstruction/OpenConstructionERP';
+const GITHUB_REPO = 'abdelnabym519-cpu/Construction-AI-OS';
 /** Hard ceiling for the GitHub issue body inside a URL. ~8KB is safe across browsers. */
 const MAX_BODY_BYTES = 7800;
 
