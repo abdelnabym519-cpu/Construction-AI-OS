@@ -1305,7 +1305,6 @@ def load_or_create_dev_jwt_secret(
     return secret, secret_path, "adopted" if adopted is not None else "generated"
 
 
-@lru_cache
 def outbound_product_token() -> str:
     """``app_name`` folded into one token usable in outbound User-Agents.
 
@@ -1316,6 +1315,7 @@ def outbound_product_token() -> str:
     return get_settings().app_name.replace(" ", "-")
 
 
+@lru_cache
 def get_settings() -> Settings:
     """Cached settings singleton."""
     _ensure_persistent_jwt_secret()
