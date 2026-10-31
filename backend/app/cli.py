@@ -1,6 +1,6 @@
 # DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 # Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
-"""OpenConstructionERP CLI - run the platform from the command line.
+"""Construction AI OS CLI - run the platform from the command line.
 
 The happy path for a new user is two commands:
 
@@ -184,13 +184,11 @@ DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8080
 MIN_PYTHON = (3, 12)
 
-DOCS_URL = "https://openconstructionerp.com/docs"
-# Install and startup messages with what each means and what to do, kept
-# in step with docs/INSTALL_TROUBLESHOOTING.md.
-TROUBLESHOOTING_URL = "https://openconstructionerp.com/install-help"
-ISSUES_URL = "https://github.com/datadrivenconstruction/OpenConstructionERP/issues"
-COMMUNITY_URL = "https://t.me/datadrivenconstruction"
-GITHUB_URL = "https://github.com/datadrivenconstruction/OpenConstructionERP"
+# Support links for this product. The repository below is where this
+# install's source code and issue tracker live (AGPL-3.0-or-later).
+REPO_URL = "https://github.com/abdelnabym519-cpu/Construction-AI-OS"
+ISSUES_URL = f"{REPO_URL}/issues"
+GITHUB_URL = REPO_URL
 
 logger = logging.getLogger("openestimate.cli")
 
@@ -308,16 +306,33 @@ def _bar() -> str:
 
 
 # ── Banner ────────────────────────────────────────────────────────────────
-# "OpenConstructionERP" rendered in the figlet "small" font (82 cols × 5
-# rows). The previous "Standard" font wrapped the 19-character name onto
-# multiple visual rows on a typical 80-col terminal, which looked crooked;
-# the "small" font fits the full name on one row with the trailing "ERP"
-# inline. Generated once with pyfiglet and pasted in - no runtime dep.
-_BANNER_ART = r"""  ___                 ___             _               _   _          ___ ___ ___
- / _ \ _ __  ___ _ _ / __|___ _ _  __| |_ _ _ _  _ __| |_(_)___ _ _ | __| _ \ _ \
-| (_) | '_ \/ -_) ' \ (__/ _ \ ' \(_-<  _| '_| || / _|  _| / _ \ ' \| _||   /  _/
- \___/| .__/\___|_||_\___\___/_||_/__/\__|_|  \_,_\__|\__|_\___/_||_|___|_|_\_|
-      |_|"""
+# The product name rendered in the figlet "small" font (73 cols × 4 rows),
+# which fits the full name on one visual row on a typical 80-col terminal.
+# Generated once with pyfiglet and pasted in - no runtime dep.
+_BANNER_ART = r"""  ___             _               _   _              _   ___    ___  ___
+ / __|___ _ _  __| |_ _ _ _  _ __| |_(_)___ _ _     /_\ |_ _|  / _ \/ __|
+| (__/ _ \ ' \(_-<  _| '_| || / _|  _| / _ \ ' \   / _ \ | |  | (_) \__ \
+ \___\___/_||_/__/\__|_|  \_,_\__|\__|_\___/_||_| /_/ \_\___|  \___/|___/"""
+
+
+def _app_name() -> str:
+    """Display name for every CLI surface.
+
+    One source: the ``app_name`` setting (app/config.py), the same constant
+    the PDF branding and the frontend read. Imported lazily and guarded
+    because this module keeps its top-level imports to the standard library
+    so the CLI starts fast, and a broken environment must still get a banner
+    rather than a traceback.
+    """
+    try:
+        from app.config import get_settings
+
+        name = str(get_settings().app_name or "").strip()
+        if name:
+            return name
+    except Exception:  # noqa: BLE001 - degrade to the literal default
+        logger.debug("Could not read app_name for the CLI banner", exc_info=True)
+    return "Construction AI OS"
 
 
 def print_startup_banner(
@@ -347,7 +362,7 @@ def print_startup_banner(
     print()
     print(_amber(_BANNER_ART))
     print()
-    print(f"  {bar}  {_bold('OpenConstructionERP is starting')}  {_dim('v' + version)}")
+    print(f"  {bar}  {_bold(_app_name() + ' is starting')}  {_dim('v' + version)}")
     print(f"  {bar}")
     print(f"  {bar}  {_bold('Open in your browser')}")
     print(f"  {bar}     {_amber(url)}")
@@ -365,7 +380,6 @@ def print_startup_banner(
         f"  {bar}  {_dim('or, anywhere'.ljust(11))} {_amber('python -m openconstructionerp')}  {_dim('(works without PATH)')}"
     )
     print(f"  {bar}  {_dim('Data folder'.ljust(11))} {data_dir}")
-    print(f"  {bar}  {_dim('Need help'.ljust(11))} {DOCS_URL}")
     print()
 
 
@@ -429,10 +443,9 @@ def _setup_env(data_dir: Path, host: str, port: int) -> None:
                     + str(embedded_pg.resolve_pgdata(data_dir) / "log")
                     + " (and "
                     + str(Path.home() / ".openestimate" / "desktop-launcher.log")
-                    + "). If it keeps happening, send those logs to info@datadrivenconstruction.io."
+                    + ". If it keeps happening, send those logs to whoever maintains this install."
                 )
             )
-            print(_dim(f"  Installation help: {TROUBLESHOOTING_URL}"))
             raise SystemExit(1)
 
     os.environ.setdefault("VECTOR_BACKEND", "lancedb")
@@ -793,7 +806,7 @@ def check_env_overrides() -> Check:
             "DATABASE_URL",
             "warn",
             f"unsupported scheme: {db.split(':', 1)[0]}",
-            "OpenConstructionERP runs only on PostgreSQL. Use postgresql+asyncpg://... "
+            f"{_app_name()} runs only on PostgreSQL. Use postgresql+asyncpg://... "
             "or leave DATABASE_URL unset to use the embedded PostgreSQL.",
         )
     if db.startswith("postgresql"):
@@ -1282,8 +1295,8 @@ def _run_fatal_preflight(data_dir: Path, host: str, port: int) -> None:
         _red(
             _bold(
                 _u(
-                    "Cannot start OpenConstructionERP — pre-flight checks failed:",
-                    "Cannot start OpenConstructionERP - pre-flight checks failed:",
+                    f"Cannot start {_app_name()} — pre-flight checks failed:",
+                    f"Cannot start {_app_name()} - pre-flight checks failed:",
                 )
             )
         )
@@ -1293,12 +1306,11 @@ def _run_fatal_preflight(data_dir: Path, host: str, port: int) -> None:
         c.print()
     print()
     print(_dim("Run 'openconstructionerp doctor' for full diagnostics."))
-    print(_dim(f"Troubleshooting: {TROUBLESHOOTING_URL}"))
     sys.exit(1)
 
 
 def cmd_serve(args: argparse.Namespace) -> None:
-    """Start the OpenConstructionERP server."""
+    """Start the server."""
     data_dir = _data_dir_from_args(args)
 
     # First, before anything native is imported: a crash inside torch, Arrow or
@@ -1351,7 +1363,6 @@ def cmd_serve(args: argparse.Namespace) -> None:
         version = settings.app_version
     except Exception as exc:
         print(_red(f"Failed to load settings: {exc}"))
-        print(_dim(f"Troubleshooting: {TROUBLESHOOTING_URL}"))
         sys.exit(1)
 
     # Print the banner BEFORE uvicorn starts so the user sees it immediately
@@ -1472,7 +1483,6 @@ def cmd_serve(args: argparse.Namespace) -> None:
                     f"  {arrow} Port {args.port} is already in use. Try: openconstructionerp serve --port {args.port + 1}"
                 )
             )
-        print(_dim(f"  {arrow} Installation help: {TROUBLESHOOTING_URL}"))
         sys.exit(1)
     except Exception as exc:  # noqa: BLE001
         _emit_server_fail(exc)
@@ -1480,7 +1490,6 @@ def cmd_serve(args: argparse.Namespace) -> None:
         print()
         print(_red(_bold("Unexpected startup error:")) + f" {type(exc).__name__}: {exc}")
         print(_dim(f"  {arrow} Run 'openconstructionerp doctor' to diagnose."))
-        print(_dim(f"  {arrow} Installation help: {TROUBLESHOOTING_URL}"))
         print(_dim(f"  {arrow} Report this at: {ISSUES_URL}"))
         sys.exit(1)
 
@@ -1716,7 +1725,7 @@ def cmd_doctor(args: argparse.Namespace) -> None:
     data_dir = _data_dir_from_args(args)
 
     print()
-    print(_bold(_u("OpenConstructionERP \u2014 doctor", "OpenConstructionERP - doctor")))
+    print(_bold(_u(f"{_app_name()} \u2014 doctor", f"{_app_name()} - doctor")))
     print(_dim(f"Checking install at {data_dir}"))
     print()
 
@@ -1732,7 +1741,6 @@ def cmd_doctor(args: argparse.Namespace) -> None:
         print(_red(_bold(f"  {len(errors)} error(s)")) + _dim(f", {len(warns)} warning(s)"))
         print()
         print(_dim("Fix the errors above, then run 'openconstructionerp serve'."))
-        print(_dim(f"Docs: {TROUBLESHOOTING_URL}"))
         sys.exit(1)
     elif warns:
         print(
@@ -1751,7 +1759,7 @@ def cmd_version(_args: argparse.Namespace) -> None:
     """Print version information."""
     version = _resolve_version()
 
-    print(f"OpenConstructionERP v{version}")
+    print(f"{_app_name()} v{version}")
     print(f"Python {sys.version.split()[0]} ({sys.platform})")
     # This is the line people paste when something is wrong with an install, so
     # each label has to name what it actually shows. "Site-packages" used to be
@@ -1763,7 +1771,6 @@ def cmd_version(_args: argparse.Namespace) -> None:
     print(f"Installed at: {Path(__file__).resolve().parent.parent}")
     print(f"Interpreter: {sys.executable}")
     print(f"Data directory: {DEFAULT_DATA_DIR}")
-    print(f"Docs: {DOCS_URL}")
 
 
 def cmd_upgrade(args: argparse.Namespace) -> None:
@@ -1785,7 +1792,7 @@ def cmd_upgrade(args: argparse.Namespace) -> None:
     from app.core.self_upgrade import RELEASES_URL, is_frozen_build
 
     print()
-    print(_bold(_u("OpenConstructionERP \u2014 upgrade", "OpenConstructionERP - upgrade")))
+    print(_bold(_u(f"{_app_name()} \u2014 upgrade", f"{_app_name()} - upgrade")))
 
     # In the PyInstaller desktop build ``sys.executable`` is the frozen binary,
     # not an interpreter, so the tokens below would come straight back into this
@@ -1921,8 +1928,7 @@ def print_welcome(*, next_command_hint: bool = True) -> None:
     print()
     print(_amber(_BANNER_ART))
     print()
-    print(f"  {_bold('OpenConstructionERP')} {_dim('v' + version)}")
-    print(f"  {_dim('Open-source construction cost estimation platform')}")
+    print(f"  {_bold(_app_name())} {_dim('v' + version)}")
     print()
     if next_command_hint:
         print(f"  {bar}  {_bold('To start, run one command')}")
@@ -1941,10 +1947,8 @@ def print_welcome(*, next_command_hint: bool = True) -> None:
     print()
     print(f"  {_dim('Advanced:')}  openconstructionerp serve {_dim('|')} init-db {_dim('|')} doctor {_dim('|')} --help")
     print()
-    print(f"  {_bold('Help and community')}")
-    print(f"    {_dim('Docs'.ljust(10))} {DOCS_URL}")
+    print(f"  {_bold('Source code')}")
     print(f"    {_dim('GitHub'.ljust(10))} {GITHUB_URL}")
-    print(f"    {_dim('Community'.ljust(10))} {COMMUNITY_URL} {_dim('(Telegram)')}")
     print()
     if next_command_hint:
         print(
@@ -2623,7 +2627,7 @@ steps:
     title_i18n:
       en: "Welcome"
     body_i18n:
-      en: "This OpenConstructionERP install is pre-configured by {partner}. Replace these placeholder steps with your own onboarding flow."
+      en: "This install is pre-configured by {partner}. Replace these placeholder steps with your own onboarding flow."
 
   - id: done
     kind: summary
@@ -2635,7 +2639,7 @@ steps:
 """
 
 _PACK_README = """\
-# {slug} - OpenConstructionERP partner pack
+# {slug} - partner pack
 
 This is a declarative partner pack (Shape A). It carries only presets:
 branding, default locale, currency/tax defaults, module visibility and an
@@ -2800,7 +2804,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="openconstructionerp",
         description=(
-            "OpenConstructionERP, open-source construction cost estimation platform.\n\n"
+            f"{_app_name()}, open-source construction cost estimation platform.\n\n"
             "Quick start, one command does everything:\n"
             "    openconstructionerp\n\n"
             "It creates the local database, loads the demo data, starts the server\n"
@@ -2831,7 +2835,7 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
 
     # serve
-    serve_p = subparsers.add_parser("serve", help="Start the OpenConstructionERP server")
+    serve_p = subparsers.add_parser("serve", help=f"Start the {_app_name()} server")
     _add_common_server_args(serve_p)
     serve_p.add_argument("--open", action="store_true", help="Open browser after startup")
     serve_p.add_argument("--quiet", action="store_true", help="Suppress banner and info logs")
@@ -2971,7 +2975,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "module",
         help="Install, list, or uninstall modules",
         description=(
-            "Manage OpenConstructionERP modules.\n\n"
+            f"Manage {_app_name()} modules.\n\n"
             "    openconstructionerp module install <archive.zip> [--force]\n"
             "    openconstructionerp module list\n"
             "    openconstructionerp module uninstall <name> [--force]\n\n"
@@ -3005,7 +3009,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "pack",
         help="Scaffold and manage partner packs",
         description=(
-            "Manage OpenConstructionERP partner packs (declarative preset bundles).\n\n"
+            f"Manage {_app_name()} partner packs (declarative preset bundles).\n\n"
             "    openconstructionerp pack new <slug> [--out DIR] [--force]\n\n"
             "Emits a minimal, valid pack folder (manifest.json + logo + onboarding\n"
             "+ README). Drop the folder (or a .zip of it) into <data-dir>/packs/ and\n"
