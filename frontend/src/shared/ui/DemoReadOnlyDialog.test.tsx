@@ -13,6 +13,7 @@
  * role lacks a permission that their own installation is a demonstration.
  */
 import { useState } from 'react';
+import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -197,7 +198,7 @@ describe('a refused write on the public demonstration', () => {
 
     expect(screen.getByTestId('demo-read-only-download')).toHaveAttribute(
       'href',
-      'https://openconstructionerp.com/download',
+      `${SOURCE_REPO_URL}/releases`,
     );
   });
 

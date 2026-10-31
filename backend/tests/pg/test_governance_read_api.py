@@ -59,7 +59,16 @@ async def client_as(w: World, user_id: uuid.UUID, role: str):
 
     app.dependency_overrides[get_session] = _session
     app.dependency_overrides[get_current_user_id] = lambda: str(user_id)
-    app.dependency_overrides[get_current_user_payload] = lambda: {"sub": str(user_id), "role": role, "permissions": []}
+    # The claim is the whole of what changed here. Without it resolve_tenant_id
+    # answers None, because there is no longer a fall-through to sub, and every
+    # tenant-scoped route in this module refuses or finds nothing - which is the
+    # correct answer for a credential that names no company.
+    app.dependency_overrides[get_current_user_payload] = lambda: {
+        "sub": str(user_id),
+        "role": role,
+        "permissions": [],
+        "tenant_id": str(w.tenants[user_id]),
+    }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://gov-test") as c:
         yield c
 
@@ -107,7 +116,10 @@ async def test_an_area_the_catalogue_no_longer_has_answers_an_empty_label(world:
 
 
 async def test_catalogue_list_items_carry_their_phases(world: World) -> None:
-    tenant = str(world.manager)
+    # The catalogue rows live in the caller's company, so they are stamped with the
+    # organization the token carries - not with the manager's person id, which is what
+    # this line used to say back when a person was their own tenant.
+    tenant = str(world.tenants[world.manager])
     async with world.factory() as s:
         store = CatalogueStore(s)
         row = await store.create(

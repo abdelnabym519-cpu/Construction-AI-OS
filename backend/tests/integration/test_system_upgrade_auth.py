@@ -120,7 +120,9 @@ async def _demo_admin_headers() -> dict[str, str]:
     from sqlalchemy import select
 
     from app.config import get_settings
+    from app.core.tenant_scope import TENANT_CLAIM
     from app.modules.users.service import create_access_token, hash_password
+    from tests._pg import organization_for
 
     async with async_session_factory() as session:
         user = (
@@ -143,7 +145,15 @@ async def _demo_admin_headers() -> dict[str, str]:
             user.is_active = True
         await session.commit()
         await session.refresh(user)
-        token = create_access_token(user, get_settings())
+        # Belong the admin to an organization before minting, because a token that
+        # names none is refused at the door (ADR 005) and every test in this file
+        # would then fail on authentication instead of on upgrade behaviour. The
+        # helper flushes rather than commits, and this session is closed by the
+        # ``async with`` below, so the membership has to be committed here or it
+        # never reaches the database the request is served from.
+        organization = await organization_for(session, user)
+        await session.commit()
+        token = create_access_token(user, get_settings(), {TENANT_CLAIM: organization})
     return {"Authorization": f"Bearer {token}"}
 
 

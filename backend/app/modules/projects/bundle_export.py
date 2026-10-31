@@ -52,6 +52,7 @@ from typing import Any, Iterable
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.pdf_branding import DEFAULT_BRAND
 from app.modules.backup.router import serialize_row
 from app.modules.projects.file_manager_schemas import (
     BundleManifest,
@@ -848,7 +849,7 @@ async def preview_bundle(
 def _readme_md(manifest: BundleManifest, attachment_count: int) -> str:
     """Plain-text README packed inside the bundle for the recipient."""
     lines = [
-        "# OpenConstructionERP Project Bundle",
+        f"# {DEFAULT_BRAND} Project Bundle",
         "",
         f"Project: **{manifest.project_name}**",
         f"Scope: **{manifest.scope}**",
@@ -860,7 +861,7 @@ def _readme_md(manifest: BundleManifest, attachment_count: int) -> str:
         "",
         "## How to open",
         "",
-        "1. Install OpenConstructionERP - `pip install openconstructionerp` or download from openconstructionerp.com.",
+        f"1. Install {DEFAULT_BRAND} - `pip install openconstructionerp`, or download it from the source repository named in NOTICE.",
         "2. Run `openconstructionerp serve` and sign in.",
         "3. Use **Files → Import project bundle** and select this `.ocep` file.",
         "",

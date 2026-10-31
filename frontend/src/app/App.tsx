@@ -23,7 +23,6 @@ import { rulesTabFromParams } from '@/features/bim/quantityRuleLinks';
 import { NlRuleBuilderPanel } from '@/features/compliance';
 import { useModuleRouteElements } from '@/modules/ModuleRoutes';
 import { DatabaseSetupPage } from '@/features/setup';
-import { ModuleVideosSlot } from '@/features/videos/ModuleVideosSlot';
 import { Logo, ShortcutsDialog, CommandPalette, ToastContainer, DemoReadOnlyDialog, BackgroundInstallBanner, ErrorBoundary, NotFoundPage, ProductTour, OfflineBanner, DesktopPortBanner, PWAInstallPrompt } from '@/shared/ui';
 import { AdminOnly } from '@/shared/auth/AdminOnly';
 import GlobalSearchModal from '@/features/search/GlobalSearchModal';
@@ -38,7 +37,6 @@ import { useBrandingStore } from '@/stores/useBrandingStore';
 import { usePreferencesStore } from '@/stores/usePreferencesStore';
 import { hydrateInfoBlocksFromServer } from '@/stores/useInfoBlockPrefsStore';
 import { useViewModeDefault } from './layout/useViewModeDefault';
-import { ddcVerifyIntegrity, ddcInjectMeta, DDC_ORIGIN } from '@/shared/lib/ddc-integrity';
 import { NavigationProgress } from '@/shared/lib/navigationProgress';
 import { useKeyboardShortcuts } from '@/shared/hooks/useKeyboardShortcuts';
 import { useTranslation } from 'react-i18next';
@@ -770,11 +768,6 @@ const HowItWorksPage = lazy(() => import('@/features/help/HowItWorksPage'));
 const CasesPage = lazy(() =>
   import('@/features/cases').then((m) => ({ default: m.CasesPage }))
 );
-// Videos - tutorial and training videos. Lazy: the page is a list of posters,
-// and nothing on it is needed at boot.
-const VideosPage = lazy(() =>
-  import('@/features/videos').then((m) => ({ default: m.VideosPage }))
-);
 // The case editor, split from the hub: most readers never author one.
 const CaseEditorPage = lazy(() =>
   import('@/features/cases').then((m) => ({ default: m.CaseEditorPage }))
@@ -889,11 +882,6 @@ function AppShell() {
       <ErrorBoundary scope="app">
         <AppLayout title={title}>
           <Suspense fallback={<PageLoadingInline />}>
-            {/* "Videos for this step": renders nothing on a screen with no
-                videos, and a failure in it must never take the page down. */}
-            <ErrorBoundary key={`videos:${location.pathname}`} fallback={null}>
-              <ModuleVideosSlot />
-            </ErrorBoundary>
             <ErrorBoundary key={location.pathname}>
               <PageTitleContext.Provider value={setTitle}>
                 <Outlet />
@@ -1044,25 +1032,6 @@ useAuthStore.getState().syncRoleFromServer();
 // Initialize the anonymized error logger (global handlers for unhandled errors)
 initErrorLogger();
 
-// Inject DDC origin meta tags + subtle console banner. These provide
-// provenance fingerprints: if someone clones the UI and serves it
-// unmodified, the meta tags and console message are direct evidence of
-// the origin. Removing them is not a functional break, but does prove
-// the distribution was tampered with.
-if (typeof document !== 'undefined') {
-  ddcInjectMeta();
-}
-if (typeof window !== 'undefined' && typeof console !== 'undefined') {
-  try {
-    // eslint-disable-next-line no-console
-    console.info(
-      `%c${DDC_ORIGIN}%c · Artem Boiko · datadrivenconstruction.io`,
-      'color:#0071E3;font-weight:700',
-      'color:#64748b',
-    );
-  } catch { /* noop */ }
-}
-
 /** Keeps <html dir="..."> and lang attribute in sync with the active i18n language. */
 function useDocumentDirection() {
   const { i18n } = useTranslation();
@@ -1094,11 +1063,6 @@ export default function App() {
   // The Simple / Advanced menu mode: the user's stored choice, or while there
   // is none a default derived from the company profile.
   useViewModeDefault();
-
-  // DDC-CWICR-OE integrity verification
-  if (typeof window !== 'undefined') {
-    (window as any).__ddc_oe = ddcVerifyIntegrity();
-  }
 
   // Desktop shell: outbound links (docs, GitHub, marketing site, contact mail)
   // must be handed to the OS browser, because the webview swallows a
@@ -1583,15 +1547,14 @@ export default function App() {
         <Route path="/projects/:projectId/saved-views" element={<P title="Saved Views"><SavedViewsPage /></P>} />
         <Route path="/about" element={<P title="About"><AboutPage /></P>} />
         <Route path="/how-it-works" element={<P title="How it works"><HowItWorksPage /></P>} />
+        <Route path="/packs" element={<P title="Packs"><PacksPage /></P>} />
+        <Route path="/packs/:slug" element={<P title="Packs"><PackDetailPage /></P>} />
         {/* Cases (playbooks) - list at /cases, the stepper at /cases/:playbookId
             (one component serves both so it stays a single lazy chunk).
             The editor is a separate chunk: most readers never author a case,
             and the form has no business loading for the ones who do not.
             /cases/new is declared before the stepper for readability only -
             the router ranks a static segment above a dynamic one regardless. */}
-        <Route path="/videos" element={<P title="Videos"><VideosPage /></P>} />
-        <Route path="/packs" element={<P title="Packs"><PacksPage /></P>} />
-        <Route path="/packs/:slug" element={<P title="Packs"><PackDetailPage /></P>} />
         <Route path="/cases" element={<P title="Cases"><CasesPage /></P>} />
         <Route path="/cases/new" element={<P title="Cases"><CaseEditorPage /></P>} />
         <Route path="/cases/:playbookId/edit" element={<P title="Cases"><CaseEditorPage /></P>} />
@@ -1818,11 +1781,6 @@ export default function App() {
           standalone-mode detection).  Safe to mount unauthenticated:
           on login screen the user may also want to install the app. */}
       <PWAInstallPrompt />
-      {/* DDC-CWICR-OE */}
-      <span aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
-        {'\u200B\u200C\u200D\u200B\u200C\u200D\u200B'}
-        DataDrivenConstruction·CWICR·OpenConstructionERP·2026
-      </span>
     </Suspense>
   );
 }

@@ -26,6 +26,7 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse, Response
 
+from app.core.tenant_scope import resolve_tenant_id
 from app.dependencies import CurrentUserPayload, SessionDep, verify_project_access
 from app.modules.dashboards import messages
 from app.modules.dashboards.cad2data_bridge import (
@@ -171,7 +172,7 @@ async def create_snapshot(
             )
         )
 
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
 
     service = SnapshotService(
         repo=SnapshotRepository(session),
@@ -215,7 +216,7 @@ async def list_snapshots(
     user_id = _user_id_from_payload(payload)
     await verify_project_access(project_id, str(user_id), session)
 
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
     rows, total = await service.list_for_project(
         project_id,
@@ -263,7 +264,7 @@ async def get_snapshot_timeline(
     user_id = _user_id_from_payload(payload)
     await verify_project_access(project_id, str(user_id), session)
 
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
 
     # Pull a generous page; the navigator pure helper applies the
@@ -341,7 +342,7 @@ async def get_snapshot_diff(
         schema_from_summary_stats,
     )
 
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
 
     try:
@@ -420,7 +421,7 @@ async def get_snapshot(
     session: SessionDep,
     locale: Annotated[str, Query()] = "en",
 ) -> SnapshotOut:
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
 
     try:
@@ -443,7 +444,7 @@ async def delete_snapshot(
     session: SessionDep,
     locale: Annotated[str, Query()] = "en",
 ) -> None:
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(
         repo=SnapshotRepository(session),
         pool=get_duckdb_pool(),
@@ -465,7 +466,7 @@ async def get_snapshot_manifest(
     session: SessionDep,
     locale: Annotated[str, Query()] = "en",
 ) -> dict:
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
 
     try:
@@ -505,7 +506,7 @@ async def get_quick_insights(
     ranked by an interestingness score (variance / spread / |r| /
     entropy depending on the chart type).
     """
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
     try:
         row = await service.get(snapshot_id, tenant_id=tenant_id)
@@ -596,7 +597,7 @@ async def get_smart_values(
     maps; rapidfuzz reranks when the LIKE pattern overshoots the
     requested limit.
     """
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
     try:
         row = await service.get(snapshot_id, tenant_id=tenant_id)
@@ -654,7 +655,7 @@ async def post_cascade_values(
     (case-insensitive substring). Empty arrays in ``selected`` are
     silently dropped - they mean "no filter on that column".
     """
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
     try:
         row = await service.get(snapshot_id, tenant_id=tenant_id)
@@ -736,7 +737,7 @@ async def get_cascade_row_count(
             detail="selected must decode to an object/dict.",
         )
 
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
     try:
         row = await service.get(snapshot_id, tenant_id=tenant_id)
@@ -788,7 +789,7 @@ async def create_preset(
     locale: Annotated[str, Query()] = "en",
 ) -> DashboardPresetOut:
     user_id = _user_id_from_payload(payload)
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = DashboardPresetService(
         repo=DashboardPresetRepository(session),
     )
@@ -827,7 +828,7 @@ async def list_presets(
     locale: Annotated[str, Query()] = "en",
 ) -> DashboardPresetListResponse:
     user_id = _user_id_from_payload(payload)
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = DashboardPresetService(
         repo=DashboardPresetRepository(session),
     )
@@ -861,7 +862,7 @@ async def get_preset(
     locale: Annotated[str, Query()] = "en",
 ) -> DashboardPresetOut:
     user_id = _user_id_from_payload(payload)
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = DashboardPresetService(
         repo=DashboardPresetRepository(session),
     )
@@ -889,7 +890,7 @@ async def update_preset(
     locale: Annotated[str, Query()] = "en",
 ) -> DashboardPresetOut:
     user_id = _user_id_from_payload(payload)
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = DashboardPresetService(
         repo=DashboardPresetRepository(session),
     )
@@ -922,7 +923,7 @@ async def delete_preset(
     locale: Annotated[str, Query()] = "en",
 ) -> None:
     user_id = _user_id_from_payload(payload)
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = DashboardPresetService(
         repo=DashboardPresetRepository(session),
     )
@@ -949,7 +950,7 @@ async def share_preset(
     locale: Annotated[str, Query()] = "en",
 ) -> DashboardPresetOut:
     user_id = _user_id_from_payload(payload)
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = DashboardPresetService(
         repo=DashboardPresetRepository(session),
     )
@@ -990,7 +991,7 @@ async def post_preset_sync_check(
     from datetime import UTC, datetime
 
     user_id = _user_id_from_payload(payload)
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = DashboardPresetService(
         repo=DashboardPresetRepository(session),
     )
@@ -1046,7 +1047,7 @@ async def post_preset_sync_heal(
     from datetime import UTC, datetime
 
     user_id = _user_id_from_payload(payload)
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = DashboardPresetService(
         repo=DashboardPresetRepository(session),
     )
@@ -1191,7 +1192,7 @@ async def get_snapshot_rows(
     offset: Annotated[int, Query(ge=0)] = 0,
     locale: Annotated[str, Query()] = "en",
 ) -> SnapshotRowsOut:
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
     try:
         row = await service.get(snapshot_id, tenant_id=tenant_id)
@@ -1244,7 +1245,7 @@ async def export_snapshot(
     Works in-memory today; for >100k rows the recommended path is to
     page through ``GET /rows`` client-side.
     """
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
     try:
         row = await service.get(snapshot_id, tenant_id=tenant_id)
@@ -1296,7 +1297,7 @@ async def import_preview(
     file: Annotated[UploadFile, File()],
     locale: Annotated[str, Query()] = "en",
 ) -> SnapshotImportPreviewOut:
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
     try:
         row = await service.get(snapshot_id, tenant_id=tenant_id)
@@ -1355,7 +1356,7 @@ async def import_commit(
     body: SnapshotImportCommitIn,
     locale: Annotated[str, Query()] = "en",
 ) -> SnapshotImportCommitOut:
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
     try:
         await service.get(snapshot_id, tenant_id=tenant_id)
@@ -1397,7 +1398,7 @@ async def post_integrity_report(
     we can namespace the read by project without round-tripping the
     snapshot detail endpoint.
     """
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
     try:
         row = await service.get(body.snapshot_id, tenant_id=tenant_id)
@@ -1496,7 +1497,7 @@ async def post_federation_build(
         build_federated_view,
     )
 
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
 
     # Resolve every snapshot's owning project under the caller's
@@ -1565,7 +1566,7 @@ async def post_federation_aggregate(
         federated_aggregate,
     )
 
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = SnapshotService(repo=SnapshotRepository(session))
 
     project_id_for: dict[str, str] = {}
@@ -1635,20 +1636,6 @@ def _user_id_from_payload(payload: dict) -> uuid.UUID:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid user id in token.",
         ) from exc
-
-
-def _tenant_id_from_payload(payload: dict) -> str | None:
-    """Extract the tenant id from the JWT payload.
-
-    For the single-tenant shape we ship today, ``tenant_id`` equals the
-    user id. A future multi-tenant deployment would populate an
-    explicit ``tenant_id`` claim and we'd prefer that.
-    """
-    tenant = payload.get("tenant_id")
-    if tenant:
-        return str(tenant)
-    sub = payload.get("sub") or payload.get("user_id")
-    return str(sub) if sub else None
 
 
 def _row_to_detail_out(row, source_files: list[SnapshotSourceFileOut]) -> SnapshotOut:

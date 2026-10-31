@@ -43,9 +43,6 @@ vi.mock('@/shared/ui/UpdateChecker', () => ({
   UpdateNotification: () => 'update-card',
   UpdateBadge: () => 'update-badge',
 }));
-vi.mock('@/features/modules/RequestCustomModuleDialog', () => ({
-  RequestCustomModuleDialog: () => null,
-}));
 vi.mock('@/shared/hooks/useSidebarBadges', () => ({
   useSidebarBadges: () => ({ tasks: 0, rfi: 0, safety: 0 }),
 }));

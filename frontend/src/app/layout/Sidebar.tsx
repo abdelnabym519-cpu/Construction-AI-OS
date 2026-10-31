@@ -7,44 +7,12 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { CustomBranding } from './CustomBranding';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import {
-  FolderOpen,
-  Table2,
-  CalendarDays,
-  Boxes,
-  Settings,
-  Info,
-  ChevronDown,
-  ChevronRight,
-  Sparkles,
-  X,
-  ClipboardList,
-  Users,
-  HelpCircle,
-  History,
-  Plus,
-  Search,
-  Pin,
-  PinOff,
-  Eye,
-  EyeOff,
-  Pencil,
-  Check,
-  Github,
-  Loader2,
-  LayoutGrid,
-  GraduationCap,
-  Palette,
-  RotateCcw,
-  type LucideIcon,
-} from 'lucide-react';
-import { LEARN_GROUP_ID, navGroups, type NavGroup, type NavItem } from './navCatalog';
-import { LEARN_ANCHOR_ATTR, anchorRect, flyLearn } from './learnFlight';
+import { FolderOpen, Table2, CalendarDays, Boxes, Settings, Info, ChevronDown, ChevronRight, X, ClipboardList, Users, HelpCircle, History, Plus, Search, Pin, PinOff, Eye, EyeOff, Pencil, Check, Github, Loader2, LayoutGrid, Palette, RotateCcw, type LucideIcon,  } from 'lucide-react';
+import { navGroups, type NavGroup, type NavItem } from './navCatalog';
 import { PRESET_WORKSPACES, resolveWorkspace, shownTab, workspaceSectionByRoute } from './workspaces';
 import { useCompanyWorkspace } from './useCompanyWorkspace';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useModuleStore } from '@/stores/useModuleStore';
-import { useToastStore } from '@/stores/useToastStore';
 import { apiGet } from '@/shared/lib/api';
 import { UpdateBadge, UpdateNotification } from '@/shared/ui/UpdateChecker';
 import { useViewModeStore } from '@/stores/useViewModeStore';
@@ -53,6 +21,7 @@ import { useRecentStore } from '@/stores/useRecentStore';
 import { useGlobalSearchStore } from '@/stores/useGlobalSearchStore';
 import { getModuleNavItems, navItemModuleId } from '@/modules/_registry';
 import { APP_VERSION } from '@/shared/lib/version';
+import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
 import { useSidebarBadges } from '@/shared/hooks/useSidebarBadges';
 import { useHiddenModules } from '@/shared/hooks/useHiddenModules';
 import { usePartnerPack } from '@/shared/hooks/usePartnerPack';
@@ -65,7 +34,6 @@ import {
   SIDEBAR_WIDTH_FULL,
   SIDEBAR_WIDTH_ICON,
 } from '@/stores/useSidebarCollapseStore';
-import { RequestCustomModuleDialog } from '@/features/modules/RequestCustomModuleDialog';
 import {
   useActiveProjectProfile,
   buildModuleGate,
@@ -142,13 +110,12 @@ const adminGridItems: NavItem[] = [
 
 /** Every row the "Edit menu" editor can hide: the catalogue rows plus the
  *  module rows registered at runtime. The structural rows stay out (dashboard,
- *  projects list, the settings, users and about tiles), and so do the Learn
- *  rows; the edit-menu tile is an action and not in either list. */
+ *  projects list, the settings, users and about tiles); the edit-menu tile is
+ *  an action and not in either list. */
 const PACK_MENU_KEEP_ROUTES = new Set(['/', '/projects']);
 function hideableSidebarRoutes(): string[] {
   const routes = new Set<string>();
   for (const group of navGroups) {
-    if (group.id === LEARN_GROUP_ID) continue;
     for (const item of group.items) routes.add(item.to);
     for (const mi of getModuleNavItems(group.dynamicGroupKey ?? group.id)) routes.add(mi.to);
   }
@@ -547,10 +514,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   // read the list and the bulk setter the Save action commits to.
   const hiddenGroups = useModuleStore((s) => s.hiddenGroups);
   const setHiddenGroups = useModuleStore((s) => s.setHiddenGroups);
-  // The Learn card at the top hides and comes back in one click, outside the
-  // Edit-menu working copy, so it writes straight through to the store.
-  const setGroupHidden = useModuleStore((s) => s.setGroupHidden);
-  const addToast = useToastStore((s) => s.addToast);
   const isAdvanced = useViewModeStore((s) => s.isAdvanced);
   // A company profile with a workspace (`workspaces.ts`) redefines Simple mode
   // for its users: the workspace rows in their order, then every other screen
@@ -741,9 +704,9 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
     setEditingHiddenGroups([]);
   }, []);
 
-  // Sections can change outside the editor while it is open: the top bar's
-  // graduation cap puts Learn back. Carry every such change into the working
-  // copy, or Save would write the copy taken at entry and undo it.
+  // Sections can change outside the editor while it is open. Carry every
+  // such change into the working copy, or Save would write the copy taken at
+  // entry and undo it.
   const prevHiddenGroups = useRef(hiddenGroups);
   useEffect(() => {
     const before = prevHiddenGroups.current;
@@ -884,7 +847,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   // module" CTA at the bottom of the nav (below the "+ Add module"
   // developer-guide tile). The dialog itself handles community vs
   // bespoke routing.
-  const [customModuleOpen, setCustomModuleOpen] = useState(false);
 
   // Persist collapsed state to localStorage
   useEffect(() => {
@@ -1150,47 +1112,11 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
   const visibleWorkspaceItems = workspaceItems.filter(passesRowGates);
 
-  // The Learn card (videos and cases) is drawn apart from the group loop, at
-  // the very top of the menu, whatever the mode; see `LearnSection`. Its rows
-  // pass the same gates as any group's, and hiding it goes through
-  // `hiddenGroups`, so it also counts toward the "{N} hidden" chip.
-  const learnGroup = navGroups.find((group) => group.id === LEARN_GROUP_ID);
-  const learnItems = learnGroup ? visibleGroupItems(learnGroup) : [];
-  const learnLabel = learnGroup
-    ? t(learnGroup.labelKey, { defaultValue: learnGroup.defaultLabel ?? learnGroup.id })
-    : '';
-  const loopGroups = navGroups.filter((group) => group.id !== LEARN_GROUP_ID);
-  // Hidden, the card folds into a graduation cap in the top bar
-  // (`LearnTopBarButton`), and a ghost of the cap flies there so the reader
-  // sees where it went. The start is measured before the card unmounts.
-  const hideLearn = () => {
-    const from = anchorRect('sidebar');
-    setGroupHidden(LEARN_GROUP_ID, true);
-    flyLearn(from, 'topbar', '[data-testid="header-learn-restore"]');
-    addToast(
-      {
-        type: 'info',
-        title: t('sidebar.learn.hidden_toast', { defaultValue: 'Video guides and use cases are hidden' }),
-        message: t('sidebar.learn.hidden_toast_body_topbar', {
-          defaultValue: 'They are now behind the graduation cap in the top bar. One click there brings them back.',
-        }),
-        action: {
-          label: t('common.undo', { defaultValue: 'Undo' }),
-          onClick: () => {
-            const back = anchorRect('topbar');
-            setGroupHidden(LEARN_GROUP_ID, false);
-            flyLearn(back, 'sidebar');
-          },
-        },
-      },
-      { duration: 8000 },
-    );
-  };
   // Edit mode opens "More modules" so a row hidden in there can be found and
   // switched back on.
   const moreExpanded = moreOpen || editMode;
   const moreCount = workspaceActive
-    ? loopGroups.reduce((sum, group) => sum + visibleGroupItems(group).length, 0)
+    ? navGroups.reduce((sum, group) => sum + visibleGroupItems(group).length, 0)
     : 0;
 
   const renderRow = (item: NavItem, i: number) => {
@@ -1416,21 +1342,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         )}
         data-engine="cwicr"
       >
-        {/* Learn: videos and cases, above everything else, Pinned included.
-            Hidden from its own header into a cap in the top bar, and restored
-            from there. */}
-        {learnGroup && learnItems.length > 0 && (
-          <LearnSection
-            label={learnLabel}
-            iconified={iconified}
-            editMode={editMode}
-            isGroupHidden={editingHiddenGroups.includes(LEARN_GROUP_ID)}
-            onHide={hideLearn}
-            onToggleGroupHidden={() => toggleGroupHidden(LEARN_GROUP_ID)}
-          >
-            <ul className="space-y-0.5">{learnItems.map(renderRow)}</ul>
-          </LearnSection>
-        )}
         {/* Pinned section — appears at the top when the user has
             pinned at least one item. No collapsible chevron; just a
             small label + the pinned items in their stored order. */}
@@ -1564,7 +1475,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             reordering. Each row is only annotated: needed → sequence
             number; not needed → smaller + greyed; unconstrained → as
             default. Focus OFF / no profile → every row is default. */}
-        {(!workspaceActive || moreExpanded) && loopGroups.map((group) => {
+        {(!workspaceActive || moreExpanded) && navGroups.map((group) => {
           const visibleItems = visibleGroupItems(group);
 
           // Skip group if no visible items. In normal mode this means
@@ -1749,56 +1660,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             )}
           </NavLink>
         </div>
-        {/* Request-a-custom-module CTA — second dashed tile, purple
-             accent, opens a popup instead of navigating. The popup
-             routes the request to two destinations depending on the
-             user's choice:
-               • "Could help others too"  → community / GitHub backlog
-                 → ends up in a future open-source release.
-               • "Only for my company"    → private / bespoke quote
-                 → DDC team replies with scope + price.
-             We keep this distinct from the developer-guide tile above
-             on purpose: contributors who want to build a module
-             themselves use the guide; users who want us to build it
-             for them use this dialog. */}
-        <div className={clsx('pt-1 pb-3', iconified ? 'px-0 flex justify-center' : 'px-3')}>
-          <button
-            type="button"
-            onClick={() => {
-              setCustomModuleOpen(true);
-              onClose?.();
-            }}
-            title={
-              iconified
-                ? t('nav.request_custom_module', { defaultValue: 'Request a custom module' })
-                : undefined
-            }
-            className={clsx(
-              'group flex items-center rounded-lg border border-dashed border-purple-400/40 bg-gradient-to-br from-purple-500/5 via-transparent to-purple-50/40 dark:from-purple-500/10 dark:via-transparent dark:to-slate-900/30 hover:border-purple-500 hover:from-purple-500/10 hover:shadow-sm transition-all text-left',
-              iconified ? 'h-9 w-9 justify-center' : 'w-full gap-2.5 px-2.5 py-2',
-            )}
-            aria-haspopup="dialog"
-            aria-expanded={customModuleOpen}
-          >
-            <span className="shrink-0 flex h-7 w-7 items-center justify-center rounded-md bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-              <Sparkles size={14} strokeWidth={2.25} />
-            </span>
-            {!iconified && (
-              <span className="min-w-0 flex-1">
-                <span className="block text-xs font-semibold text-content-primary leading-tight">
-                  {t('nav.request_custom_module', {
-                    defaultValue: 'Request a custom module',
-                  })}
-                </span>
-                <span className="block text-[10px] text-content-tertiary leading-tight mt-0.5 truncate">
-                  {t('nav.request_custom_module_hint', {
-                    defaultValue: 'Missing something? Tell us what you need',
-                  })}
-                </span>
-              </span>
-            )}
-          </button>
-        </div>
       </nav>
 
       {/* Admin / setup surfaces — rendered as a 2-column button grid
@@ -1882,12 +1743,12 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             with the rest of the sidebar's lucide icons and gives a clear
             visual entry point to the source repo. */}
         {iconified ? (
-          // Icon-only footer: GitHub + Telegram stacked. The expand
+          // Icon-only footer: the source-code link. The expand
           // toggle lives on the floating edge-pill, not down here, so
           // users see only one toggle entry-point — no duplicate UI.
           <div className="pt-2 pb-1 flex flex-col items-center gap-1">
             <a
-              href="https://github.com/datadrivenconstruction/OpenConstructionERP"
+              href={SOURCE_REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
               title={`${t('sidebar.github_repo', { defaultValue: 'GitHub repository' })} (v${APP_VERSION})`}
@@ -1896,33 +1757,21 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             >
               <Github size={13} strokeWidth={1.75} className="text-content-secondary" />
             </a>
-            <a
-              href="https://t.me/datadrivenconstruction"
-              target="_blank"
-              rel="noopener noreferrer"
-              title={t('sidebar.community_title', { defaultValue: 'Community' })}
-              aria-label={t('sidebar.telegram_community', { defaultValue: 'Telegram community' })}
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-border-light bg-surface-primary hover:bg-surface-elevated transition-all"
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="h-[13px] w-[13px] text-content-secondary" aria-hidden>
-                <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71l-4.14-3.06-1.99 1.93c-.23.23-.42.42-.83.42z" />
-              </svg>
-            </a>
           </div>
         ) : (
-          // GitHub / Community / version row.
+          // GitHub / version row.
           //
           // The horizontal padding here MUST mirror AdminGrid's column geometry
           // (the parent `<div>` already gives us `px-2`; AdminGrid's `<ul>` uses
           // `grid-cols-2 gap-1` with no extra inner padding). Earlier this row
           // wrapped its buttons in another `px-2`, which made each button
-          // ~8 px narrower than every admin tile above. The buttons are now
-          // siblings of the admin grid in the layout coordinate space:
-          // same outer `px-2`, same `gap-1` between the two cards.
+          // ~8 px narrower than every admin tile above. The card is a sibling
+          // of the admin grid in the layout coordinate space: same outer
+          // `px-2`.
           <div className="pb-2 pt-1 flex flex-col gap-1.5">
-            <div className="grid grid-cols-2 gap-1">
+            <div className="grid grid-cols-1 gap-1">
               <a
-                href="https://github.com/datadrivenconstruction/OpenConstructionERP"
+                href={SOURCE_REPO_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 title={t('sidebar.github_repo', { defaultValue: 'GitHub repository' })}
@@ -1936,25 +1785,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
                 <Github size={14} strokeWidth={1.75} aria-hidden className="shrink-0 text-content-secondary" />
                 <span className="min-w-0 flex-1 text-[11px] font-medium leading-none whitespace-nowrap overflow-hidden text-ellipsis text-content-secondary">
                   GitHub
-                </span>
-              </a>
-              <a
-                href="https://t.me/datadrivenconstruction"
-                target="_blank"
-                rel="noopener noreferrer"
-                title={t('sidebar.join_telegram', { defaultValue: 'Join the Telegram community' })}
-                aria-label={t('sidebar.telegram_community', { defaultValue: 'Telegram community' })}
-                className={clsx(
-                  'group flex h-8 w-full items-center justify-start gap-1.5 rounded-md border px-2 text-left transition-colors duration-fast ease-oe',
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-oe-blue/40',
-                  'border-border-light/60 bg-surface-primary text-content-secondary hover:bg-surface-secondary hover:text-content-primary hover:border-border-medium',
-                )}
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor" className="h-[14px] w-[14px] shrink-0 text-content-secondary" aria-hidden>
-                  <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71l-4.14-3.06-1.99 1.93c-.23.23-.42.42-.83.42z" />
-                </svg>
-                <span className="min-w-0 flex-1 text-[11px] font-medium leading-none whitespace-nowrap overflow-hidden text-ellipsis text-content-secondary">
-                  {t('sidebar.community_title', { defaultValue: 'Community' })}
                 </span>
               </a>
             </div>
@@ -1973,14 +1803,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           </div>
         )}
       </div>
-      {/* Mounted at the aside root so the dialog escapes any
-          z-index / overflow trap imposed by the inner nav scroller.
-          The dialog itself is full-screen modal (fixed inset-0) and
-          self-renders only when open=true. */}
-      <RequestCustomModuleDialog
-        open={customModuleOpen}
-        onClose={() => setCustomModuleOpen(false)}
-      />
       {rowMenu && (
         <RowIconMenu
           x={rowMenu.x}
@@ -2271,143 +2093,6 @@ function NavGroupSection({
       )}
       {!isCollapsed && children}
     </div>
-  );
-}
-
-/** The Learn card: Videos and Cases, drawn above every other section.
- *
- *  It reads as a card rather than as one more group header, because it is not
- *  one more area of work; it is the way in for somebody still finding their
- *  feet, and the one section a user is invited to put away once they have.
- *  Hovering (or focusing) the header shows a hint that says so, and the hide
- *  control fades in beside the label. On a touch screen there is no hover, so
- *  the control is always visible there. In the menu editor the card behaves
- *  like every other section: dimmed while hidden, with the same eye toggle
- *  working on the editor's copy until Save. */
-function LearnSection({
-  label,
-  iconified,
-  editMode,
-  isGroupHidden,
-  onHide,
-  onToggleGroupHidden,
-  children,
-}: {
-  label: string;
-  iconified: boolean;
-  editMode: boolean;
-  isGroupHidden: boolean;
-  onHide: () => void;
-  onToggleGroupHidden: () => void;
-  children: React.ReactNode;
-}) {
-  const { t } = useTranslation();
-  const hintId = 'sidebar-learn-hint';
-
-  if (iconified) {
-    return (
-      <div
-        data-testid="sidebar-learn"
-        {...{ [LEARN_ANCHOR_ATTR]: 'sidebar' }}
-        className={clsx(
-          'mb-1 rounded-xl bg-oe-blue/[0.06] py-1 ring-1 ring-inset ring-oe-blue/10 dark:bg-oe-blue/[0.12]',
-          editMode && isGroupHidden && 'opacity-50',
-        )}
-      >
-        {children}
-      </div>
-    );
-  }
-
-  return (
-    <section
-      data-testid="sidebar-learn"
-      aria-label={label}
-      className={clsx(
-        'relative mb-2 rounded-xl p-1.5',
-        'border border-oe-blue/15 bg-gradient-to-br from-oe-blue/[0.07] via-oe-blue/[0.03] to-transparent',
-        'dark:border-oe-blue/25 dark:from-oe-blue/[0.14] dark:via-oe-blue/[0.06]',
-        editMode && isGroupHidden && 'opacity-50',
-      )}
-    >
-      <div className="group/learnhead relative flex items-center gap-1.5 px-1.5 pb-1 pt-0.5">
-        <span
-          {...{ [LEARN_ANCHOR_ATTR]: 'sidebar' }}
-          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-oe-blue/15 text-oe-blue"
-          aria-hidden
-        >
-          <GraduationCap size={12} strokeWidth={2.25} />
-        </span>
-        <span
-          className="min-w-0 flex-1 truncate text-[10px] font-semibold uppercase tracking-[0.085em] text-oe-blue/80 dark:text-oe-blue"
-        >
-          {label}
-        </span>
-        {editMode ? (
-          <button
-            type="button"
-            onClick={onToggleGroupHidden}
-            aria-label={
-              isGroupHidden
-                ? t('sidebar.show_group', { defaultValue: 'Show {{label}} section', label })
-                : t('sidebar.hide_group', { defaultValue: 'Hide {{label}} section', label })
-            }
-            title={
-              isGroupHidden
-                ? t('sidebar.show_group', { defaultValue: 'Show {{label}} section', label })
-                : t('sidebar.hide_group', { defaultValue: 'Hide {{label}} section', label })
-            }
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-content-tertiary transition-colors hover:bg-oe-blue/10 hover:text-oe-blue focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-oe-blue/40"
-          >
-            {isGroupHidden ? <EyeOff size={12} strokeWidth={2} /> : <Eye size={12} strokeWidth={2} />}
-          </button>
-        ) : (
-          <>
-            <button
-              type="button"
-              data-testid="sidebar-learn-hide"
-              onClick={onHide}
-              aria-label={t('sidebar.learn.hide', { defaultValue: 'Hide video guides & use cases' })}
-              aria-describedby={hintId}
-              className={clsx(
-                'flex h-6 shrink-0 items-center gap-1 rounded-md px-1.5 text-[10px] font-medium text-content-tertiary',
-                'hover:bg-oe-blue/10 hover:text-oe-blue',
-                'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-oe-blue/40',
-                // Fades in with the header's hover or keyboard focus; always
-                // shown where the device cannot hover.
-                'opacity-0 transition-opacity duration-150',
-                'group-hover/learnhead:opacity-100 group-focus-within/learnhead:opacity-100',
-                '[@media(hover:none)]:opacity-100',
-              )}
-            >
-              <EyeOff size={12} strokeWidth={2} aria-hidden />
-              <span>{t('sidebar.learn.hide_short', { defaultValue: 'Hide' })}</span>
-            </button>
-            {/* The hint sits inside the card's width, so the nav's own
-                overflow cannot clip it; it overlays the rows below rather
-                than pushing them down. */}
-            <div
-              id={hintId}
-              role="tooltip"
-              className={clsx(
-                'pointer-events-none absolute inset-x-0 top-full z-20 mt-1',
-                'rounded-lg bg-slate-900 px-2.5 py-2 text-[11px] leading-snug text-white shadow-lg',
-                'ring-1 ring-black/5 dark:bg-slate-700 dark:ring-white/10',
-                'invisible translate-y-1 opacity-0 transition-all duration-150',
-                'group-hover/learnhead:visible group-hover/learnhead:translate-y-0 group-hover/learnhead:opacity-100 group-hover/learnhead:delay-300',
-                'group-focus-within/learnhead:visible group-focus-within/learnhead:translate-y-0 group-focus-within/learnhead:opacity-100',
-              )}
-            >
-              {t('sidebar.learn.hint_topbar', {
-                defaultValue:
-                  'Tutorial videos and guided cases to learn the platform. Hide this section and it folds into the graduation cap in the top bar; one click there brings it back.',
-              })}
-            </div>
-          </>
-        )}
-      </div>
-      {children}
-    </section>
   );
 }
 

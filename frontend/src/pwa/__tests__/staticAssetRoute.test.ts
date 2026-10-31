@@ -3,7 +3,7 @@
  * The service worker's CacheFirst lane takes same-origin static files only.
  *
  * It used to take every image including cross-origin ones and cache status 0,
- * so an opaque 404 from the video thumbnail host was stored as a success and
+ * so an opaque 404 from a thumbnail host was stored as a success and
  * served for 30 days. These cases pin the narrower rule and the recovery path
  * for browsers that still hold the old cache.
  *
@@ -27,8 +27,8 @@ function match(href: string, destination: string): boolean {
 
 describe('isStaticAssetRequest', () => {
   it('leaves cross-origin images to the browser cache', () => {
-    expect(match('https://i.ytimg.com/vi/abc/maxresdefault.jpg', 'image')).toBe(false);
-    expect(match('https://i.ytimg.com/vi/abc/hqdefault.jpg', 'image')).toBe(false);
+    expect(match('https://tile.openstreetmap.org/12/2198/1370.png', 'image')).toBe(false);
+    expect(match('https://tiles.openfreemap.org/styles/libertystyle/12/2198/1370.png', 'image')).toBe(false);
     expect(match('https://openconstructionerp.com/uberization-of-construction/img/og-en.jpg', 'image')).toBe(false);
     expect(match('https://fonts.gstatic.com/s/inter/v1/x.woff2', 'font')).toBe(false);
     expect(match('https://cdn.example.net/assets/x.js', 'script')).toBe(false);
@@ -37,7 +37,7 @@ describe('isStaticAssetRequest', () => {
   it('handles same-origin hashed assets, fonts and images', () => {
     expect(match('/assets/index-3f9a1c.js', 'script')).toBe(true);
     expect(match('/assets/inter-latin-400.woff2', 'font')).toBe(true);
-    expect(match('/assets/videos/academy/intro.webp', 'image')).toBe(true);
+    expect(match('/assets/people/cmp-bim-vdc.webp', 'image')).toBe(true);
     expect(match('/brand/logo.svg', 'image')).toBe(true);
     // The /demo deployment keeps its prefix in the browser URL.
     expect(match('/demo/assets/index-3f9a1c.js', 'script')).toBe(true);

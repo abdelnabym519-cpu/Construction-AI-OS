@@ -31,8 +31,15 @@ async def rls_readiness() -> dict[str, Any]:
     the request session runs as the policied role and would count only the
     caller's own rows, which is not the census an administrator asked for.
     """
-    from app.core.rls_setup import rls_readiness_report, tenant_tables
+    from app.core.rls_setup import rls_readiness_report, strict_requested, tenant_tables
     from app.database import Base, engine
 
     async with engine.connect() as conn:
-        return await rls_readiness_report(conn, tenant_tables(Base))
+        report = await rls_readiness_report(conn, tenant_tables(Base))
+
+    # Whether the operator has asked for the strict predicate. Provisioning
+    # refuses strict while this report names a blocker and falls back to the
+    # permissive policy, so without this field a refusal is visible only in the
+    # boot log and ``OE_RLS_STRICT=1`` looks like it took effect when it did not.
+    report["strict_requested"] = strict_requested()
+    return report

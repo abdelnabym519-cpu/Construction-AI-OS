@@ -177,7 +177,8 @@ def test_the_header_alignment_setting_moves_the_brand(data_dir: Path, align: str
     workspace that has not uploaded one, which is most of them on day one.
     """
     write_appearance({"logo_align": align, "footer_text": "f"}, data_dir)
-    assert _draw(FakeDoc(pagesize=(595.27, 841.89))).aligned("OpenConstructionERP") == expected
+    # Derived brand text; the pin previously encoded the upstream brand.
+    assert _draw(FakeDoc(pagesize=(595.27, 841.89))).aligned("Construction AI OS") == expected
 
 
 def test_page_numbers_can_be_turned_off(data_dir: Path) -> None:

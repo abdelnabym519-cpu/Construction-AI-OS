@@ -156,22 +156,15 @@ def _detect_version() -> str:
 def build_provenance_tag(version: str) -> str:
     """Derive the opaque build-provenance signature reported by /api/health.
 
-    Combines a fixed seed with a content-hash component (sha256 of the
-    running version) so the value rotates per release like a routine
-    build checksum. The seed bytes XOR-fold (key 0x55) into the authorship
-    string; removing or altering the seed changes the published
-    ``signature`` field, but the value is otherwise inert (read-only
-    metadata - nothing branches on it).
+    Combines a fixed, product-neutral seed with a content-hash component
+    (sha256 of the running version) so the value rotates per release like a
+    routine build checksum. It is inert read-only metadata - nothing
+    branches on it. The previous seed XOR-decoded to an upstream authorship
+    marker; this distribution seeds it with its own name instead.
     """
     import hashlib as _h
 
-    _seed = bytes(
-        b ^ 0x55
-        for b in (
-            b"\x1a\x25\x30\x3b\x16\x3a\x3b\x26\x21\x27\x20\x36\x21\x3c\x3a\x3b"
-            b"\x10\x07\x05\x78\x11\x11\x16\x78\x16\x02\x1c\x16\x07"
-        )
-    )
+    _seed = b"construction-ai-os-provenance-v1"
     _content = _h.sha256(version.encode("utf-8")).digest()
     return _h.sha256(_seed + _content).hexdigest()[:20]
 
@@ -293,7 +286,16 @@ class Settings(BaseSettings):
         )
 
     # ── App ──────────────────────────────────────────────────────────────
-    app_name: str = "OpenConstructionERP"
+    # The ONE product display-name constant. Everything that renders the
+    # name to a user - the OpenAPI title, the PDF letterhead's DEFAULT_BRAND
+    # (app.core.pdf_branding), the email From:/footer brand
+    # (app.core.email.templates) - reads this field, and the frontend keeps
+    # its copy in frontend/src/shared/lib/brandName.ts. The two sides are
+    # held to agreement by
+    # tests/unit/test_the_display_name_is_one_constant.py. Operators can
+    # override per install with APP_NAME / OE_APP_NAME; the CustomBranding
+    # feature remains the per-workspace white-label override on top.
+    app_name: str = "Construction AI OS"
     app_version: str = Field(default_factory=_detect_version)
     app_env: Literal["development", "staging", "production"] = "development"
     # Off unless asked for. Debug switches on verbose 422 bodies (the raw
@@ -556,6 +558,31 @@ class Settings(BaseSettings):
     # regional indices, catalogs) is never tenant-scoped. Env: ``OE_RLS_ENFORCE``.
     rls_enforce: bool = False
 
+    # Strict tenant predicate, a sub-mode of ``rls_enforce``. When True the
+    # policy installed on each tenant table drops the ``tenant_id IS NULL``
+    # arm, so a row with no tenant belongs to nobody and is hidden from
+    # everybody, and an anonymous caller (empty GUC) matches no row at all.
+    # The permissive arm exists to make a first rollout non-breaking; it is
+    # also why the rollout mode is not the end state, because a row whose
+    # tenant was never set is readable and writable by every tenant on the
+    # install.
+    #
+    # Strict is honoured only when ``GET /api/v1/admin/rls/readiness`` reports
+    # the database ready: no NULL-tenant rows, and tenant values that are not
+    # merely user ids (the login issues no tenant claim, so ``resolve_tenant_id``
+    # falls back to ``sub`` and every user would otherwise become a tenant of
+    # their own, hiding a colleague's rows from everybody else). A refused
+    # request is logged, reported in the provisioning stats as
+    # ``strict_refused``, and provisioned permissive instead, so asking for
+    # strict can never leave a database with no policy at all.
+    #
+    # Default False: the emitted SQL is byte-identical to the rollout behaviour.
+    # Turning it off after a strict boot is a real rollback - provisioning drops
+    # a policy whose installed mode differs from the requested one and recreates
+    # it, rather than leaving the strict predicate in place behind a guard that
+    # only ever creates. Env: ``OE_RLS_STRICT``.
+    rls_strict: bool = False
+
     # ── Public read-only demo ────────────────────────────────────────────
     # When True, the deployment refuses every request that would change
     # persistent state and answers 403 with ``{"error": "demo_read_only",
@@ -713,6 +740,14 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from: str = "info@datadrivenconstruction.io"
+    # Operator contact shown where the product needs to name a support
+    # address (OpenAPI contact, outbound User-Agents). RFC 2606
+    # example.com placeholder by default: never the upstream project's
+    # domain, and meant to be overridden per installation.
+    support_email: str = "support@example.com"
+    # Canonical public URL of this installation (OpenAPI contact). Empty
+    # means "omit the URL"; it never defaults to an upstream site.
+    public_site_url: str = ""
     smtp_tls: bool = True
     # Public URL used to build password-reset and notification links.
     # Falls back to the first CORS origin so dev installs work without
