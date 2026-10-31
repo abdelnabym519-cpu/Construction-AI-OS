@@ -162,7 +162,14 @@ class TestRefreshingAnOldInstall:
         after = snapshot(target)
         changed = {path for path in before if before[path] != after.get(path)}
         assert set(after) == set(before), "the refresh added or removed files"
-        assert changed == {*CODE_FILES, "spec.json"}
+        # Since the 2026-10 identity change every code file and the module's
+        # own test file carry the product's stamp instead of the upstream
+        # one, so a refresh moves all of refresh.CODE_FILES (not only the
+        # three guard files this test names in CODE_FILES) - stamp generation
+        # only, statements byte-identical. The contract-file assertions below
+        # are what guards the table, and they still demand byte-for-byte
+        # untouched.
+        assert changed == {*refresh.CODE_FILES, "tests/test_refresh_hire.py", "spec.json"}
         for name in refresh.CONTRACT_FILES:
             assert after[name] == before[name]
 
