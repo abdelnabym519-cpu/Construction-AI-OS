@@ -46,9 +46,25 @@ function brandLiterals(): Map<string, string> {
 describe('brand assets referenced from src', () => {
   const literals = brandLiterals();
 
-  it('finds the known references (parser control)', () => {
-    expect(literals.has('/brand/ddc-logo.webp')).toBe(true);
-    expect(literals.size).toBeGreaterThanOrEqual(1);
+  it('the parser still matches /brand literals (control)', () => {
+    // Control on the mechanism itself, independent of what src currently
+    // holds: if the regex stops matching, the existence sweep below would
+    // report "nothing missing" over an unscanned tree.
+    const sample = `const a = '/brand/x.webp'; const b = "/brand/y.svg";`;
+    expect([...sample.matchAll(BRAND_LITERAL)].map((m) => m[1])).toEqual([
+      '/brand/x.webp',
+      '/brand/y.svg',
+    ]);
+  });
+
+  it('the product UI references no upstream brand asset', () => {
+    // The founder-bio logo, the book cover and the avatar belonged to the
+    // upstream project's marketing surfaces, which the product no longer
+    // renders; the files remain in public/brand, credited in NOTICE.
+    for (const [url] of literals) {
+      expect(url.startsWith('/brand/ddc-')).toBe(false);
+      expect(url.startsWith('/brand/artem-')).toBe(false);
+    }
   });
 
   it('every /brand path is a file in public/brand', () => {

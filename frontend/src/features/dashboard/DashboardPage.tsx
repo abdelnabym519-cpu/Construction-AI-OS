@@ -1,6 +1,7 @@
 // DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 // Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -54,7 +55,6 @@ import { dashboardGuide } from './dashboardGuide';
 import { pricedPositions, type PositionCounts } from './pricedPositions';
 import { MultiCurrencyTotal } from '@/shared/ui/MultiCurrencyTotal';
 import { WhatsNewCard } from '@/shared/ui/WhatsNewCard';
-import { DashboardCasesCard } from './DashboardCasesCard';
 import { CompactProjectCard } from './components/CompactProjectCard';
 import { type ProjectPin } from './components/DashboardProjectsMap';
 import { DateDisplay } from '@/shared/ui/DateDisplay';
@@ -2459,7 +2459,6 @@ function DashboardPageInner() {
   }));
 
   const widgetNodes: Record<string, ReactNode> = {
-    cases_learn: <DashboardCasesCard />,
     continue_work: lastBoq ? (
       <button
         type="button"
@@ -2851,28 +2850,9 @@ function DashboardPageInner() {
 
       {/* ─── 2. Hero · row B - thin meta-strip ───────────────────────── */}
       <div className="flex items-center flex-wrap gap-x-4 gap-y-2 pl-2 animate-stagger-in" style={{ animationDelay: '140ms' }}>
-        {/* DDC attribution - slim inline link with tiny logo */}
-        <a
-          href="https://datadrivenconstruction.io/?utm_source=erp"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group/ddc inline-flex items-center gap-1.5 text-[11px] text-content-tertiary hover:text-content-secondary transition-colors"
-        >
-          <img
-            src="/brand/ddc-logo.webp"
-            alt="DataDrivenConstruction"
-            className="h-3.5 w-auto opacity-60 group-hover/ddc:opacity-100 transition-opacity"
-          />
-          <span className="hidden sm:inline">
-            {t('dashboard.developed_by_short', { defaultValue: 'by DataDrivenConstruction' })}
-          </span>
-        </a>
-
-        <span aria-hidden className="h-3 w-px bg-border-light" />
-
         {/* Open-source pill - slimmer (was a heavy gradient card) */}
         <a
-          href="https://github.com/datadrivenconstruction/OpenConstructionERP"
+          href={SOURCE_REPO_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="group/oss inline-flex items-center gap-2 text-xs font-medium text-content-secondary hover:text-content-primary transition-colors"
@@ -2894,10 +2874,6 @@ function DashboardPageInner() {
           boqsLoading={rollup.isLoading}
         />
       </div>
-
-      {/* Start here: Cases (learn by example) is now a registry widget
-          (id 'cases_learn') rendered inside the grid loop below, so it can be
-          hidden or narrowed from Customize like every other card. */}
 
       {/* ─── Customize panel (collapsible) - same manager as Settings ─── */}
       {customizing && (

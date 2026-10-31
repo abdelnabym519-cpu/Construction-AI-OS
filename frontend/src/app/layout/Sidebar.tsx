@@ -7,7 +7,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { CustomBranding } from './CustomBranding';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { FolderOpen, Table2, CalendarDays, Boxes, Settings, Info, ChevronDown, ChevronRight, Sparkles, X, ClipboardList, Users, HelpCircle, History, Plus, Search, Pin, PinOff, Eye, EyeOff, Pencil, Check, Github, Loader2, LayoutGrid, Palette, RotateCcw, type LucideIcon,  } from 'lucide-react';
+import { FolderOpen, Table2, CalendarDays, Boxes, Settings, Info, ChevronDown, ChevronRight, X, ClipboardList, Users, HelpCircle, History, Plus, Search, Pin, PinOff, Eye, EyeOff, Pencil, Check, Github, Loader2, LayoutGrid, Palette, RotateCcw, type LucideIcon,  } from 'lucide-react';
 import { navGroups, type NavGroup, type NavItem } from './navCatalog';
 import { PRESET_WORKSPACES, resolveWorkspace, shownTab, workspaceSectionByRoute } from './workspaces';
 import { useCompanyWorkspace } from './useCompanyWorkspace';
@@ -34,7 +34,6 @@ import {
   SIDEBAR_WIDTH_FULL,
   SIDEBAR_WIDTH_ICON,
 } from '@/stores/useSidebarCollapseStore';
-import { RequestCustomModuleDialog } from '@/features/modules/RequestCustomModuleDialog';
 import {
   useActiveProjectProfile,
   buildModuleGate,
@@ -848,7 +847,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   // module" CTA at the bottom of the nav (below the "+ Add module"
   // developer-guide tile). The dialog itself handles community vs
   // bespoke routing.
-  const [customModuleOpen, setCustomModuleOpen] = useState(false);
 
   // Persist collapsed state to localStorage
   useEffect(() => {
@@ -1662,56 +1660,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             )}
           </NavLink>
         </div>
-        {/* Request-a-custom-module CTA — second dashed tile, purple
-             accent, opens a popup instead of navigating. The popup
-             routes the request to two destinations depending on the
-             user's choice:
-               • "Could help others too"  → community / GitHub backlog
-                 → ends up in a future open-source release.
-               • "Only for my company"    → private / bespoke quote
-                 → DDC team replies with scope + price.
-             We keep this distinct from the developer-guide tile above
-             on purpose: contributors who want to build a module
-             themselves use the guide; users who want us to build it
-             for them use this dialog. */}
-        <div className={clsx('pt-1 pb-3', iconified ? 'px-0 flex justify-center' : 'px-3')}>
-          <button
-            type="button"
-            onClick={() => {
-              setCustomModuleOpen(true);
-              onClose?.();
-            }}
-            title={
-              iconified
-                ? t('nav.request_custom_module', { defaultValue: 'Request a custom module' })
-                : undefined
-            }
-            className={clsx(
-              'group flex items-center rounded-lg border border-dashed border-purple-400/40 bg-gradient-to-br from-purple-500/5 via-transparent to-purple-50/40 dark:from-purple-500/10 dark:via-transparent dark:to-slate-900/30 hover:border-purple-500 hover:from-purple-500/10 hover:shadow-sm transition-all text-left',
-              iconified ? 'h-9 w-9 justify-center' : 'w-full gap-2.5 px-2.5 py-2',
-            )}
-            aria-haspopup="dialog"
-            aria-expanded={customModuleOpen}
-          >
-            <span className="shrink-0 flex h-7 w-7 items-center justify-center rounded-md bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-              <Sparkles size={14} strokeWidth={2.25} />
-            </span>
-            {!iconified && (
-              <span className="min-w-0 flex-1">
-                <span className="block text-xs font-semibold text-content-primary leading-tight">
-                  {t('nav.request_custom_module', {
-                    defaultValue: 'Request a custom module',
-                  })}
-                </span>
-                <span className="block text-[10px] text-content-tertiary leading-tight mt-0.5 truncate">
-                  {t('nav.request_custom_module_hint', {
-                    defaultValue: 'Missing something? Tell us what you need',
-                  })}
-                </span>
-              </span>
-            )}
-          </button>
-        </div>
       </nav>
 
       {/* Admin / setup surfaces — rendered as a 2-column button grid
@@ -1855,14 +1803,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           </div>
         )}
       </div>
-      {/* Mounted at the aside root so the dialog escapes any
-          z-index / overflow trap imposed by the inner nav scroller.
-          The dialog itself is full-screen modal (fixed inset-0) and
-          self-renders only when open=true. */}
-      <RequestCustomModuleDialog
-        open={customModuleOpen}
-        onClose={() => setCustomModuleOpen(false)}
-      />
       {rowMenu && (
         <RowIconMenu
           x={rowMenu.x}

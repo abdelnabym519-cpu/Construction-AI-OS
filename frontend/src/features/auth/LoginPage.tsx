@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import {
-  Eye, EyeOff, Mail, Lock, Globe, ChevronDown, X, Github, Users, ArrowUpRight, Pencil,
+  Eye, EyeOff, Mail, Lock, Globe, ChevronDown, X, Github, ArrowUpRight, Pencil,
   ShieldCheck, Zap, Brain, Info,
   FileSpreadsheet, CalendarClock, TrendingUp, Boxes, Database,
   BarChart3, Upload, FileCheck,
@@ -17,6 +17,7 @@ import { readRememberChoice, saveRememberChoice, useAuthStore } from '@/stores/u
 import { useBrandingStore } from '@/stores/useBrandingStore';
 import { BrandingEditorModal } from '@/app/layout/CustomBranding';
 import { extractErrorMessageFromBody } from '@/shared/lib/api';
+import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
 import { isTauri } from '@/shared/lib/desktop';
 import { HEX_PORTRAIT_ASPECT, HEX_PORTRAIT_CLIP } from '@/shared/lib/honeycomb';
 import { APP_VERSION } from '@/shared/lib/version';
@@ -1015,14 +1016,12 @@ export function LoginPage() {
           </div>
           )}
 
-          {/* GitHub + Community - two primary entry points for the
-              open-source project (replaces the old single "Learn more"
-              link). Premium two-line cards with a tinted icon badge:
-              graphite for the source repo, oe-blue gradient for the
-              community hub. Mirrors the page's login-glass-pro language. */}
-          <div className="mt-4 grid grid-cols-2 gap-3 animate-stagger-in" style={{ animationDelay: '520ms' }}>
+          {/* Source code - the entry point to the repository this
+              product is built from. Premium two-line card with a tinted
+              icon badge, mirroring the page's login-glass-pro language. */}
+          <div className="mt-4 grid grid-cols-1 gap-3 animate-stagger-in" style={{ animationDelay: '520ms' }}>
             <a
-              href="https://github.com/datadrivenconstruction/OpenConstructionERP"
+              href={SOURCE_REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`${t('login.github', { defaultValue: 'GitHub' })} - ${t('login.github_sub', { defaultValue: 'Source code' })}`}
@@ -1044,35 +1043,10 @@ export function LoginPage() {
                 className="shrink-0 text-content-quaternary dark:text-content-tertiary transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-content-secondary"
               />
             </a>
-            <a
-              href="https://t.me/datadrivenconstruction"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`${t('login.community', { defaultValue: 'Community' })} - ${t('login.community_sub', { defaultValue: 'Get help & discuss' })}`}
-              className="group relative flex items-center gap-3 overflow-hidden rounded-xl border border-border-light/70 dark:border-white/15 bg-white/75 dark:bg-white/[0.07] backdrop-blur-sm px-3.5 py-3 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/90 dark:hover:bg-white/[0.12] dark:hover:border-white/25 hover:border-content-primary/25 hover:shadow-lg"
-            >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-content-primary/[0.06] dark:bg-white/10 text-content-primary transition-colors group-hover:bg-content-primary/10 dark:group-hover:bg-white/15">
-                <Users size={17} strokeWidth={1.9} />
-              </span>
-              <span className="min-w-0 flex-1 leading-tight">
-                <span className="block text-[13px] font-semibold text-content-primary">
-                  {t('login.community', { defaultValue: 'Community' })}
-                </span>
-                <span className="block truncate text-[11px] text-content-tertiary dark:text-content-secondary">
-                  {t('login.community_sub', { defaultValue: 'Get help & discuss' })}
-                </span>
-              </span>
-              <ArrowUpRight
-                size={15}
-                className="shrink-0 text-content-quaternary dark:text-content-tertiary transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-content-secondary"
-              />
-            </a>
           </div>
           <div className="lg:hidden mt-2 text-center text-2xs text-content-quaternary">
             <div className="flex items-center justify-center gap-3">
-              <a href="https://OpenConstructionERP.com" target="_blank" rel="noopener noreferrer" className="hover:text-content-secondary transition-colors">OpenConstructionERP.com</a>
-              <span>·</span>
-              <a href="https://github.com/datadrivenconstruction/OpenConstructionERP" target="_blank" rel="noopener noreferrer" className="hover:text-content-secondary transition-colors">GitHub</a>
+              <a href={SOURCE_REPO_URL} target="_blank" rel="noopener noreferrer" className="hover:text-content-secondary transition-colors">{t('login.github_sub', { defaultValue: 'Source code' })}</a>
             </div>
           </div>
           {/* Running build version - always visible so it's obvious which

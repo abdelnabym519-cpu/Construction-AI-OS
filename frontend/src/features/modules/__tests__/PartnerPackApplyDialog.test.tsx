@@ -74,7 +74,7 @@ vi.mock('@/stores/useAuthStore', () => ({
     selector({ userRole: authState.userRole }),
 }));
 
-import { PartnerPackApplyDialog } from '../PartnerPackApplyDialog';
+import { PartnerPackApplyDialog, PACK_INSTALL_DOWNLOAD_URL } from '../PartnerPackApplyDialog';
 import { PackInstallError } from '@/features/onboarding/partnerPacksApi';
 
 /* ── Fixtures ──────────────────────────────────────────────────────────── */
@@ -196,7 +196,7 @@ describe('a failed install says what failed and why', () => {
     expect(within(alert).getByText(/Role 'admin' required/)).toBeTruthy();
     // Where to go instead: a copy of their own, where they are the admin.
     const link = within(alert).getByRole('link', { name: 'Download and install guide' });
-    expect(link.getAttribute('href')).toBe('https://openconstructionerp.com/download');
+    expect(link.getAttribute('href')).toBe(PACK_INSTALL_DOWNLOAD_URL);
     // Not the partial-install view the 403 used to end on.
     expect(screen.queryByText('Finished with warnings')).toBeNull();
     expect(screen.queryByText(/Pack activated/)).toBeNull();
