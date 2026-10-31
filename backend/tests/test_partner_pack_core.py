@@ -58,7 +58,7 @@ class TestManifestSchema:
     def test_manifest_valid(self, sample_manifest: PartnerPackManifest) -> None:
         assert sample_manifest.slug == "test-pack"
         assert sample_manifest.effective_powered_by == (
-            "Powered by OpenConstructionERP · In partnership with Test Partner"
+            "Powered by Construction AI OS · In partnership with Test Partner"
         )
 
     def test_custom_powered_by_text_wins(self) -> None:

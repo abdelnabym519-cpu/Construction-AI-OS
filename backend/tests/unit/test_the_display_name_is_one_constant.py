@@ -71,6 +71,5 @@ class TestTheDisplayNameIsOneConstant:
         match = _APP_NAME_LITERAL.search(source)
         assert match, "APP_NAME is not declared as a plain string literal; keep it parseable"
         assert match.group(1) == _backend_default_app_name(), (
-            "the frontend APP_NAME and the backend app_name default disagree: "
-            "a user would see two product names"
+            "the frontend APP_NAME and the backend app_name default disagree: a user would see two product names"
         )

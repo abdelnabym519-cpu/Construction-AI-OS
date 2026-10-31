@@ -27,6 +27,7 @@ import { isModuleLoaded } from '@/shared/lib/moduleProbe';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { BIMElementData, BIMModelData } from '@/shared/ui/BIMViewer';
 import { postWithUploadProgress } from '@/shared/lib/uploadWithProgress';
+import { APP_NAME } from '@/shared/lib/brandName';
 import type { SandboxMatchRow, SandboxRule, SandboxRunResult, SandboxSkipRow } from './ruleSandbox';
 import type { PropertyFilterValue } from './ruleOperators';
 
@@ -318,7 +319,7 @@ export function converterInstallMessage(result: {
   if (result.error_code === 'converter_package_missing') {
     return i18next.t('bim.converter_package_missing', {
       defaultValue:
-        'This version expects {{asset}} from {{tag}}, which the converter release no longer offers. Update OpenConstructionERP.',
+        `This version expects {{asset}} from {{tag}}, which the converter release no longer offers. Update ${APP_NAME}.`,
       asset: result.asset ?? '',
       tag: result.tag ?? '',
     });

@@ -20,10 +20,9 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-_LOGO_URL = "https://openconstructionerp.com/logo-128.png"
 
 #: The product name every outgoing email carries: the ``From:`` display name,
-#: the line beside the logo and the closing line of the footer. It is a brand,
+#: the opening brand line and the closing line of the footer. It is a brand,
 #: so it is never translated or shortened, in any language. Read from the one
 #: constant (``app_name`` in :mod:`app.config`), guarded so importing this
 #: module never requires a configured environment.
@@ -72,8 +71,9 @@ def wrap(
 ) -> str:
     """Wrap *body* in the standard email shell (brand line, title, CTA, footer).
 
-    Every mail opens with the logo and the brand name beside it, in text so it
-    shows when a mail client blocks images, and closes with the brand name.
+    Every mail opens with the brand name in text - no remote image, so there
+    is nothing for a mail client to block and no third party learns that a
+    mail was opened - and closes with the brand name.
     ``footer`` is an extra line above that closing line, such as why the mail
     came; ``None`` or an empty string adds none. It is inserted as given, so
     escape it.
@@ -99,12 +99,15 @@ def wrap(
 
 
 def brand_header() -> str:
-    """The logo and the brand name that open every email, as an HTML fragment."""
+    """The brand name that opens every email, as an HTML fragment.
+
+    Text only, deliberately: the previous header hot-linked a logo from the
+    upstream project's marketing domain, which told a third-party server the
+    moment a recipient opened a mail from this installation. The brand reads
+    the same with or without images enabled.
+    """
     return (
-        f"<p style='margin:0 0 12px;'>"
-        f'<img src="{_LOGO_URL}" alt="{_APP_NAME}" width="40" height="40" '
-        f'style="vertical-align:middle; margin-right:8px;"/>'
-        f"<strong style='vertical-align:middle; font-size:15px;'>{_APP_NAME}</strong></p>"
+        f"<p style='margin:0 0 12px;'><strong style='vertical-align:middle; font-size:15px;'>{_APP_NAME}</strong></p>"
     )
 
 

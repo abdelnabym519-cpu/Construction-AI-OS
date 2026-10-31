@@ -156,22 +156,15 @@ def _detect_version() -> str:
 def build_provenance_tag(version: str) -> str:
     """Derive the opaque build-provenance signature reported by /api/health.
 
-    Combines a fixed seed with a content-hash component (sha256 of the
-    running version) so the value rotates per release like a routine
-    build checksum. The seed bytes XOR-fold (key 0x55) into the authorship
-    string; removing or altering the seed changes the published
-    ``signature`` field, but the value is otherwise inert (read-only
-    metadata - nothing branches on it).
+    Combines a fixed, product-neutral seed with a content-hash component
+    (sha256 of the running version) so the value rotates per release like a
+    routine build checksum. It is inert read-only metadata - nothing
+    branches on it. The previous seed XOR-decoded to an upstream authorship
+    marker; this distribution seeds it with its own name instead.
     """
     import hashlib as _h
 
-    _seed = bytes(
-        b ^ 0x55
-        for b in (
-            b"\x1a\x25\x30\x3b\x16\x3a\x3b\x26\x21\x27\x20\x36\x21\x3c\x3a\x3b"
-            b"\x10\x07\x05\x78\x11\x11\x16\x78\x16\x02\x1c\x16\x07"
-        )
-    )
+    _seed = b"construction-ai-os-provenance-v1"
     _content = _h.sha256(version.encode("utf-8")).digest()
     return _h.sha256(_seed + _content).hexdigest()[:20]
 
@@ -747,6 +740,14 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from: str = "info@datadrivenconstruction.io"
+    # Operator contact shown where the product needs to name a support
+    # address (OpenAPI contact, outbound User-Agents). RFC 2606
+    # example.com placeholder by default: never the upstream project's
+    # domain, and meant to be overridden per installation.
+    support_email: str = "support@example.com"
+    # Canonical public URL of this installation (OpenAPI contact). Empty
+    # means "omit the URL"; it never defaults to an upstream site.
+    public_site_url: str = ""
     smtp_tls: bool = True
     # Public URL used to build password-reset and notification links.
     # Falls back to the first CORS origin so dev installs work without

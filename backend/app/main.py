@@ -2,7 +2,7 @@
 # CWICR Cost Database Engine · CAD2DATA Pipeline
 # Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 # AGPL-3.0 License · DDC-CWICR-OE-2026
-"""OpenEstimate​‌‍⁠​‌‍⁠​‌‍⁠​‌‍⁠ - FastAPI application factory.
+"""Construction AI OS - FastAPI application factory.
 
 Usage:
     uvicorn app.main:create_app --factory --reload --port 8000
@@ -48,8 +48,8 @@ _INSTANCE_ID = str(_instance_uuid.uuid4())
 # Build-pepper. Looks like opaque crypto material; the bytes XOR-decode to
 # the project authorship marker so removing it changes the published health
 # build hash (deterministic across rebuilds with the same INSTANCE_ID).
-_BUILD_PEPPER = bytes(b ^ 0x55 for b in (b"\x11\x11\x16\x78\x16\x02\x1c\x16\x07\x78\x1a\x10\x78\x67\x65\x67\x63"))
-_BUILD_HASH = _hashlib.sha256(_BUILD_PEPPER + f"DDC-CWICR-OE-{_INSTANCE_ID}".encode()).hexdigest()[:16]
+_BUILD_PEPPER = b"construction-ai-os-build-v1"
+_BUILD_HASH = _hashlib.sha256(_BUILD_PEPPER + f"ConstructionAIOS-{_INSTANCE_ID}".encode()).hexdigest()[:16]
 
 from collections.abc import Awaitable, Callable, Iterator
 from contextlib import contextmanager
@@ -1993,17 +1993,22 @@ def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging(settings)
 
+    # The OpenAPI contact names the operator of THIS installation, never the
+    # upstream project's marketing domain: both fields are configurable and
+    # default to neutral placeholders (support@example.com, no URL).
+    _openapi_contact: dict[str, str] = {"name": settings.app_name}
+    if settings.public_site_url:
+        _openapi_contact["url"] = settings.public_site_url
+    if settings.support_email:
+        _openapi_contact["email"] = settings.support_email
+
     app = FastAPI(
         title=settings.app_name,
         version=settings.app_version,
         description="Open-source modular platform for construction cost estimation",
-        contact={
-            "name": "DataDrivenConstruction · OpenConstructionERP",
-            "url": "https://openconstructionerp.com",
-            "email": "info@datadrivenconstruction.io",
-        },
+        contact=_openapi_contact,
         license_info={
-            "name": "AGPL-3.0-or-later · DDC-CWICR-OE-2026",
+            "name": "AGPL-3.0-or-later",
             "url": "https://www.gnu.org/licenses/agpl-3.0.html",
         },
         # Both reference pages are registered by hand further down instead of
@@ -2200,12 +2205,7 @@ def create_app() -> FastAPI:
     # a pass that did not run never leaves ``None``.
     app.state.data_repair_ledger_failed = None
 
-    # ── OpenAPI origin extension ─────────────────────────────────────────
-    # Stamp an x- vendor extension into info{} so any fork that exposes
-    # /api/openapi.json or /api/docs leaks provenance. ``x-`` extensions
-    # are valid per the OpenAPI spec and ignored by every generator /
-    # client (incl. openapi-typescript), so the API surface is unchanged.
-    # The token bytes XOR-decode (key 0x55) to the authorship marker.
+    # ── OpenAPI document assembly ────────────────────────────────────────
     import threading as _threading
 
     from fastapi.openapi.utils import get_openapi as _get_openapi
@@ -2267,12 +2267,6 @@ def create_app() -> FastAPI:
                 contact=app.contact,
                 license_info=app.license_info,
             )
-            _oa_tok = bytes(
-                b ^ 0x55 for b in b"\x11\x11\x16\x78\x16\x02\x1c\x16\x07\x78\x1a\x10\x78\x67\x65\x67\x63"
-            ).decode("ascii")
-            schema.setdefault("info", {})
-            schema["info"]["x-ddc-origin"] = "OpenConstructionERP · DataDrivenConstruction · " + _oa_tok
-            schema["info"]["x-ddc-author"] = "Artem Boiko <info@datadrivenconstruction.io>"
             app.openapi_schema = schema
             app._openapi_routes_version = version
             return schema
@@ -2404,7 +2398,9 @@ def create_app() -> FastAPI:
         )
         cors_origins = [o for o in cors_origins if o != "*"]
         if not cors_origins:
-            cors_origins = ["https://openconstructionerp.com"]
+            # No cross-origin access at all beats silently falling back to
+            # an unrelated third-party domain (the upstream project's site).
+            logger.warning("CORS: no explicit origins configured; cross-origin browser access is denied.")
 
     app.add_middleware(
         CORSMiddleware,
@@ -2874,7 +2870,7 @@ def create_app() -> FastAPI:
             "version": settings.app_version,
             "env": settings.app_env,
             "instance_id": _INSTANCE_ID,
-            "build": f"DDC-{_BUILD_HASH}",
+            "build": _BUILD_HASH,
             "signature": build_provenance_tag(settings.app_version),
             "modules_discovered": len(_module_rows),
             "modules_enabled": sum(1 for _row in _module_rows if _row.get("enabled")),
@@ -3289,18 +3285,19 @@ def create_app() -> FastAPI:
 
         As required by AGPL-3.0, this endpoint provides access to the
         complete corresponding source code of this application.
-        DataDrivenConstruction · OpenConstructionERP · DDC-CWICR-OE-2026
         """
         return {
-            "license": "AGPL-3.0",
-            "source_code": "https://github.com/datadrivenconstruction/OpenConstructionERP",
+            "license": "AGPL-3.0-or-later",
+            "source_code": "https://github.com/abdelnabym519-cpu/Construction-AI-OS",
             "copyright": "Copyright (c) 2026 Artem Boiko / DataDrivenConstruction",
             "notice": (
-                "This software is licensed under AGPL-3.0. "
+                "This software is licensed under AGPL-3.0-or-later. "
                 "If you modify and deploy this software, you MUST make your "
                 "complete source code available to all users under the same license. "
-                "For commercial licensing without AGPL obligations, contact: "
-                "datadrivenconstruction.io/contact-support/"
+                "This distribution is based on the upstream project named in the "
+                "NOTICE file shipped with it. Closed commercial distribution "
+                "requires AGPL compliance or a commercial license from the "
+                "upstream copyright holder, and warrants legal review."
             ),
             "projects": {
                 "CWICR": "https://github.com/datadrivenconstruction/OpenConstructionEstimate-DDC-CWICR",
@@ -3509,8 +3506,8 @@ def create_app() -> FastAPI:
             ai_providers=provider_names,
             registration_mode=settings.registration_mode,
             analytics_bundled=False,
-            license_name="AGPL-3.0",
-            repository="https://github.com/datadrivenconstruction/OpenConstructionERP",
+            license_name="AGPL-3.0-or-later",
+            repository="https://github.com/abdelnabym519-cpu/Construction-AI-OS",
         )
 
     def _semver_tuple(v: str) -> tuple[int, ...]:
@@ -3583,7 +3580,7 @@ def create_app() -> FastAPI:
         from app.core.update_check_policy import VERSION_CHECK_TTL_S, update_check_disabled
 
         current = settings.app_version
-        repo = "datadrivenconstruction/OpenConstructionERP"
+        repo = "abdelnabym519-cpu/Construction-AI-OS"
         cache_key = "_version_check_cache"
 
         # Turned off by the user from the desktop launcher's notice or by an
@@ -4336,7 +4333,7 @@ def create_app() -> FastAPI:
             raise
 
     async def _startup_impl() -> None:
-        _section("OpenConstructionERP")
+        _section(settings.app_name)
         logger.info(
             "Starting %s v%s (env=%s)",
             settings.app_name,
@@ -5314,7 +5311,7 @@ def create_app() -> FastAPI:
         _cli_data_dir = os.environ.get("OE_CLI_DATA_DIR")
         if _cli_host and _cli_port:
             _url = f"http://{_cli_host}:{_cli_port}"
-            logger.info("OpenConstructionERP is ready at %s", _url)
+            logger.info("%s is ready at %s", settings.app_name, _url)
             # Demo passwords are now per-installation (BUG-D01 fix). The
             # actual values were either supplied via DEMO_*_PASSWORD env
             # vars or generated in ``_seed_demo_account`` and persisted to
@@ -5328,7 +5325,7 @@ def create_app() -> FastAPI:
             )
             if _cli_data_dir:
                 logger.info("Data directory: %s", _cli_data_dir)
-            logger.info("Press Ctrl+C to stop. Docs: https://openconstructionerp.com/docs")
+            logger.info("Press Ctrl+C to stop. Docs: https://github.com/abdelnabym519-cpu/Construction-AIOS#readme")
         else:
             logger.info("Application started successfully")
 

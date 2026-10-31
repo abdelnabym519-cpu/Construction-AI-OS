@@ -569,7 +569,9 @@ async def test_the_tool_request_goes_to_openrouter_and_keeps_its_referer(
     with_tools = _tool_requests(requests)
     assert len(with_tools) == 1, "no request carried tools, so there is nothing to check the endpoint of"
     assert with_tools[0]["url"] == OPENROUTER_URL
-    assert with_tools[0]["headers"].get("HTTP-Referer") == "https://openconstructionerp.com"
+    # The referer names THIS deployment (default: the source repository), not
+    # an upstream marketing domain; the old pin encoded that brand.
+    assert with_tools[0]["headers"].get("HTTP-Referer") == ("https://github.com/abdelnabym519-cpu/Construction-AI-OS")
     assert with_tools[0]["headers"].get("Authorization") == "Bearer or-test-key"
 
     assert not [r for r in requests if "api.openai.com" in r["url"]], "an OpenRouter key was sent to OpenAI"

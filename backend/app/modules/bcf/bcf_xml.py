@@ -68,14 +68,30 @@ logger = logging.getLogger(__name__)
 
 SUPPORTED_VERSIONS: tuple[str, ...] = ("2.1", "3.0")
 
-# Origin token. The bytes XOR-decode (key 0x55) to the project authorship
-# marker; it is written only into XML *comment* nodes of the generated
+
+def _brand() -> str:
+    """The product name from the one display-name constant (``app_name``).
+
+    Guarded so importing this module never requires a configured
+    environment; the fallback is the constant's own default.
+    """
+    try:
+        from app.config import get_settings
+
+        name = str(get_settings().app_name or "").strip()
+        if name:
+            return name
+    except Exception:
+        pass
+    return "Construction AI OS"
+
+
+# Origin stamp. Written only into XML *comment* nodes of the generated
 # ``.bcfzip`` members, which every conformant XML parser (incl. this
 # module's own ElementTree-based reader) discards - so it is purely an
 # at-rest provenance stamp with zero effect on parsed/round-tripped data.
-_BCF_ORIGIN = "OpenConstructionERP · DataDrivenConstruction · " + bytes(
-    b ^ 0x55 for b in b"\x11\x11\x16\x78\x16\x02\x1c\x16\x07\x78\x1a\x10\x78\x67\x65\x67\x63"
-).decode("ascii")
+# It names the product from the one display-name constant.
+_BCF_ORIGIN = _brand()
 
 # Hard ceilings so a hostile zip can't exhaust memory before we validate it.
 _MAX_ENTRIES = 20000

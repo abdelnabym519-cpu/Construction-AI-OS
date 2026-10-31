@@ -29,6 +29,7 @@ from fastapi.responses import PlainTextResponse
 
 from app.core.i18n import get_locale
 from app.core.json_merge import merge_metadata
+from app.core.pdf_branding import DEFAULT_BRAND
 from app.core.rate_limiter import approval_limiter
 from app.core.url_safety import UnsafeUrlError, resolve_and_validate_external_url
 from app.core.validation.messages import translate
@@ -217,7 +218,7 @@ async def _dispatch_integration_test(itype: str, cfg: dict) -> TestNotificationR
     are re-validated against the SSRF deny-list right before dispatch. Never
     raises - returns a TestNotificationResponse with the outcome.
     """
-    title = "OpenConstructionERP Test"
+    title = f"{DEFAULT_BRAND} Test"
     message = "This is a test notification. If you see this, the integration is working correctly."
     action_url = None
     cfg = cfg or {}
@@ -380,7 +381,7 @@ async def test_integration_config(
     if config is None or str(config.user_id) != str(user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Config not found")
 
-    title = "OpenConstructionERP Test"
+    title = f"{DEFAULT_BRAND} Test"
     message = "This is a test notification. If you see this, the integration is working correctly."
     action_url = None
     itype = config.integration_type
@@ -725,7 +726,7 @@ async def calendar_feed(
     lines: list[str] = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
-        f"PRODID:-//OpenConstructionERP//v{version}//EN",
+        f"PRODID:-//{DEFAULT_BRAND}//v{version}//EN",
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
         "X-WR-CALNAME:Project Calendar",
