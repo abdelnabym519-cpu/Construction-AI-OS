@@ -83,7 +83,7 @@ vi.mock('react-i18next', () => ({
 
 import App from '../App';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { LEARN_GROUP_ID, navGroups } from '../layout/navCatalog';
+import { navGroups } from '../layout/navCatalog';
 
 /** Reads the location the router actually settled on. */
 function LocationProbe() {
@@ -190,8 +190,9 @@ describe('the library is not loadable at runtime either', () => {
     expect(everyRow).not.toContain('/videos');
     expect(everyRow.some((to) => to.includes('video'))).toBe(false);
 
-    // The card the row used to sit in is still there, with what is left.
-    const learn = navGroups.find((group) => group.id === LEARN_GROUP_ID);
-    expect(learn?.items.map((item) => item.to)).toEqual(['/cases', '/packs']);
+    // The rows beside the one that was removed are still there, in their
+    // functional groups: Cases and Packs are business features.
+    expect(everyRow).toContain('/cases');
+    expect(everyRow).toContain('/packs');
   });
 });

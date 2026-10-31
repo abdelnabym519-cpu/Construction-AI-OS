@@ -15,7 +15,8 @@
 // sidebar row, a hover-preload entry, the catalogue build scripts, or a locale
 // string that still advertises video guides in any of the shipped languages.
 //
-// WHAT MUST SURVIVE: the Learn card's remaining rows (Cases, Packs), and the
+// WHAT MUST SURVIVE: the surviving rows (Cases, Packs) in their functional
+// groups, and the
 // generic viewers that play a file a user uploaded. Those share an HTML
 // element with the deleted player and are a different thing entirely - the
 // file manager's lightbox and the documents preview are business features.
@@ -26,7 +27,7 @@ import { describe, expect, it } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import { LEARN_GROUP_ID, navGroups } from '../layout/navCatalog';
+import { navGroups } from '../layout/navCatalog';
 
 const FRONTEND = path.resolve(__dirname, '..', '..', '..');
 const REPO = path.resolve(FRONTEND, '..');
@@ -72,15 +73,15 @@ describe('the Academy video library is gone', () => {
     expect(app).not.toMatch(/VideosPage|ModuleVideosSlot/);
   });
 
-  it('keeps the Learn card, with no row that leads nowhere', () => {
+  it('keeps the surviving business rows, with no row that leads nowhere', () => {
     const everyRow = navGroups.flatMap((group) => group.items.map((item) => item.to));
     expect(everyRow.length).toBeGreaterThan(100);
     expect(everyRow).not.toContain('/videos');
 
-    // The card itself stays: taking the videos row out is not a reason to take
-    // the two rows that were already there with it.
-    const learn = navGroups.find((group) => group.id === LEARN_GROUP_ID);
-    expect(learn?.items.map((item) => item.to)).toEqual(['/cases', '/packs']);
+    // Cases and Packs are business features, not part of the video surface:
+    // taking the videos row out is not a reason to take these two with it.
+    expect(everyRow).toContain('/cases');
+    expect(everyRow).toContain('/packs');
   });
 
   it('no longer preloads the page or ships the catalogue tooling', () => {

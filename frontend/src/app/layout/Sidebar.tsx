@@ -7,44 +7,12 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { CustomBranding } from './CustomBranding';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import {
-  FolderOpen,
-  Table2,
-  CalendarDays,
-  Boxes,
-  Settings,
-  Info,
-  ChevronDown,
-  ChevronRight,
-  Sparkles,
-  X,
-  ClipboardList,
-  Users,
-  HelpCircle,
-  History,
-  Plus,
-  Search,
-  Pin,
-  PinOff,
-  Eye,
-  EyeOff,
-  Pencil,
-  Check,
-  Github,
-  Loader2,
-  LayoutGrid,
-  GraduationCap,
-  Palette,
-  RotateCcw,
-  type LucideIcon,
-} from 'lucide-react';
-import { LEARN_GROUP_ID, navGroups, type NavGroup, type NavItem } from './navCatalog';
-import { LEARN_ANCHOR_ATTR, anchorRect, flyLearn } from './learnFlight';
+import { FolderOpen, Table2, CalendarDays, Boxes, Settings, Info, ChevronDown, ChevronRight, Sparkles, X, ClipboardList, Users, HelpCircle, History, Plus, Search, Pin, PinOff, Eye, EyeOff, Pencil, Check, Github, Loader2, LayoutGrid, Palette, RotateCcw, type LucideIcon,  } from 'lucide-react';
+import { navGroups, type NavGroup, type NavItem } from './navCatalog';
 import { PRESET_WORKSPACES, resolveWorkspace, shownTab, workspaceSectionByRoute } from './workspaces';
 import { useCompanyWorkspace } from './useCompanyWorkspace';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useModuleStore } from '@/stores/useModuleStore';
-import { useToastStore } from '@/stores/useToastStore';
 import { apiGet } from '@/shared/lib/api';
 import { UpdateBadge, UpdateNotification } from '@/shared/ui/UpdateChecker';
 import { useViewModeStore } from '@/stores/useViewModeStore';
@@ -143,13 +111,12 @@ const adminGridItems: NavItem[] = [
 
 /** Every row the "Edit menu" editor can hide: the catalogue rows plus the
  *  module rows registered at runtime. The structural rows stay out (dashboard,
- *  projects list, the settings, users and about tiles), and so do the Learn
- *  rows; the edit-menu tile is an action and not in either list. */
+ *  projects list, the settings, users and about tiles); the edit-menu tile is
+ *  an action and not in either list. */
 const PACK_MENU_KEEP_ROUTES = new Set(['/', '/projects']);
 function hideableSidebarRoutes(): string[] {
   const routes = new Set<string>();
   for (const group of navGroups) {
-    if (group.id === LEARN_GROUP_ID) continue;
     for (const item of group.items) routes.add(item.to);
     for (const mi of getModuleNavItems(group.dynamicGroupKey ?? group.id)) routes.add(mi.to);
   }
@@ -548,10 +515,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   // read the list and the bulk setter the Save action commits to.
   const hiddenGroups = useModuleStore((s) => s.hiddenGroups);
   const setHiddenGroups = useModuleStore((s) => s.setHiddenGroups);
-  // The Learn card at the top hides and comes back in one click, outside the
-  // Edit-menu working copy, so it writes straight through to the store.
-  const setGroupHidden = useModuleStore((s) => s.setGroupHidden);
-  const addToast = useToastStore((s) => s.addToast);
   const isAdvanced = useViewModeStore((s) => s.isAdvanced);
   // A company profile with a workspace (`workspaces.ts`) redefines Simple mode
   // for its users: the workspace rows in their order, then every other screen
@@ -742,9 +705,9 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
     setEditingHiddenGroups([]);
   }, []);
 
-  // Sections can change outside the editor while it is open: the top bar's
-  // graduation cap puts Learn back. Carry every such change into the working
-  // copy, or Save would write the copy taken at entry and undo it.
+  // Sections can change outside the editor while it is open. Carry every
+  // such change into the working copy, or Save would write the copy taken at
+  // entry and undo it.
   const prevHiddenGroups = useRef(hiddenGroups);
   useEffect(() => {
     const before = prevHiddenGroups.current;
@@ -1151,47 +1114,11 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
   const visibleWorkspaceItems = workspaceItems.filter(passesRowGates);
 
-  // The Learn card (cases and packs) is drawn apart from the group loop, at
-  // the very top of the menu, whatever the mode; see `LearnSection`. Its rows
-  // pass the same gates as any group's, and hiding it goes through
-  // `hiddenGroups`, so it also counts toward the "{N} hidden" chip.
-  const learnGroup = navGroups.find((group) => group.id === LEARN_GROUP_ID);
-  const learnItems = learnGroup ? visibleGroupItems(learnGroup) : [];
-  const learnLabel = learnGroup
-    ? t(learnGroup.labelKey, { defaultValue: learnGroup.defaultLabel ?? learnGroup.id })
-    : '';
-  const loopGroups = navGroups.filter((group) => group.id !== LEARN_GROUP_ID);
-  // Hidden, the card folds into a graduation cap in the top bar
-  // (`LearnTopBarButton`), and a ghost of the cap flies there so the reader
-  // sees where it went. The start is measured before the card unmounts.
-  const hideLearn = () => {
-    const from = anchorRect('sidebar');
-    setGroupHidden(LEARN_GROUP_ID, true);
-    flyLearn(from, 'topbar', '[data-testid="header-learn-restore"]');
-    addToast(
-      {
-        type: 'info',
-        title: t('sidebar.learn.hidden_toast', { defaultValue: 'Cases and packs are hidden' }),
-        message: t('sidebar.learn.hidden_toast_body_topbar', {
-          defaultValue: 'They are now behind the graduation cap in the top bar. One click there brings them back.',
-        }),
-        action: {
-          label: t('common.undo', { defaultValue: 'Undo' }),
-          onClick: () => {
-            const back = anchorRect('topbar');
-            setGroupHidden(LEARN_GROUP_ID, false);
-            flyLearn(back, 'sidebar');
-          },
-        },
-      },
-      { duration: 8000 },
-    );
-  };
   // Edit mode opens "More modules" so a row hidden in there can be found and
   // switched back on.
   const moreExpanded = moreOpen || editMode;
   const moreCount = workspaceActive
-    ? loopGroups.reduce((sum, group) => sum + visibleGroupItems(group).length, 0)
+    ? navGroups.reduce((sum, group) => sum + visibleGroupItems(group).length, 0)
     : 0;
 
   const renderRow = (item: NavItem, i: number) => {
@@ -1417,21 +1344,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         )}
         data-engine="cwicr"
       >
-        {/* Learn: cases and packs, above everything else, Pinned included.
-            Hidden from its own header into a cap in the top bar, and restored
-            from there. */}
-        {learnGroup && learnItems.length > 0 && (
-          <LearnSection
-            label={learnLabel}
-            iconified={iconified}
-            editMode={editMode}
-            isGroupHidden={editingHiddenGroups.includes(LEARN_GROUP_ID)}
-            onHide={hideLearn}
-            onToggleGroupHidden={() => toggleGroupHidden(LEARN_GROUP_ID)}
-          >
-            <ul className="space-y-0.5">{learnItems.map(renderRow)}</ul>
-          </LearnSection>
-        )}
         {/* Pinned section — appears at the top when the user has
             pinned at least one item. No collapsible chevron; just a
             small label + the pinned items in their stored order. */}
@@ -1565,7 +1477,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             reordering. Each row is only annotated: needed → sequence
             number; not needed → smaller + greyed; unconstrained → as
             default. Focus OFF / no profile → every row is default. */}
-        {(!workspaceActive || moreExpanded) && loopGroups.map((group) => {
+        {(!workspaceActive || moreExpanded) && navGroups.map((group) => {
           const visibleItems = visibleGroupItems(group);
 
           // Skip group if no visible items. In normal mode this means
@@ -2241,143 +2153,6 @@ function NavGroupSection({
       )}
       {!isCollapsed && children}
     </div>
-  );
-}
-
-/** The Learn card: Cases and Packs, drawn above every other section.
- *
- *  It reads as a card rather than as one more group header, because it is not
- *  one more area of work; it is the way in for somebody still finding their
- *  feet, and the one section a user is invited to put away once they have.
- *  Hovering (or focusing) the header shows a hint that says so, and the hide
- *  control fades in beside the label. On a touch screen there is no hover, so
- *  the control is always visible there. In the menu editor the card behaves
- *  like every other section: dimmed while hidden, with the same eye toggle
- *  working on the editor's copy until Save. */
-function LearnSection({
-  label,
-  iconified,
-  editMode,
-  isGroupHidden,
-  onHide,
-  onToggleGroupHidden,
-  children,
-}: {
-  label: string;
-  iconified: boolean;
-  editMode: boolean;
-  isGroupHidden: boolean;
-  onHide: () => void;
-  onToggleGroupHidden: () => void;
-  children: React.ReactNode;
-}) {
-  const { t } = useTranslation();
-  const hintId = 'sidebar-learn-hint';
-
-  if (iconified) {
-    return (
-      <div
-        data-testid="sidebar-learn"
-        {...{ [LEARN_ANCHOR_ATTR]: 'sidebar' }}
-        className={clsx(
-          'mb-1 rounded-xl bg-oe-blue/[0.06] py-1 ring-1 ring-inset ring-oe-blue/10 dark:bg-oe-blue/[0.12]',
-          editMode && isGroupHidden && 'opacity-50',
-        )}
-      >
-        {children}
-      </div>
-    );
-  }
-
-  return (
-    <section
-      data-testid="sidebar-learn"
-      aria-label={label}
-      className={clsx(
-        'relative mb-2 rounded-xl p-1.5',
-        'border border-oe-blue/15 bg-gradient-to-br from-oe-blue/[0.07] via-oe-blue/[0.03] to-transparent',
-        'dark:border-oe-blue/25 dark:from-oe-blue/[0.14] dark:via-oe-blue/[0.06]',
-        editMode && isGroupHidden && 'opacity-50',
-      )}
-    >
-      <div className="group/learnhead relative flex items-center gap-1.5 px-1.5 pb-1 pt-0.5">
-        <span
-          {...{ [LEARN_ANCHOR_ATTR]: 'sidebar' }}
-          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-oe-blue/15 text-oe-blue"
-          aria-hidden
-        >
-          <GraduationCap size={12} strokeWidth={2.25} />
-        </span>
-        <span
-          className="min-w-0 flex-1 truncate text-[10px] font-semibold uppercase tracking-[0.085em] text-oe-blue/80 dark:text-oe-blue"
-        >
-          {label}
-        </span>
-        {editMode ? (
-          <button
-            type="button"
-            onClick={onToggleGroupHidden}
-            aria-label={
-              isGroupHidden
-                ? t('sidebar.show_group', { defaultValue: 'Show {{label}} section', label })
-                : t('sidebar.hide_group', { defaultValue: 'Hide {{label}} section', label })
-            }
-            title={
-              isGroupHidden
-                ? t('sidebar.show_group', { defaultValue: 'Show {{label}} section', label })
-                : t('sidebar.hide_group', { defaultValue: 'Hide {{label}} section', label })
-            }
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-content-tertiary transition-colors hover:bg-oe-blue/10 hover:text-oe-blue focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-oe-blue/40"
-          >
-            {isGroupHidden ? <EyeOff size={12} strokeWidth={2} /> : <Eye size={12} strokeWidth={2} />}
-          </button>
-        ) : (
-          <>
-            <button
-              type="button"
-              data-testid="sidebar-learn-hide"
-              onClick={onHide}
-              aria-label={t('sidebar.learn.hide', { defaultValue: 'Hide cases & packs' })}
-              aria-describedby={hintId}
-              className={clsx(
-                'flex h-6 shrink-0 items-center gap-1 rounded-md px-1.5 text-[10px] font-medium text-content-tertiary',
-                'hover:bg-oe-blue/10 hover:text-oe-blue',
-                'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-oe-blue/40',
-                // Fades in with the header's hover or keyboard focus; always
-                // shown where the device cannot hover.
-                'opacity-0 transition-opacity duration-150',
-                'group-hover/learnhead:opacity-100 group-focus-within/learnhead:opacity-100',
-                '[@media(hover:none)]:opacity-100',
-              )}
-            >
-              <EyeOff size={12} strokeWidth={2} aria-hidden />
-              <span>{t('sidebar.learn.hide_short', { defaultValue: 'Hide' })}</span>
-            </button>
-            {/* The hint sits inside the card's width, so the nav's own
-                overflow cannot clip it; it overlays the rows below rather
-                than pushing them down. */}
-            <div
-              id={hintId}
-              role="tooltip"
-              className={clsx(
-                'pointer-events-none absolute inset-x-0 top-full z-20 mt-1',
-                'rounded-lg bg-slate-900 px-2.5 py-2 text-[11px] leading-snug text-white shadow-lg',
-                'ring-1 ring-black/5 dark:bg-slate-700 dark:ring-white/10',
-                'invisible translate-y-1 opacity-0 transition-all duration-150',
-                'group-hover/learnhead:visible group-hover/learnhead:translate-y-0 group-hover/learnhead:opacity-100 group-hover/learnhead:delay-300',
-                'group-focus-within/learnhead:visible group-focus-within/learnhead:translate-y-0 group-focus-within/learnhead:opacity-100',
-              )}
-            >
-              {t('sidebar.learn.hint_topbar', {
-                defaultValue:
-                  'Guided cases and packs to learn the platform. Hide this section and it folds into the graduation cap in the top bar; one click there brings it back.',
-              })}
-            </div>
-          </>
-        )}
-      </div>
-      {children}
-    </section>
   );
 }
 

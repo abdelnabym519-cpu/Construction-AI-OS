@@ -6,7 +6,8 @@
 // collapsed never heard about a release. The badge names the version in its
 // tooltip, opens About, and follows the same dismissal as the card.
 //
-// Which of the two the sidebar renders is pinned in Sidebar.learn.test.tsx.
+// Which of the two the sidebar renders follows its collapsed state (see
+// the iconified branch in Sidebar.tsx).
 //
 // Run:  npx vitest run src/shared/ui/__tests__/updateBadge.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react';

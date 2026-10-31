@@ -15,7 +15,6 @@ import { useThemeStore } from '@/stores/useThemeStore';
 import { ActivePackChip, CountryFlag, ModuleInfoButton, PartnerLogoBadge } from '@/shared/ui';
 import { usePartnerPack } from '@/shared/hooks/usePartnerPack';
 import { NotificationBell } from '@/shared/ui/NotificationBell';
-import { LearnTopBarButton } from './LearnTopBarButton';
 import { ProcessesButton } from '@/features/processes/ProcessesButton';
 import { ModuleBuilderButton } from '@/features/module-builder';
 import { fetchProjectList } from '@/shared/lib/projectList';
@@ -545,9 +544,6 @@ export function Header({ title, onMenuClick }: HeaderProps) {
             Order: NotificationBell · BugReport · Help. Bug + Help sit on
             the right edge, one click from wherever the user noticed the
             problem. */}
-        {/* Only while the Learn card is hidden from the menu: its way back,
-            at every width. */}
-        <LearnTopBarButton />
         {/* Background services: what the platform keeps loaded, at every
             width, because it is the way back to a feature that stopped. */}
         <ProcessesButton />
