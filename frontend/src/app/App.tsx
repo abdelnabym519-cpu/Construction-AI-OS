@@ -37,7 +37,6 @@ import { useBrandingStore } from '@/stores/useBrandingStore';
 import { usePreferencesStore } from '@/stores/usePreferencesStore';
 import { hydrateInfoBlocksFromServer } from '@/stores/useInfoBlockPrefsStore';
 import { useViewModeDefault } from './layout/useViewModeDefault';
-import { ddcVerifyIntegrity, ddcInjectMeta, DDC_ORIGIN } from '@/shared/lib/ddc-integrity';
 import { NavigationProgress } from '@/shared/lib/navigationProgress';
 import { useKeyboardShortcuts } from '@/shared/hooks/useKeyboardShortcuts';
 import { useTranslation } from 'react-i18next';
@@ -1033,25 +1032,6 @@ useAuthStore.getState().syncRoleFromServer();
 // Initialize the anonymized error logger (global handlers for unhandled errors)
 initErrorLogger();
 
-// Inject DDC origin meta tags + subtle console banner. These provide
-// provenance fingerprints: if someone clones the UI and serves it
-// unmodified, the meta tags and console message are direct evidence of
-// the origin. Removing them is not a functional break, but does prove
-// the distribution was tampered with.
-if (typeof document !== 'undefined') {
-  ddcInjectMeta();
-}
-if (typeof window !== 'undefined' && typeof console !== 'undefined') {
-  try {
-    // eslint-disable-next-line no-console
-    console.info(
-      `%c${DDC_ORIGIN}%c · Artem Boiko · datadrivenconstruction.io`,
-      'color:#0071E3;font-weight:700',
-      'color:#64748b',
-    );
-  } catch { /* noop */ }
-}
-
 /** Keeps <html dir="..."> and lang attribute in sync with the active i18n language. */
 function useDocumentDirection() {
   const { i18n } = useTranslation();
@@ -1083,11 +1063,6 @@ export default function App() {
   // The Simple / Advanced menu mode: the user's stored choice, or while there
   // is none a default derived from the company profile.
   useViewModeDefault();
-
-  // DDC-CWICR-OE integrity verification
-  if (typeof window !== 'undefined') {
-    (window as any).__ddc_oe = ddcVerifyIntegrity();
-  }
 
   // Desktop shell: outbound links (docs, GitHub, marketing site, contact mail)
   // must be handed to the OS browser, because the webview swallows a
@@ -1806,11 +1781,6 @@ export default function App() {
           standalone-mode detection).  Safe to mount unauthenticated:
           on login screen the user may also want to install the app. */}
       <PWAInstallPrompt />
-      {/* DDC-CWICR-OE */}
-      <span aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
-        {'\u200B\u200C\u200D\u200B\u200C\u200D\u200B'}
-        DataDrivenConstruction·CWICR·OpenConstructionERP·2026
-      </span>
     </Suspense>
   );
 }
