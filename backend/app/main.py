@@ -5318,11 +5318,19 @@ def create_app() -> FastAPI:
             # ``~/.openestimator/.demo_credentials.json``. Pointing the
             # operator at that file beats baking a fixed password into
             # every running instance.
-            logger.info(
-                "Demo login: demo@openconstructionerp.com "
-                "(password from DEMO_USER_PASSWORD env var or "
-                "~/.openestimator/.demo_credentials.json)"
-            )
+            from app.core.demo_seed import seed_demo_enabled
+
+            if seed_demo_enabled():
+                logger.info(
+                    "Demo login: demo@openconstructionerp.com "
+                    "(password from DEMO_USER_PASSWORD env var or "
+                    "~/.openestimator/.demo_credentials.json)"
+                )
+            else:
+                logger.info(
+                    "Demo data is off (opt-in via SEED_DEMO=true or the first-run "
+                    "prompt). The first account you register becomes the admin."
+                )
             if _cli_data_dir:
                 logger.info("Data directory: %s", _cli_data_dir)
             logger.info("Press Ctrl+C to stop. Docs: https://github.com/abdelnabym519-cpu/Construction-AIOS#readme")

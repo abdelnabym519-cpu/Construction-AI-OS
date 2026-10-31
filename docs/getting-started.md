@@ -24,9 +24,9 @@ pip install --upgrade openconstructionerp
 openconstructionerp
 ```
 
-The package ships the FastAPI backend and a pre-built React frontend in a single wheel. On first run it sets up an embedded PostgreSQL instance, loads demo data, and opens your browser at [localhost:8080](http://localhost:8080).
+The package ships the FastAPI backend and a pre-built React frontend in a single wheel. On first run it sets up an embedded PostgreSQL instance, asks whether to load demo data, and opens your browser at [localhost:8080](http://localhost:8080).
 
-**Demo login:** `demo@openconstructionerp.com` / `DemoPass1234!`
+**First login:** register an account - the first one becomes the admin. (The demo login `demo@openconstructionerp.com`, any password, exists only if you opted into demo data.)
 
 > **Running on a VPS or remote server?** The default binds to localhost only.
 > To make the app reachable over the network, start it with:
@@ -65,7 +65,7 @@ docker compose up -d
 
 The app runs at [localhost:8080](http://localhost:8080).
 
-**Demo login:** `demo@openconstructionerp.com` / `DemoPass1234!`
+**First login:** register an account - the first one becomes the admin. (The demo login `demo@openconstructionerp.com`, any password, exists only if you opted into demo data.)
 
 ## Prerequisites
 

@@ -281,7 +281,7 @@ pip install --upgrade openconstructionerp
 openconstructionerp
 ```
 
-That's it. The single wheel ships the backend plus the pre-built React frontend. The first run sets up a local embedded PostgreSQL database (no Docker, no setup), loads the demo data, opens your browser at **http://localhost:8080**, and you sign in with `demo@openconstructionerp.com` / `DemoPass1234!`. No Node.js and no extra services. Every later run, just type `openconstructionerp` again. [PyPI package](https://pypi.org/project/openconstructionerp/).
+That's it. The single wheel ships the backend plus the pre-built React frontend. The first run sets up a local embedded PostgreSQL database (no Docker, no setup), asks whether to load demo data, and opens your browser at **http://localhost:8080**. The first account you register becomes the admin; if you opted into demo data, the demo login (`demo@openconstructionerp.com`) accepts any password on a local install. No Node.js and no extra services. Every later run, just type `openconstructionerp` again. [PyPI package](https://pypi.org/project/openconstructionerp/).
 
 If the `openconstructionerp` command is not found after install, run it through Python instead. This works on every operating system and never depends on PATH:
 
@@ -359,7 +359,7 @@ Open **http://localhost:5173** - for hacking on the codebase. Requires Python 3.
 
 ### Demo Accounts
 
-Three demo accounts are created on first start. On a local install, sign in to any of them with the password `DemoPass1234!`. To set your own passwords (for a team demo or CI), set these before the first start:
+Demo data is opt-in: it loads only when you answer Yes to the first-run prompt (or set `SEED_DEMO=true`, or `serve --demo`). When it loads, three demo accounts exist. On a local install the demo sign-in accepts any password. To pin passwords instead (for a team demo or CI), set these before the first start:
 
 - `DEMO_USER_PASSWORD` - admin (`demo@openconstructionerp.com`)
 - `DEMO_ESTIMATOR_PASSWORD` - estimator (`estimator@openconstructionerp.com`)
@@ -367,9 +367,9 @@ Three demo accounts are created on first start. On a local install, sign in to a
 
 | Account | Email | Password | Role |
 |---------|-------|----------|------|
-| Admin | `demo@openconstructionerp.com` | `DemoPass1234!` | Full access |
-| Estimator | `estimator@openconstructionerp.com` | `DemoPass1234!` | Estimator |
-| Manager | `manager@openconstructionerp.com` | `DemoPass1234!` | Manager |
+| Admin | `demo@openconstructionerp.com` | any (local demo sign-in) | Full access |
+| Estimator | `estimator@openconstructionerp.com` | any (local demo sign-in) | Estimator |
+| Manager | `manager@openconstructionerp.com` | any (local demo sign-in) | Manager |
 
 > Demo accounts include 70 pre-loaded projects across 30+ countries with complete BOQs, schedules and cost models, from a Berlin residential block and a Paris school to a Dubai warehouse, a Shanghai office tower, a Toronto condo and a Guangzhou renovation.
 >

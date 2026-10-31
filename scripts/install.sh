@@ -378,7 +378,8 @@ SCRIPT
     fi
     echo ""
     echo "  That starts the server and serves http://localhost:$OE_PORT"
-    echo "  Sign in with:  demo@openconstructionerp.com  /  DemoPass1234!"
+    echo "  Register the first account - it becomes the admin."
+    echo "  Demo data is opt-in: start once with SEED_DEMO=true to load it."
     echo ""
     echo "  Or start it right now:  $OE_INSTALL_DIR/start.sh --open"
 }

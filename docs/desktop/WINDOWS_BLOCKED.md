@@ -66,7 +66,7 @@ docker compose pull app
 docker compose up -d
 ```
 
-3. Open **http://localhost:8080** in your browser and sign in with `demo@openconstructionerp.com` / `DemoPass1234!`.
+3. Open **http://localhost:8080** in your browser and register the first account - it becomes the admin. (If demo data was loaded, `demo@openconstructionerp.com` signs in with any password.)
 
 The `.env` file holds the database password and the login secret, so keep it. Next time only `docker compose up -d` in the same folder is needed.
 
@@ -98,7 +98,7 @@ py -3.12 -m pip install --upgrade openconstructionerp
 py -3.12 -m openconstructionerp
 ```
 
-3. The first run sets up the local database and loads demo data, which takes about a minute. The app then runs at **http://localhost:8080**; sign in with `demo@openconstructionerp.com` / `DemoPass1234!`. Next time only the second command is needed.
+3. The first run sets up the local database and asks whether to load demo data, which takes about a minute. The app then runs at **http://localhost:8080**; register the first account - it becomes the admin. Next time only the second command is needed.
 
 ## Check that the download is genuine
 

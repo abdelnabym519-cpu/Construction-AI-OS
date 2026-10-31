@@ -49,12 +49,12 @@ The very first time you open the app it sets up its local database, and that tak
 
 ## Sign in
 
-Once the app is ready you will reach the sign-in screen. A demo account is ready to go so you can look around right away.
+Once the app is ready you will reach the sign-in screen. Register your account there - the first account on a fresh install becomes the admin, and you can create projects and invite everyone else from there.
+
+If your installation opted into demo data, a demo sign-in is also available:
 
 Email: demo@openconstructionerp.com
-Password: DemoPass1234!
-
-Sign in with those and you are in. You can create your own account and projects from there.
+Password: any password works on a local demo install
 
 ## Your data is local
 

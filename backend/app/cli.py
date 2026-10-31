@@ -371,8 +371,14 @@ def print_startup_banner(
     else:
         print(f"  {bar}     {_dim('frontend not bundled, API only at ' + url + '/api/docs')}")
     print(f"  {bar}")
-    print(f"  {bar}  {_bold('Log in with the demo account')}")
-    print(f"  {bar}     demo@openconstructionerp.com  {_dim('/')}  DemoPass1234!")
+    from app.core.demo_seed import seed_demo_enabled
+
+    if seed_demo_enabled():
+        print(f"  {bar}  {_bold('Log in with the demo account')}")
+        print(f"  {bar}     demo@openconstructionerp.com  {_dim('/')}  {_dim('demo mode accepts any password')}")
+    else:
+        print(f"  {bar}  {_bold('Log in')}")
+        print(f"  {bar}     {_dim('register the first account - it becomes the admin')}")
     print(f"  {bar}")
     print(f"  {bar}  {_dim('Stop'.ljust(11))} Ctrl+C")
     print(f"  {bar}  {_dim('Start again'.ljust(11))} {_amber('openconstructionerp')}")
@@ -1914,7 +1920,7 @@ def print_welcome(*, next_command_hint: bool = True) -> None:
 
     Shown on the first bare ``openconstructionerp`` invocation and when
     the user runs ``openconstructionerp welcome`` explicitly. Tells them
-    the single command that starts everything, the demo login, and where
+    the single command that starts everything, the first login, and where
     to ask questions when something goes wrong.
 
     ``next_command_hint`` distinguishes the two contexts. When True the
@@ -1933,17 +1939,17 @@ def print_welcome(*, next_command_hint: bool = True) -> None:
     if next_command_hint:
         print(f"  {bar}  {_bold('To start, run one command')}")
         print(f"  {bar}     {_amber('openconstructionerp')}")
-        print(f"  {bar}  {_dim('It sets up the database, loads the demo and opens your browser.')}")
+        print(f"  {bar}  {_dim('It sets up the database, asks whether to load demo data, and opens your browser.')}")
         print(f"  {bar}")
         print(f"  {bar}  {_dim('Command not found? This always works, no PATH needed:')}")
         print(f"  {bar}     {_amber('python -m openconstructionerp')}")
     else:
         print(f"  {bar}  {_bold('Setting things up for you')}")
-        print(f"  {bar}  {_dim('Creating the database and loading the demo. The server starts in a moment.')}")
+        print(f"  {bar}  {_dim('Creating the database. The server starts in a moment.')}")
     print(f"  {bar}")
     print(f"  {bar}  {_bold('Then log in')}")
     print(f"  {bar}     {_amber(url)}")
-    print(f"  {bar}     demo@openconstructionerp.com  {_dim('/')}  DemoPass1234!")
+    print(f"  {bar}     {_dim('the first account you register becomes the admin')}")
     print()
     print(f"  {_dim('Advanced:')}  openconstructionerp serve {_dim('|')} init-db {_dim('|')} doctor {_dim('|')} --help")
     print()
@@ -1992,15 +1998,16 @@ def _prompt_open_browser(url: str, default_open: bool = True) -> bool:
 def _prompt_seed_demo() -> bool | None:
     """Ask on first run whether to load the demo projects.
 
-    Returns ``True`` / ``False`` for an explicit answer (default Yes on a
-    bare Enter), or ``None`` when there is no interactive terminal (CI,
-    piped input, service start) - callers keep the current default
-    behaviour in that case and do not persist anything.
+    Returns ``True`` / ``False`` for an explicit answer (default No on a
+    bare Enter - demo data is opt-in), or ``None`` when there is no
+    interactive terminal (CI, piped input, service start) - callers keep
+    the current default behaviour in that case and do not persist
+    anything.
     """
     if not sys.stdin.isatty() or not sys.stdout.isatty() or os.environ.get("CI"):
         return None
 
-    prompt = f"  {_bold('Load demo projects')} {_dim('to explore the app?')} {_dim('[Y/n]')} "
+    prompt = f"  {_bold('Load demo projects')} {_dim('to explore the app?')} {_dim('[y/N]')} "
     try:
         answer = input(prompt).strip().lower()
     except (EOFError, KeyboardInterrupt):
@@ -2008,8 +2015,8 @@ def _prompt_seed_demo() -> bool | None:
         return None
 
     if answer == "":
-        return True
-    return not (answer.startswith("n") or answer in ("нет", "н"))
+        return False
+    return answer.startswith("y") or answer in ("да", "д")
 
 
 def cmd_seed(args: argparse.Namespace) -> None:
@@ -2807,8 +2814,9 @@ def _build_parser() -> argparse.ArgumentParser:
             f"{_app_name()}, open-source construction cost estimation platform.\n\n"
             "Quick start, one command does everything:\n"
             "    openconstructionerp\n\n"
-            "It creates the local database, loads the demo data, starts the server\n"
-            "and opens http://127.0.0.1:8080 (demo@openconstructionerp.com / DemoPass1234!)."
+            "It creates the local database, asks whether to load demo data, starts\n"
+            "the server and opens http://127.0.0.1:8080. The first account you\n"
+            "register becomes the admin."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
