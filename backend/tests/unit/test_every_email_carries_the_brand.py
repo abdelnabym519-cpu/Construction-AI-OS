@@ -159,9 +159,9 @@ def test_a_progress_report_email_carries_the_brand():
 
 
 def test_a_bare_sender_address_shows_the_brand_name():
-    assert sender_addresses("info@datadrivenconstruction.io") == (
-        f"{BRAND_NAME} <info@datadrivenconstruction.io>",
-        "info@datadrivenconstruction.io",
+    assert sender_addresses("support@example.com") == (
+        f"{BRAND_NAME} <support@example.com>",
+        "support@example.com",
     )
 
 
@@ -199,7 +199,7 @@ def test_the_smtp_backend_sends_under_the_brand_name():
         smtp_port=587,
         smtp_user="",
         smtp_password="",
-        smtp_from="info@datadrivenconstruction.io",
+        smtp_from="support@example.com",
         smtp_tls=True,
     )
     with patch("app.core.email.smtp.smtplib.SMTP", FakeSMTP):
@@ -207,6 +207,6 @@ def test_the_smtp_backend_sends_under_the_brand_name():
             EmailMessage(to="ann@example.com", subject="Hello", html_body="<p>x</p>")
         )
     assert result.ok
-    assert sent["envelope_from"] == "info@datadrivenconstruction.io"
-    assert f"From: {BRAND_NAME} <info@datadrivenconstruction.io>" in sent["raw"]
+    assert sent["envelope_from"] == "support@example.com"
+    assert f"From: {BRAND_NAME} <support@example.com>" in sent["raw"]
     assert not OLD_NAME.search(sent["raw"])

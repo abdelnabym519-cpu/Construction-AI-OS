@@ -739,7 +739,7 @@ class Settings(BaseSettings):
     smtp_port: int = 587
     smtp_user: str = ""
     smtp_password: str = ""
-    smtp_from: str = "info@datadrivenconstruction.io"
+    smtp_from: str = ""  # empty → the sender falls back to support_email at send time
     # Operator contact shown where the product needs to name a support
     # address (OpenAPI contact, outbound User-Agents). RFC 2606
     # example.com placeholder by default: never the upstream project's
@@ -1306,6 +1306,16 @@ def load_or_create_dev_jwt_secret(
 
 
 @lru_cache
+def outbound_product_token() -> str:
+    """``app_name`` folded into one token usable in outbound User-Agents.
+
+    Single source: the display-name constant in :class:`Settings`. Spaces
+    become dashes so the token is valid inside a UA product slot, and the
+    outbound identity of every network call follows the installation.
+    """
+    return get_settings().app_name.replace(" ", "-")
+
+
 def get_settings() -> Settings:
     """Cached settings singleton."""
     _ensure_persistent_jwt_secret()

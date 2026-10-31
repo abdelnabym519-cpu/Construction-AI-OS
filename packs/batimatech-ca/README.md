@@ -1,6 +1,6 @@
 # OpenConstructionERP × Canada Batimatech
 
-Partner pack pre-configuring [OpenConstructionERP](https://github.com/DataDrivenConstruction/openconstructionerp)
+Partner pack pre-configuring [Construction AI OS](https://github.com/abdelnabym519-cpu/Construction-AI-OS)
 for Canadian construction companies.
 
 > **Pré-configuré pour les entreprises canadiennes de construction —

@@ -19,4 +19,4 @@ site-overhead markup and 19 percent VAT.
 The pack defaults to EUR, German locale and the DACH standards stack: DIN 276,
 GAEB DA XML 3.3, an LV-quality rule set and BKI plausibility benchmarks.
 
-Contact: info@datadrivenconstruction.io
+Contact: support@example.com

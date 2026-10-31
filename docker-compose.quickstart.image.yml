@@ -1,4 +1,4 @@
-# OpenConstructionERP - Quickstart, from the published image
+# Construction AI OS - Quickstart, from the published image
 #
 # Additive override for docker-compose.quickstart.yml. It changes one thing:
 # the app runs the image we publish on every release instead of building the

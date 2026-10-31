@@ -5176,6 +5176,17 @@ async def import_cost_file(
 # GitHub repository info for downloading CWICR parquet files
 _GITHUB_CWICR_BASE_URL = "https://github.com/datadrivenconstruction/OpenConstructionEstimate-DDC-CWICR/raw/main"
 
+
+def _cwicr_user_agent() -> str:
+    """UA for CWICR parquet fetches: this product's token, lowercased."""
+    try:
+        from app.config import outbound_product_token
+
+        return outbound_product_token().lower()
+    except Exception:  # noqa: BLE001 - settings import is best-effort
+        return "oe-cost-fetcher"
+
+
 # Mapping from db_id to the work-item parquet path under the CWICR repo, built
 # from the single-source base registry (app.modules.costs.base_registry) so this
 # map, the resource-catalog folder map in app.modules.catalog.router and the
@@ -5281,7 +5292,7 @@ def _download_to_file(url: str, dest: Path, timeout: float = 120.0) -> None:
         url,
         follow_redirects=True,
         timeout=timeout,
-        headers={"User-Agent": "openconstructionerp"},
+        headers={"User-Agent": _cwicr_user_agent()},
     ) as resp:
         resp.raise_for_status()
         with open(dest, "wb") as f:

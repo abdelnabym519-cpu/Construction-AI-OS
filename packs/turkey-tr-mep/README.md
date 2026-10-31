@@ -157,4 +157,4 @@ OE_PACK=turkey-tr-mep openconstructionerp serve
 AGPL-3.0-or-later, the same licence as OpenConstructionERP. No part of this
 pack is reserved under a partnership agreement.
 
-Contact: info@datadrivenconstruction.io
+Contact: support@example.com

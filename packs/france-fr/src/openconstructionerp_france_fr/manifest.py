@@ -66,6 +66,6 @@ MANIFEST = PartnerPackManifest(
             "CCAG-Travaux (Cahier des Clauses Administratives Generales)",
             "RE 2020 (Reglementation Environnementale)",
         ],
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

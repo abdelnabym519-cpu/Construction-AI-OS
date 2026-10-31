@@ -74,7 +74,7 @@ MANIFEST = PartnerPackManifest(
             "Construction (Design and Management) Regulations 2015",
             "Building Safety Act 2022",
         ],
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
         # The four jurisdictions, because they are not one. Building control,
         # the safety regime and parts of the payment legislation differ across
         # them, and a pack that lists cities implies a cost region per city

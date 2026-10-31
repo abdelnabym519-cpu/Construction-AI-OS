@@ -118,7 +118,7 @@ class SmtpEmailBackend(EmailBackend):
 
     def _send_sync(self, message: EmailMessage) -> DeliveryResult:
         settings = self._settings
-        from_header, from_addr = sender_addresses(message.from_addr or settings.smtp_from)
+        from_header, from_addr = sender_addresses(message.from_addr or settings.smtp_from or settings.support_email)
 
         # Body is always multipart/alternative (plain + HTML). When the
         # message carries attachments we wrap that body in a multipart/mixed

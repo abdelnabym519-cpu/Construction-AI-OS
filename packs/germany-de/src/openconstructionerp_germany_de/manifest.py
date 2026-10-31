@@ -95,6 +95,6 @@ MANIFEST = PartnerPackManifest(
             "Stuttgart",
             "Dusseldorf",
         ],
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

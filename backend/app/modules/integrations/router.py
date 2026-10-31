@@ -195,7 +195,7 @@ def _email_configuration_report() -> TestNotificationResponse:
             success=True,
             message=(
                 f"Outbound email is configured on the server: EMAIL_BACKEND=smtp with SMTP_HOST set, "
-                f"sending as {settings.smtp_from}. This checks the settings only - it does not open a "
+                f"sending as {settings.smtp_from or settings.support_email}. This checks the settings only - it does not open a "
                 f"connection, so it cannot confirm your provider will accept the message."
             ),
         )

@@ -74,8 +74,21 @@ _fatal_detail: str | None = None
 _TRUTHY = {"1", "true", "yes", "on"}
 _FALSY = {"0", "false", "no", "off"}
 
-#: Support contact surfaced (in the log) when embedded PostgreSQL cannot start.
-_CONTACT_EMAIL = "info@datadrivenconstruction.io"
+#: Support contact surfaced (in the log) when embedded PostgreSQL cannot
+#: start. Read from ``settings.support_email`` at log time so the operator
+#: of THIS installation owns it; the neutral RFC 2606 placeholder below only
+#: appears when settings cannot be imported at all (very early boot failure).
+_FALLBACK_CONTACT_EMAIL = "support@example.com"
+
+
+def _contact_email() -> str:
+    try:
+        from app.config import get_settings
+
+        return get_settings().support_email or _FALLBACK_CONTACT_EMAIL
+    except Exception:  # noqa: BLE001 - early-boot import may not be ready yet
+        return _FALLBACK_CONTACT_EMAIL
+
 
 #: Name of the logger ``pixeltable-pgserver`` writes everything through. Both of
 #: its emitters (``postgres_server`` and ``pgexec``) take this one name, so a
@@ -511,7 +524,7 @@ def boot(data_dir: Path | str) -> bool:
             last_exc,
             resolved_pgdata / "log",
             _launcher_log_path(),
-            _CONTACT_EMAIL,
+            _contact_email(),
         )
         return False
 
