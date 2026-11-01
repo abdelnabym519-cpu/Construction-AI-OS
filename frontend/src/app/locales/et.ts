@@ -10201,6 +10201,7 @@ const resource = {
     "auth.server_error": "Serveriga ei õnnestunud ühendust luua. Proovige uuesti.",
     "auth.sign_in": "Logi sisse",
     "auth.sso_login": "Logi sisse SSO-ga",
+    "auth.source_code": "Lähtekood",
     "backup.confirm_replace_btn": "Asenda kõik andmed",
     "backup.confirm_replace_message": "See asendab kõik olemasolevad andmed varukoopia sisuga. Seda toimingut ei saa tagasi võtta.",
     "backup.confirm_replace_title": "Asendada kõik andmed?",

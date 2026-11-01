@@ -10758,6 +10758,7 @@ const resource = {
     "auth.server_error": "Sunucuya bağlanılamıyor. Lütfen tekrar deneyin.",
     "auth.sign_in": "Giriş yap",
     "auth.sso_login": "SSO ile giriş yap",
+    "auth.source_code": "Kaynak kodu",
     "boq.aace_accuracy": "Doğruluk",
     "boq.aace_accuracy_range": "Doğruluk Aralığı",
     "boq.aace_class": "AACE Sınıfı",

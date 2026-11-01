@@ -51042,6 +51042,7 @@ const resource = {
     "boq.list_projects_skipped": "ไม่รวม: {{projects}} โครงการเหล่านี้ถูกเก็บถาวรหรือไม่ได้แชร์กับคุณแล้ว ประมาณการและยอดรวมที่นี่จึงไม่รวมไว้",
     "auth.or": "หรือ",
     "auth.sso_login": "เข้าสู่ระบบด้วย SSO",
+    "auth.source_code": "ซอร์สโค้ด",
     "schedule.activate": "เปิดใช้งาน",
     "schedule.activated": "เปิดใช้งานกำหนดการแล้ว",
     "schedule.activity_deleted": "ลบกิจกรรมแล้ว",

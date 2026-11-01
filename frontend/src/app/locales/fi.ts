@@ -9913,6 +9913,7 @@ const resource = {
     "auth.server_error": "Palvelimeen ei saada yhteyttä. Yritä uudelleen.",
     "auth.sign_in": "Kirjaudu sisään",
     "auth.sso_login": "Kirjaudu sisään SSO:lla",
+    "auth.source_code": "Lähdekoodi",
     "boq.aace_accuracy": "Tarkkuus",
     "boq.aace_accuracy_range": "Tarkkuusalue",
     "boq.aace_class": "AACE-luokka",

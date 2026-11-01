@@ -8788,6 +8788,7 @@ const resource = {
     "auth.server_error": "Não foi possível conectar ao servidor. Por favor, tente novamente.",
     "auth.sign_in": "Entrar",
     "auth.sso_login": "Entrar com SSO",
+    "auth.source_code": "Código-fonte",
     "boq.aace_accuracy": "Precisão",
     "boq.aace_accuracy_range": "Faixa de Precisão",
     "boq.aace_class": "Classe AACE",

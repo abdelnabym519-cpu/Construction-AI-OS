@@ -9676,6 +9676,7 @@ const resource = {
     "auth.server_error": "اتصال به سرور ممکن نشد. لطفاً دوباره تلاش کنید.",
     "auth.sign_in": "ورود",
     "auth.sso_login": "ورود با SSO",
+    "auth.source_code": "کد منبع",
     "backup.confirm_replace_btn": "جایگزینی همه داده",
     "backup.confirm_replace_message": "این کار همه داده موجود را با محتویات پشتیبان جایگزین می‌کند. این اقدام قابل واگرد نیست.",
     "backup.confirm_replace_title": "همه داده جایگزین شود؟",

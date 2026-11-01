@@ -10186,6 +10186,7 @@ const resource = {
     "auth.server_error": "Не удалось подключиться к серверу. Попробуйте ещё раз.",
     "auth.sign_in": "Войти",
     "auth.sso_login": "Войти через SSO",
+    "auth.source_code": "Исходный код",
     "boq.aace_accuracy": "Точность",
     "boq.aace_accuracy_range": "Диапазон точности",
     "boq.aace_class": "Класс AACE",

@@ -10181,6 +10181,7 @@ const resource = {
     "auth.server_error": "Няма връзка със сървъра. Моля, опитайте отново.",
     "auth.sign_in": "Вход",
     "auth.sso_login": "Влезте с SSO",
+    "auth.source_code": "Изходен код",
     "boq.aace_accuracy": "Точност",
     "boq.aace_accuracy_range": "Диапазон на точност",
     "boq.aace_class": "Клас по AACE",

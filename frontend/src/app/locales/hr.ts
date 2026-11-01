@@ -9986,6 +9986,7 @@ const resource = {
     "auth.server_error": "Nije moguće povezati se s poslužiteljem. Pokušajte ponovno.",
     "auth.sign_in": "Prijava",
     "auth.sso_login": "Prijava putem SSO",
+    "auth.source_code": "Izvorni kod",
     "boq.aace_accuracy": "Točnost",
     "boq.aace_accuracy_range": "Raspon točnosti",
     "boq.aace_class": "AACE klasa",

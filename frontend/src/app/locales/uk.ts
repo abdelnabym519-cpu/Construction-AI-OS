@@ -9283,6 +9283,7 @@ const resource = {
     "auth.server_error": "Не вдалося підключитися до сервера. Спробуйте ще раз.",
     "auth.sign_in": "Увійти",
     "auth.sso_login": "Увійти через SSO",
+    "auth.source_code": "Вихідний код",
     "boq.aace_accuracy": "Точність",
     "boq.aace_accuracy_range": "Діапазон точності",
     "boq.aace_class": "Клас AACE",

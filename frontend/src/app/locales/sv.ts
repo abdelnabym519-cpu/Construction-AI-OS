@@ -10150,6 +10150,7 @@ const resource = {
     "auth.server_error": "Kan inte ansluta till servern. Försök igen.",
     "auth.sign_in": "Logga in",
     "auth.sso_login": "Logga in med SSO",
+    "auth.source_code": "Källkod",
     "boq.aace_accuracy": "Noggrannhet",
     "boq.aace_accuracy_range": "Noggrannhetsintervall",
     "boq.aace_class": "AACE-klass",

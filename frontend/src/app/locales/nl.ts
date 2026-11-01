@@ -8753,6 +8753,7 @@ const resource = {
     "auth.server_error": "Kan geen verbinding maken met de server. Probeer het opnieuw.",
     "auth.sign_in": "Inloggen",
     "auth.sso_login": "Inloggen met SSO",
+    "auth.source_code": "Broncode",
     "boq.aace_accuracy": "Nauwkeurigheid",
     "boq.aace_accuracy_range": "Nauwkeurigheidsbereik",
     "boq.aace_class": "AACE Klasse",

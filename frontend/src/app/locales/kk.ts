@@ -9710,6 +9710,7 @@ const resource = {
     "auth.server_error": "Серверге қосылу мүмкін болмады. Қайталап көріңіз.",
     "auth.sign_in": "Кіру",
     "auth.sso_login": "SSO арқылы кіру",
+    "auth.source_code": "Бастапқы код",
     "backup.confirm_replace_btn": "Барлық Деректерді Ауыстыру",
     "backup.confirm_replace_message": "Бұл бар барлық деректерді сақтық көшірме мазмұнымен ауыстырады. Бұл әрекетті болдырмауға болмайды.",
     "backup.confirm_replace_title": "Барлық деректерді ауыстыру керек пе?",

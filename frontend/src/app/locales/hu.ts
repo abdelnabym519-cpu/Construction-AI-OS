@@ -8601,6 +8601,7 @@ const resource = {
     "auth.server_error": "Nem sikerült kapcsolódni a szerverhez. Próbálja újra.",
     "auth.sign_in": "Bejelentkezés",
     "auth.sso_login": "Bejelentkezés SSO-val",
+    "auth.source_code": "Forráskód",
     "boq.aace_accuracy": "Pontosság",
     "boq.aace_accuracy_range": "Pontossági tartomány",
     "boq.aace_class": "AACE osztály",

@@ -10142,6 +10142,7 @@ const resource = {
     "auth.server_error": "Conexiunea la server a eșuat. Vă rugăm să încercați din nou.",
     "auth.sign_in": "Autentificare",
     "auth.sso_login": "Autentificare cu SSO",
+    "auth.source_code": "Cod sursă",
     "boq.aace_accuracy": "Precizie",
     "boq.aace_accuracy_range": "Interval de Precizie",
     "boq.aace_class": "Clasa AACE",

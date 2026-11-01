@@ -50938,6 +50938,7 @@ const resource = {
     "boq.list_projects_skipped": "Оруулаагүй: {{projects}}. Эдгээр төслийг архивласан эсвэл тантай хуваалцахаа больсон тул энд байгаа төсөв болон нийлбэрт оруулаагүй.",
     "auth.or": "эсвэл",
     "auth.sso_login": "SSO-оор нэвтрэх",
+    "auth.source_code": "Эх код",
     "schedule.activate": "Идэвхжүүлэх",
     "schedule.activated": "Хуваарь идэвхжлээ",
     "schedule.activity_deleted": "Үйл ажиллагаа устгагдлаа",

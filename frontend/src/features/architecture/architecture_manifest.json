@@ -276219,10 +276219,10 @@
     },
     {
       "name": "cases",
-      "ts_files": 385,
+      "ts_files": 384,
       "css_files": 0,
       "test_files": 24,
-      "total_files": 408
+      "total_files": 407
     },
     {
       "name": "catalog",
@@ -276436,10 +276436,10 @@
     },
     {
       "name": "dashboard",
-      "ts_files": 48,
+      "ts_files": 46,
       "css_files": 0,
-      "test_files": 14,
-      "total_files": 48
+      "test_files": 13,
+      "total_files": 46
     },
     {
       "name": "dashboards",
@@ -276785,13 +276785,6 @@
       "total_files": 10
     },
     {
-      "name": "inside",
-      "ts_files": 4,
-      "css_files": 0,
-      "test_files": 0,
-      "total_files": 4
-    },
-    {
       "name": "insights",
       "ts_files": 12,
       "css_files": 0,
@@ -276898,10 +276891,10 @@
     },
     {
       "name": "modules",
-      "ts_files": 34,
+      "ts_files": 32,
       "css_files": 0,
-      "test_files": 13,
-      "total_files": 35
+      "test_files": 12,
+      "total_files": 33
     },
     {
       "name": "ncr",
@@ -279092,8 +279085,8 @@
     "total_routes": 4627,
     "total_schemas": 4120,
     "total_python_files": 2812,
-    "frontend_features": 208,
-    "frontend_ts_files": 3579,
+    "frontend_features": 207,
+    "frontend_ts_files": 3570,
     "frontend_backend_mapped": 187
   },
   "frontend_backend_mapping": {
@@ -279203,7 +279196,6 @@
     "inbound": "inbound_capture",
     "inbound-email": "inbound_email",
     "inbox": null,
-    "inside": null,
     "insights": null,
     "inspections": "inspections",
     "integrations": "integrations",

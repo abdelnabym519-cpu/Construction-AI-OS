@@ -52574,6 +52574,7 @@ const resource = {
     "boq.list_projects_skipped": "含まれていません: {{projects}}。これらのプロジェクトはアーカイブされたか、共有が解除されたため、ここの見積と合計には含まれません。",
     "auth.or": "または",
     "auth.sso_login": "SSO でサインイン",
+    "auth.source_code": "ソースコード",
     "schedule.activate": "有効化",
     "schedule.activated": "スケジュールを有効化しました",
     "schedule.activity_deleted": "アクティビティを削除しました",

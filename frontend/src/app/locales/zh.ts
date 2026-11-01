@@ -53511,6 +53511,7 @@ const resource = {
     "boq.list_projects_skipped": "未包含：{{projects}}。这些项目已归档或不再与您共享，因此此处的估算和合计不包括它们。",
     "auth.or": "或",
     "auth.sso_login": "使用 SSO 登录",
+    "auth.source_code": "源代码",
     "schedule.activate": "启用",
     "schedule.activated": "计划已启用",
     "schedule.activity_deleted": "活动已删除",
