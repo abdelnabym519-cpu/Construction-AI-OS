@@ -75,9 +75,7 @@ _DOWNLOAD_TIMEOUT = httpx.Timeout(connect=10.0, read=300.0, write=30.0, pool=10.
 # Offline installations are unaffected either way. ``local_tbx_path``
 # parses a dump that is already on the server's disk and never reaches the
 # network, which is why it stays the route an air-gapped deployment uses.
-_IATE_ALLOWED_PREFIXES: tuple[str, ...] = (
-    "https://iate.europa.eu/",
-)
+_IATE_ALLOWED_PREFIXES: tuple[str, ...] = ("https://iate.europa.eu/",)
 
 
 def _iate_allowlist() -> tuple[str, ...]:
