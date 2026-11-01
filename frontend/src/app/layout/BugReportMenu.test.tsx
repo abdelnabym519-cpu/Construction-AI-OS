@@ -15,7 +15,7 @@
  * So the guard has to sit on this side of the hand-off, which is why these
  * tests drive the menu rather than `buildBugReportUrl`. Two directions:
  *
- *  - the channels that transmit a written report are disabled, with the
+ *  - the channel that transmits a written report is disabled, with the
  *    reason visible in the control itself, while the description is short;
  *  - once it is long enough, what actually leaves carries the reporter's
  *    words and no placeholder.
@@ -72,7 +72,6 @@ function openMenu() {
 const channel = (label: string) =>
   screen.getByText(label).closest('button') as HTMLButtonElement;
 const githubChannel = () => channel('Report a bug (with logs)');
-const emailChannel = () => channel('Email the team');
 const downloadChannel = () => channel('Download log only');
 const descriptionField = () => screen.getByLabelText(/What happened/) as HTMLTextAreaElement;
 
@@ -89,7 +88,6 @@ describe('BugReportMenu - a report with no description cannot be sent', () => {
     openMenu();
 
     expect(githubChannel().disabled).toBe(true);
-    expect(emailChannel().disabled).toBe(true);
     // The reason travels with the control, not in a toast that would only
     // appear after a click the button no longer accepts.
     expect(githubChannel().textContent).toContain('Describe what happened above');

@@ -208,7 +208,7 @@ class TestHealthAndSystem:
         resp = await client.get("/api/source")
         assert resp.status_code == 200
         data = resp.json()
-        assert data["license"] == "AGPL-3.0"
+        assert data["license"] == "AGPL-3.0-or-later"
         assert "source_code" in data
 
     async def test_validation_rules_list(self, client: AsyncClient, auth_headers: dict[str, str]) -> None:

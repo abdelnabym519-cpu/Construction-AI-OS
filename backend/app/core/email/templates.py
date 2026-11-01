@@ -8,20 +8,43 @@ password-reset).  Each template returns ``(subject, html_body)`` so the
 caller can decide whether to wrap it in an ``EmailMessage`` and push it
 through the service, or inspect it directly in unit tests.
 
-Kept template-only - no I/O, no settings, no side effects - so it can
-be imported from tests without touching the rest of the stack.
+Kept template-only - no I/O and no side effects - so it can be imported from
+tests without touching the rest of the stack. The one deliberate exception is
+the brand name below, which is read once from the ``app_name`` setting, the
+single display-name constant in :mod:`app.config`; the read is guarded and
+falls back to that constant's default, so importing this module still never
+requires a configured environment.
 """
 
 from __future__ import annotations
 
 from functools import lru_cache
 
-_LOGO_URL = "https://openconstructionerp.com/logo-128.png"
 
 #: The product name every outgoing email carries: the ``From:`` display name,
-#: the line beside the logo and the closing line of the footer. It is a brand,
-#: so it is never translated or shortened, in any language.
-BRAND_NAME = "OpenConstructionERP"
+#: the opening brand line and the closing line of the footer. It is a brand,
+#: so it is never translated or shortened, in any language. Read from the one
+#: constant (``app_name`` in :mod:`app.config`), guarded so importing this
+#: module never requires a configured environment.
+def _resolve_brand_name() -> str:
+    """Read the display name from the one constant, ``app_name`` in config.
+
+    Mirrors ``app.core.pdf_branding._resolve_default_brand`` so a PDF and an
+    email can never disagree about the product name. ``tests/unit/
+    test_the_display_name_is_one_constant.py`` pins the agreement.
+    """
+    try:
+        from app.config import get_settings
+
+        name = str(get_settings().app_name or "").strip()
+        if name:
+            return name
+    except Exception:  # noqa: BLE001 - degrade to the literal default
+        pass
+    return "Construction AI OS"
+
+
+BRAND_NAME = _resolve_brand_name()
 _APP_NAME = BRAND_NAME
 
 # The footer line of mail that a person receives because they subscribed to
@@ -48,8 +71,9 @@ def wrap(
 ) -> str:
     """Wrap *body* in the standard email shell (brand line, title, CTA, footer).
 
-    Every mail opens with the logo and the brand name beside it, in text so it
-    shows when a mail client blocks images, and closes with the brand name.
+    Every mail opens with the brand name in text - no remote image, so there
+    is nothing for a mail client to block and no third party learns that a
+    mail was opened - and closes with the brand name.
     ``footer`` is an extra line above that closing line, such as why the mail
     came; ``None`` or an empty string adds none. It is inserted as given, so
     escape it.
@@ -75,12 +99,15 @@ def wrap(
 
 
 def brand_header() -> str:
-    """The logo and the brand name that open every email, as an HTML fragment."""
+    """The brand name that opens every email, as an HTML fragment.
+
+    Text only, deliberately: the previous header hot-linked a logo from the
+    upstream project's marketing domain, which told a third-party server the
+    moment a recipient opened a mail from this installation. The brand reads
+    the same with or without images enabled.
+    """
     return (
-        f"<p style='margin:0 0 12px;'>"
-        f'<img src="{_LOGO_URL}" alt="{_APP_NAME}" width="40" height="40" '
-        f'style="vertical-align:middle; margin-right:8px;"/>'
-        f"<strong style='vertical-align:middle; font-size:15px;'>{_APP_NAME}</strong></p>"
+        f"<p style='margin:0 0 12px;'><strong style='vertical-align:middle; font-size:15px;'>{_APP_NAME}</strong></p>"
     )
 
 
@@ -168,7 +195,7 @@ def template_password_reset(
     to copy-paste or forwarded-email attack paths.
     """
     greeting = f"Hi {recipient_name}," if recipient_name else "Hello,"
-    subject = "Reset your OpenConstructionERP password"
+    subject = f"Reset your {_APP_NAME} password"
     body = (
         f"<p>{greeting}</p>"
         f"<p>We received a request to reset the password on your "

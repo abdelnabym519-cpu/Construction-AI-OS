@@ -83,6 +83,6 @@ MANIFEST = PartnerPackManifest(
             "OBC (Ontario)",
             "CCQ / RBQ (Québec)",
         ],
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

@@ -1902,18 +1902,7 @@ function ShellWrapper({
       {children}
 
       <footer className="w-full border-t border-border-light mt-10">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 text-2xs text-content-tertiary flex items-center justify-between gap-3 flex-wrap">
-          <span>
-            {t('buyer_portal.footer.contact', {
-              defaultValue: 'Questions? Email',
-            })}{' '}
-            <a
-              href="mailto:info@datadrivenconstruction.io"
-              className="text-oe-blue hover:underline"
-            >
-              info@datadrivenconstruction.io
-            </a>
-          </span>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 text-2xs text-content-tertiary flex items-center justify-end gap-3 flex-wrap">
           <a
             href="https://www.gnu.org/licenses/agpl-3.0.html"
             target="_blank"

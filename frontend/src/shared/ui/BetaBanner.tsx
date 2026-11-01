@@ -1,6 +1,7 @@
 // DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 // Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 import { Sparkles, X } from 'lucide-react';
+import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -18,7 +19,7 @@ export function BetaBanner({
   moduleKey,
   title,
   description,
-  feedbackUrl = 'https://github.com/datadrivenconstruction/OpenConstructionERP/issues/new',
+  feedbackUrl = `${SOURCE_REPO_URL}/issues/new`,
   className = '',
 }: BetaBannerProps) {
   const { t } = useTranslation();

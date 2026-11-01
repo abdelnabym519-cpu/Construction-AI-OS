@@ -51,8 +51,24 @@ def test_the_banner_says_it_is_starting(capsys) -> None:
     assert "is starting" in _banner(capsys)
 
 
-def test_the_banner_still_hands_over_the_address_and_the_credentials(capsys) -> None:
-    """The reason it is printed early, and so the half that must survive any rewording."""
+def test_the_banner_still_hands_over_the_address_and_the_credentials(capsys, monkeypatch) -> None:
+    """The reason it is printed early, and so the half that must survive any rewording.
+
+    Demo data is opt-in, so what the banner hands over depends on the
+    choice: with demo seeding on it names the demo login (and never a
+    fixed password - demo mode accepts any password, and real installs
+    generate one per installation); with seeding off it points at the
+    bootstrap path instead - the first registered account becomes the
+    admin.
+    """
+    monkeypatch.setenv("SEED_DEMO", "true")
     output = _banner(capsys)
     assert "http://127.0.0.1:8080" in output
     assert "demo@openconstructionerp.com" in output
+    assert "DemoPass1234" not in output
+
+    monkeypatch.setenv("SEED_DEMO", "false")
+    output = _banner(capsys)
+    assert "http://127.0.0.1:8080" in output
+    assert "demo@openconstructionerp.com" not in output
+    assert "becomes the admin" in output

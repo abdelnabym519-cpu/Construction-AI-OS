@@ -159,7 +159,7 @@ def supplier() -> TrParty:
             postal_zone="06690",
             country_code="TR",
         ),
-        contact=TrContact(telephone="+90 312 000 00 00", email="info@datadrivenconstruction.io"),
+        contact=TrContact(telephone="+90 312 000 00 00", email="billing@example.com"),
         extra_ids=(("MERSISNO", "0111222333900017"),),
     )
 
@@ -612,7 +612,7 @@ def test_legal_entity_party_is_identified_by_vkn_with_name_and_tax_office() -> N
     assert text(address, "cbc:PostalZone") == "06690"
     assert text(address, "cac:Country/cbc:IdentificationCode") == "TR"
     assert text(address, "cac:Country/cbc:Name") == "Türkiye"
-    assert text(party, "cac:Contact/cbc:ElectronicMail") == "info@datadrivenconstruction.io"
+    assert text(party, "cac:Contact/cbc:ElectronicMail") == "billing@example.com"
     assert party.find("cac:Person", NS) is None
 
 
@@ -1047,7 +1047,7 @@ def _full_invoice() -> TrInvoice:
         exchange_rate=Decimal("1"),
         exchange_rate_date=dt.date(2026, 9, 30),
         period=TrPeriod(start_date=dt.date(2026, 9, 1), end_date=dt.date(2026, 9, 30), description="Eylül 2026"),
-        supplier=replace(supplier(), website="https://datadrivenconstruction.io"),
+        supplier=replace(supplier(), website="https://example.com"),
         customer=replace(
             person(), contact=TrContact(name="Ayşe Gül Çağlayan", telephone="1", telefax="2", email="a@b.c")
         ),

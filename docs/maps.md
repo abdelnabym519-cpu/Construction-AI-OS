@@ -1,6 +1,6 @@
 # Maps and basemaps
 
-Every map in OpenConstructionERP fetches its basemap from your own server at
+Every map in Construction AI OS fetches its basemap from your own server at
 `/api/v1/geo-hub/`. Browsers never contact a tile host directly. This keeps
 ad and privacy blockers from blanking the maps, and it means the Content
 Security Policy needs no extra hosts.

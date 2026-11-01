@@ -47,12 +47,12 @@ use std::time::Duration;
 use tauri::Manager;
 
 /// The repository the desktop build is published from.
-const REPO: &str = "datadrivenconstruction/OpenConstructionERP";
+const REPO: &str = "abdelnabym519-cpu/Construction-AI-OS";
 
 /// Bare product token. GitHub answers 403 to a request that carries no
 /// user-agent at all, so one is required; it deliberately carries no version,
 /// no machine name and nothing else that would report anything outward.
-const USER_AGENT: &str = "OpenConstructionERP-Desktop";
+const USER_AGENT: &str = "ConstructionAIOS-Desktop";
 
 /// Short on purpose. This runs beside startup and must never be the reason
 /// anything waits, so a proxy that accepts a connection and then says nothing
@@ -271,7 +271,7 @@ pub fn set_enabled(enabled: bool) -> Result<(), String> {
         }
         std::fs::write(
             &path,
-            b"OpenConstructionERP does not check for a newer version while this file exists.\n",
+            b"Construction AI OS does not check for a newer version while this file exists.\n",
         )
         .map_err(|e| e.to_string())
     }
@@ -389,7 +389,7 @@ fn notice_script(update: &AvailableUpdate, current: &str, after_failure: bool) -
     let get_label = js_escape(&format!("Get version {}", update.version));
     let later_label = js_escape("Not now");
     let privacy_js = js_escape(
-        "To find this, OpenConstructionERP asked github.com which version is the latest. \
+        "To find this, Construction AI OS asked github.com which version is the latest. \
 Nothing about you or this computer was sent.",
     );
     let off_label = js_escape("Turn off update checks");
@@ -713,7 +713,7 @@ computer is sent, and nothing is asked until you press the button.",
     let current = js_escape("This is the latest version.");
     let unreachable = js_escape(
         "github.com could not be reached. The releases page lists every version: \
-https://github.com/datadrivenconstruction/OpenConstructionERP/releases",
+https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases",
     );
     let disabled = js_escape("Update checks are turned off on this computer by an administrator.");
     let refused = js_escape("The check could not be started.");
@@ -902,7 +902,7 @@ mod tests {
     fn a_release_body_yields_its_tag_and_page() {
         let body = serde_json::json!({
             "tag_name": "v15.0.1",
-            "html_url": "https://github.com/datadrivenconstruction/OpenConstructionERP/releases/tag/v15.0.1",
+            "html_url": "https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/tag/v15.0.1",
         });
         let release = release_from_json(&body).expect("a plain release body should parse");
         assert_eq!(release.version, "15.0.1");
@@ -932,7 +932,7 @@ mod tests {
         let release = release_from_json(&body).expect("the tag is still usable");
         assert_eq!(
             release.url,
-            "https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest"
+            "https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest"
         );
     }
 
@@ -941,7 +941,7 @@ mod tests {
     fn some_update() -> AvailableUpdate {
         AvailableUpdate {
             version: "15.0.1".to_string(),
-            url: "https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest"
+            url: "https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest"
                 .to_string(),
         }
     }
@@ -950,7 +950,7 @@ mod tests {
     /// each way the far end can disappoint us.
     fn good_body() -> String {
         r#"{"tag_name":"v15.0.1","draft":false,"prerelease":false,
-            "html_url":"https://github.com/datadrivenconstruction/OpenConstructionERP/releases/tag/v15.0.1"}"#
+            "html_url":"https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/tag/v15.0.1"}"#
             .to_string()
     }
 

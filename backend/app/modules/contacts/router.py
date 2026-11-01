@@ -38,7 +38,13 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.upload_guards import reject_if_xlsx_bomb
-from app.dependencies import CurrentUserId, RequirePermission, SessionDep, verify_project_access
+from app.dependencies import (
+    CurrentTenantId,
+    CurrentUserId,
+    RequirePermission,
+    SessionDep,
+    verify_project_access,
+)
 from app.modules.contacts.models import Contact
 from app.modules.contacts.schemas import (
     CONTACT_TYPES,
@@ -63,6 +69,36 @@ def _get_service(session: SessionDep) -> ContactService:
 # Tenancy gate: v2.3.1 promotes the ``tenant_id`` column to the primary
 # access filter. ``created_by`` remains as an audit field and as a
 # fallback for rows inserted before the backfill migration ran.
+
+
+async def _owner_scope(session: AsyncSession, user_id: str | None, tenant_id: str | None) -> str | None:
+    """The contacts owner filter: ``None`` for an admin, the caller's organization otherwise.
+
+    Contacts are a company-wide resource, so the scope is the organization and not
+    the person: two colleagues in one company see the same directory, and that is
+    the point of having a tenant. Before ADR 005 the value passed here was the
+    caller's user id, because the tenant *was* the user; the boot repair moves every
+    stored ``tenant_id`` onto an organization, so a filter still comparing it with a
+    user id would match nothing at all and every non-admin would see an empty
+    directory.
+
+    Raising rather than returning ``None`` when there is no tenant is the part that
+    is easy to get wrong. ``None`` is the admin answer and the repository reads it
+    as "do not filter", so falling back to it here would turn a caller with no
+    organization into a caller who sees every company's contacts. The door in
+    :func:`app.dependencies.reject_token_without_a_tenant` refuses a claimless
+    access token before this runs, so the raise is not expected to be reachable on
+    an ordinary request; it is here because the alternative to it is silent.
+    """
+    if await _is_admin(session, user_id):
+        return None
+    if tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token: no tenant. Refresh it or sign in again.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return tenant_id
 
 
 async def _is_admin(session: AsyncSession, user_id: str | None) -> bool:
@@ -157,6 +193,7 @@ def _decode_cursor(cursor: str) -> tuple[str, uuid.UUID] | None:
 async def list_contacts(
     session: SessionDep,
     user_id: CurrentUserId = None,  # type: ignore[assignment]
+    tenant_id: CurrentTenantId = None,  # type: ignore[assignment]
     contact_type: str | None = Query(default=None),
     country_code: str | None = Query(default=None),
     is_active: bool = Query(default=True),
@@ -193,7 +230,7 @@ async def list_contacts(
     _sort_aliases = {"name": "company_name", "email": "primary_email"}
     resolved_sort = _sort_aliases.get(sort_by, sort_by) if sort_by else None
 
-    owner_filter: str | None = None if await _is_admin(session, user_id) else user_id
+    owner_filter: str | None = await _owner_scope(session, user_id, tenant_id)
     if cursor is not None:
         after = _decode_cursor(cursor)
         page, nxt = await service.list_contacts_keyset(
@@ -249,6 +286,7 @@ async def search_contacts(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=100),
     user_id: CurrentUserId = None,  # type: ignore[assignment]
+    tenant_id: CurrentTenantId = None,  # type: ignore[assignment]
     _perm: None = Depends(RequirePermission("contacts.read")),
     service: ContactService = Depends(_get_service),
 ) -> ContactListResponse:
@@ -256,7 +294,7 @@ async def search_contacts(
 
     Scoped to the caller's own contacts; admins see everything.
     """
-    owner_filter: str | None = None if await _is_admin(session, user_id) else user_id
+    owner_filter: str | None = await _owner_scope(session, user_id, tenant_id)
     items, total = await service.list_contacts(
         search=q,
         contact_type=contact_type,
@@ -286,6 +324,7 @@ async def search_contacts(
 async def contact_stats(
     session: SessionDep,
     user_id: CurrentUserId = None,  # type: ignore[assignment]
+    tenant_id: CurrentTenantId = None,  # type: ignore[assignment]
     _perm: None = Depends(RequirePermission("contacts.read")),
     service: ContactService = Depends(_get_service),
 ) -> ContactStatsResponse:
@@ -296,7 +335,7 @@ async def contact_stats(
     Stats are scoped to the caller's own contacts; admins see global
     aggregates.
     """
-    owner_filter: str | None = None if await _is_admin(session, user_id) else user_id
+    owner_filter: str | None = await _owner_scope(session, user_id, tenant_id)
     raw = await service.get_stats(owner_id=owner_filter)
     return ContactStatsResponse(
         total=raw["total"],
@@ -318,12 +357,13 @@ async def contact_stats(
 async def contact_tag_facets(
     session: SessionDep,
     user_id: CurrentUserId = None,  # type: ignore[assignment]
+    tenant_id: CurrentTenantId = None,  # type: ignore[assignment]
     limit: int = Query(default=60, ge=1, le=200),
     _perm: None = Depends(RequirePermission("contacts.read")),
     service: ContactService = Depends(_get_service),
 ) -> dict[str, Any]:
     """Return ``[{tag, count}, ...]`` sorted by count desc."""
-    owner_filter: str | None = None if await _is_admin(session, user_id) else user_id
+    owner_filter: str | None = await _owner_scope(session, user_id, tenant_id)
     facets = await service.tag_facets(owner_id=owner_filter, limit=limit)
     return {"items": [{"tag": t, "count": c} for t, c in facets]}
 
@@ -343,6 +383,7 @@ async def contacts_by_company(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=100),
     user_id: CurrentUserId = None,  # type: ignore[assignment]
+    tenant_id: CurrentTenantId = None,  # type: ignore[assignment]
     _perm: None = Depends(RequirePermission("contacts.read")),
     service: ContactService = Depends(_get_service),
 ) -> ContactListResponse:
@@ -350,7 +391,7 @@ async def contacts_by_company(
 
     Scoped to the caller's own contacts; admins see everything.
     """
-    owner_filter: str | None = None if await _is_admin(session, user_id) else user_id
+    owner_filter: str | None = await _owner_scope(session, user_id, tenant_id)
     items, total = await service.list_by_company(
         company_name,
         owner_id=owner_filter,
@@ -633,6 +674,7 @@ def _parse_contact_rows_from_excel(content_bytes: bytes) -> list[tuple[int, dict
 )
 async def import_contacts_file(
     _user_id: CurrentUserId,
+    _tenant_id: CurrentTenantId = None,  # type: ignore[assignment]
     file: UploadFile = File(..., description="Excel (.xlsx) or CSV (.csv) file"),
     _perm: None = Depends(RequirePermission("contacts.create")),
     service: ContactService = Depends(_get_service),
@@ -783,7 +825,7 @@ async def import_contacts_file(
                 payment_terms_days=payment_terms,
                 notes=notes,
             )
-            await service.create_contact(data, user_id=_user_id)
+            await service.create_contact(data, user_id=_user_id, tenant_id=_tenant_id)
             imported_count += 1
 
         except Exception as exc:
@@ -880,6 +922,7 @@ def _render_contacts_xlsx(rows: list[tuple[Any, ...]]) -> io.BytesIO:
 async def export_contacts(
     session: SessionDep,
     user_id: CurrentUserId,
+    tenant_id: CurrentTenantId = None,  # type: ignore[assignment]
     _perm: None = Depends(RequirePermission("contacts.read")),
 ) -> StreamingResponse:
     """Export the caller's active contacts as an Excel file.
@@ -895,9 +938,15 @@ async def export_contacts(
     stmt = select(Contact).where(Contact.is_active.is_(True))
     if not await _is_admin(session, user_id):
         caller = str(user_id)
+        # The organization for the tenant arm and the person for the ``created_by``
+        # arm: the shape this clause always wanted and could not have while the two
+        # were the same value. A row with no tenant that this caller created is
+        # still theirs to export, and a colleague's row in the same company is now
+        # included, which is what a company-wide directory means.
+        scope = await _owner_scope(session, user_id, tenant_id)
         stmt = stmt.where(
             or_(
-                Contact.tenant_id == caller,
+                Contact.tenant_id == scope,
                 and_(
                     Contact.tenant_id.is_(None),
                     Contact.created_by == caller,
@@ -1072,11 +1121,12 @@ async def download_contacts_template(
 async def create_contact(
     data: ContactCreate,
     user_id: CurrentUserId,
+    tenant_id: CurrentTenantId = None,  # type: ignore[assignment]
     _perm: None = Depends(RequirePermission("contacts.create")),
     service: ContactService = Depends(_get_service),
 ) -> ContactResponse:
     """Create a new contact."""
-    contact = await service.create_contact(data, user_id=user_id)
+    contact = await service.create_contact(data, user_id=user_id, tenant_id=tenant_id)
     return ContactResponse.model_validate(contact)
 
 

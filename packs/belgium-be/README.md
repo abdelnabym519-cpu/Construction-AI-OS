@@ -1,6 +1,6 @@
 # Belgium Construction Pack
 
-Configures OpenConstructionERP for the Belgian construction market. Belgium is
+Configures Construction AI OS for the Belgian construction market. Belgium is
 a bilingual market where specifications and bills are written in Dutch (bestek /
 meetstaat) in Flanders and French (cahier des charges / metrage) in Wallonia,
 with Brussels using both. The pack defaults to Dutch and supports both languages
@@ -48,7 +48,7 @@ pack is legal, tax or regulatory advice.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules then Partner
+This pack ships inside Construction AI OS. Activate it from Modules then Partner
 Packs: click Rescan, find "Belgium Construction Pack", then Activate pack.
 
 To run a workspace that boots straight into it:
@@ -59,5 +59,5 @@ OE_PACK=belgium-be openconstructionerp serve
 
 ## License
 
-AGPL-3.0-or-later. OpenConstructionERP is authored and owned by
+AGPL-3.0-or-later. The original Construction AI OS is authored and owned by
 DataDrivenConstruction.

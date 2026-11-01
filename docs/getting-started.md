@@ -1,15 +1,14 @@
 # Getting Started
 
-Three ways to run OpenConstructionERP. Pick whichever fits your setup.
+Three ways to run Construction AI OS. Pick whichever fits your setup.
 
-If a warning or an error shows up on the way, [Installation help](INSTALL_TROUBLESHOOTING.md) explains each one (also [online](https://openconstructionerp.com/install-help), in [Deutsch](INSTALL_TROUBLESHOOTING.de.md) and [Русский](INSTALL_TROUBLESHOOTING.ru.md)).
+If a warning or an error shows up on the way, [Installation help](INSTALL_TROUBLESHOOTING.md) explains each one (also in [Deutsch](INSTALL_TROUBLESHOOTING.de.md) and [Русский](INSTALL_TROUBLESHOOTING.ru.md)).
 
 ## Path A: Desktop App (easiest)
 
 Download the installer for your platform:
 
-- **[openconstructionerp.com/download](https://openconstructionerp.com/download)**
-- Or grab from the [latest GitHub release](https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest): Windows `.exe`, macOS `.dmg` (Apple Silicon), Linux `.deb` / `.AppImage`
+- Grab from the [latest GitHub release](https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest): Windows `.exe`, macOS `.dmg` (Apple Silicon), Linux `.deb` / `.AppImage`
 
 Run the installer, launch the app. First launch takes about one minute to set up the local database. No Python, no Docker, no terminal required.
 
@@ -24,9 +23,9 @@ pip install --upgrade openconstructionerp
 openconstructionerp
 ```
 
-The package ships the FastAPI backend and a pre-built React frontend in a single wheel. On first run it sets up an embedded PostgreSQL instance, loads demo data, and opens your browser at [localhost:8080](http://localhost:8080).
+The package ships the FastAPI backend and a pre-built React frontend in a single wheel. On first run it sets up an embedded PostgreSQL instance, asks whether to load demo data, and opens your browser at [localhost:8080](http://localhost:8080).
 
-**Demo login:** `demo@openconstructionerp.com` / `DemoPass1234!`
+**First login:** register an account - the first one becomes the admin. (The demo login `demo@openconstructionerp.com`, any password, exists only if you opted into demo data.)
 
 > **Running on a VPS or remote server?** The default binds to localhost only.
 > To make the app reachable over the network, start it with:
@@ -42,8 +41,8 @@ The package ships the FastAPI backend and a pre-built React frontend in a single
 Download both Compose files and start the stack:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/docker-compose.quickstart.yml       -o docker-compose.yml
-curl -fsSL https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/docker-compose.quickstart.image.yml -o docker-compose.override.yml
+curl -fsSL https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/docker-compose.quickstart.yml       -o docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/docker-compose.quickstart.image.yml -o docker-compose.override.yml
 echo "POSTGRES_PASSWORD=$(openssl rand -base64 24)" >  .env
 echo "JWT_SECRET=$(openssl rand -hex 32)"           >> .env
 docker compose pull app
@@ -53,8 +52,8 @@ docker compose up -d
 On Windows, run the same steps in PowerShell. Use `curl.exe`, because `curl` in Windows PowerShell is a different command, and write `.env` with `Set-Content -Encoding ascii`, because a plain `>` writes UTF-16, which Compose cannot read:
 
 ```powershell
-curl.exe -fsSL https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/docker-compose.quickstart.yml -o docker-compose.yml
-curl.exe -fsSL https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/docker-compose.quickstart.image.yml -o docker-compose.override.yml
+curl.exe -fsSL https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/docker-compose.quickstart.yml -o docker-compose.yml
+curl.exe -fsSL https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/docker-compose.quickstart.image.yml -o docker-compose.override.yml
 $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
 $pw = New-Object byte[] 24; $rng.GetBytes($pw)
 $jwt = New-Object byte[] 32; $rng.GetBytes($jwt)
@@ -65,7 +64,7 @@ docker compose up -d
 
 The app runs at [localhost:8080](http://localhost:8080).
 
-**Demo login:** `demo@openconstructionerp.com` / `DemoPass1234!`
+**First login:** register an account - the first one becomes the admin. (The demo login `demo@openconstructionerp.com`, any password, exists only if you opted into demo data.)
 
 ## Prerequisites
 
@@ -75,13 +74,6 @@ The app runs at [localhost:8080](http://localhost:8080).
 | pip | Python 3.12+ |
 | Docker | Docker with Compose v2 |
 | Source development | Python 3.12+, Node.js 22+, PostgreSQL 16+ |
-
-## Watch
-
-- [Install and set up your first project](https://www.youtube.com/watch?v=WjDK-uk9b1w) (4:41)
-- [Full product walkthrough](https://www.youtube.com/watch?v=X06cIaroAeI) (12:00)
-- [Build an estimate step by step](https://www.youtube.com/watch?v=zGgfX19b3gc) (4:48)
-- More by topic in the [Video guides](../README.md#video-guides) section of the README, or on the [OpenConstruction Academy channel](https://www.youtube.com/channel/UCQ3IWLMLnBFwNeG5VBxXQ5Q/videos).
 
 ## What's Next
 

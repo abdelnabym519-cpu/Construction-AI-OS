@@ -18,12 +18,31 @@ jobs:
 
       # Read this before trusting the job below to catch a licence problem.
       #
-      # It cannot, on its own. The trigger is pull_request, and this project
-      # commits directly to main without PRs, so the event has never occurred
-      # and this action has never once evaluated a dependency change. The
-      # trigger is left as it is because the action needs a pull-request diff
-      # and the GitHub dependency-review API to work at all; it is kept for the
-      # day a PR does arrive, not relied on.
+      # For most of its life it could not, on its own. The trigger is
+      # pull_request and this project commits directly to main without PRs, so
+      # the event never occurred and the action never evaluated a dependency
+      # change. The trigger is left as it is because the action needs a
+      # pull-request diff and the GitHub dependency-review API to work at all.
+      #
+      # That day has arrived, and what it produced is worth recording, because
+      # the first failure was not a licence problem. This fork's first pull
+      # request ran the job on 2026-10-26 (base e373448, head 0f92f78, run
+      # 40375254447). Checkout took 41 of the job's 46 seconds and the step
+      # named below failed one second in, with "Dependency review is not
+      # supported on this repository. Please ensure that Dependency graph is
+      # enabled." One second is not a scan that found something; it is the
+      # action asking whether the repository has a graph to read and being told
+      # no. The dependency graph was switched off on the fork, so there was no
+      # snapshot to diff and not one dependency was examined. That is a
+      # repository setting and not a workflow defect: nothing in this file
+      # caused it, and no threshold, permission or trigger here needed relaxing
+      # to clear it.
+      #
+      # Measured 2026-10-27 with the graph enabled, the same question answers
+      # cleanly. The repository SBOM lists 1763 packages, and the comparison
+      # this action performs, GET /dependency-graph/compare/<base>...<head>,
+      # returns an empty list for that pull request: 151 changed files, and not
+      # one dependency manifest or lockfile among them.
       #
       # The denylist previously read "GPL-2.0, GPL-3.0, LGPL-2.1, LGPL-3.0,
       # AGPL-1.0". It denied AGPL-1.0, which nothing in any ecosystem we touch
@@ -37,6 +56,23 @@ jobs:
       # dependency, so a PR that bumps it would fail here. That is the right
       # way round for a licence gate on an inbound change, and the failure is
       # informative rather than mysterious.
+      #
+      # Both licence claims above were tested rather than assumed, against the
+      # libraries the action itself calls: @onebeyond/spdx-license-satisfies
+      # over spdx-satisfies, reached as satisfiesAny(licence, deny). Every
+      # spelling a real dependency reports is caught by the list as written.
+      # LGPL-3.0-or-later, LGPL-3.0-only, LGPL-2.1-or-later, LGPL-2.1-only,
+      # GPL-3.0-or-later, GPL-3.0-only, GPL-2.0-or-later, GPL-2.0-only,
+      # AGPL-3.0-or-later and AGPL-3.0-only all come back forbidden. The bare
+      # GPL and LGPL entries are therefore not the hole their deprecated SPDX
+      # spelling suggests, and the psycopg2-binary sentence above holds.
+      #
+      # One date to watch. v5 still accepts deny-licenses, but upstream has
+      # marked it deprecated for possible removal in the next major release
+      # (actions/dependency-review-action issue 938). The replacement is not a
+      # drop-in: allow-licenses fails closed on every licence not listed, which
+      # is a louder contract than this denylist and would need the copyleft we
+      # deliberately ship enumerated before it could be switched on.
       #
       # The control that actually runs on every push is
       # scripts/check_dependency_licences.py, in the Repo hygiene workflow.

@@ -1,7 +1,7 @@
 # Animated Construction Background Package
 
 Reusable animated background with estimation tables, dashboard charts, and construction blueprints.
-Originally designed for OpenConstructionERP landing page.
+Originally designed for Construction AI OS landing page.
 
 ## What's Inside
 

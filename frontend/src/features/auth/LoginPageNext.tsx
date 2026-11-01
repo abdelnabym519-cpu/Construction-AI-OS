@@ -20,6 +20,7 @@ import {
   type FormEvent,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import {
@@ -569,17 +570,7 @@ export function LoginPageNext() {
 
           {/* Copyright — left-bottom, sits below the hero content. */}
           <div className="relative mt-auto pt-10 text-[11px] text-content-tertiary/80 dark:text-white/40">
-            © 2026{' '}
-            <a
-              href="https://www.linkedin.com/in/boikoartem/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-content-secondary hover:text-oe-blue transition-colors dark:text-white/70 dark:hover:text-oe-blue"
-            >
-              Artem Boiko
-            </a>{' '}
-            · OpenConstructionERP
-            · <a href="mailto:info@datadrivenconstruction.io" className="hover:text-content-secondary transition-colors">info@datadrivenconstruction.io</a>
+            © 2026 {APP_NAME} · AGPL-3.0-or-later
           </div>
         </div>
 

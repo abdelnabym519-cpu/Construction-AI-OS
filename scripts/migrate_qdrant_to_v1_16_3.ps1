@@ -1,4 +1,4 @@
-# OpenConstructionERP - migrate from Qdrant 1.18.0 to 1.16.3 (Windows).
+# Construction AI OS - migrate from Qdrant 1.18.0 to 1.16.3 (Windows).
 #
 # Why this exists:
 # Qdrant 1.17+ writes a WAL clock file (newest_clocks.json) during snapshot
@@ -9,7 +9,7 @@
 # Defender exclusion needed.
 #
 # What this does:
-# 1. Stop the running qdrant.exe (the OpenConstructionERP backend will
+# 1. Stop the running qdrant.exe (the Construction AI OS backend will
 #    auto-respawn it on the first request after migration).
 # 2. Move the existing storage/ aside to storage.1.18.bak.<timestamp>.
 #    Qdrant does not support downgrade, so the new 1.16.3 needs a fresh
@@ -31,7 +31,7 @@ $pinnedTag = "v1.16.3"
 $downloadUrl = "https://github.com/qdrant/qdrant/releases/download/$pinnedTag/qdrant-x86_64-pc-windows-msvc.zip"
 
 Write-Host ""
-Write-Host "OpenConstructionERP - Qdrant migration to 1.16.3" -ForegroundColor Cyan
+Write-Host "Construction AI OS - Qdrant migration to 1.16.3" -ForegroundColor Cyan
 Write-Host "=================================================" -ForegroundColor Cyan
 Write-Host ""
 

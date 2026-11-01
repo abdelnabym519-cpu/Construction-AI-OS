@@ -56,6 +56,6 @@ MANIFEST = PartnerPackManifest(
         ],
         "vat_standard_rate": 21,
         "vat_reduced_rate": 12,
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

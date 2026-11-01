@@ -27,6 +27,7 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.email import BRAND_NAME
 from app.modules.progress.models import ProgressEntry
 from app.modules.progress.repository import ProgressRepository
 from app.modules.reporting.renderer import ReportRenderer
@@ -291,7 +292,7 @@ async def test_dispatch_report_email_sends_to_addresses(monkeypatch: pytest.Monk
     assert sent == 2
     assert len(backend.sent) == 2
     assert {m.to for m in backend.sent} == {"a@example.com", "b@example.com"}
-    assert backend.sent[0].subject == "Progress Report: Weekly Progress - OpenConstructionERP"
+    assert backend.sent[0].subject == f"Progress Report: Weekly Progress - {BRAND_NAME}"
     assert "<body><p" in backend.sent[0].html_body  # the brand line opens the body
     assert "rendered" in backend.sent[0].html_body
 

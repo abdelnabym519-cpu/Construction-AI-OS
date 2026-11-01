@@ -73,6 +73,6 @@ MANIFEST = PartnerPackManifest(
             "pending review by an Austrian Baukalkulator or Ziviltechniker "
             "before they are relied on for a public submission."
         ),
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

@@ -9,6 +9,7 @@
  * it unit-testable and keeps the escaping in one audited place.
  */
 import { QUANTITY_FIELDS, type QuantitySummary } from './boqSummary';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { toDisplayQuantity, displayUnitFor } from '@/shared/lib/unitConversion';
 import { getIntlLocale } from '@/shared/lib/formatters';
 
@@ -117,7 +118,7 @@ export function buildReportHtml(params: BuildReportHtmlParams): string {
   <h1>${escapeHtml(params.title)}</h1>
   <p class="meta">${escapeHtml(params.scopeLabel)} &middot; ${escapeHtml(params.generatedOn)}</p>
   ${body}
-  <p class="brand">OpenConstructionERP</p>
+  <p class="brand">${APP_NAME}</p>
 </body>
 </html>`;
 }

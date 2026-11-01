@@ -17,6 +17,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { APP_NAME, SOURCE_REPO_URL } from '@/shared/lib/brandName';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Gauge, X, Download, ExternalLink, UploadCloud } from 'lucide-react';
@@ -172,7 +173,7 @@ export function DemoBanner() {
               <p>
                 {t('demo_banner.modal_intro_before_vps')}{' '}
                 <strong className="text-content-primary">
-                  OpenConstructionERP
+                  {APP_NAME}
                 </strong>
                 {'. '}{t('demo_banner.modal_intro_runs_on')}{' '}
                 <strong className="text-content-primary">
@@ -231,7 +232,7 @@ export function DemoBanner() {
             {/* Footer */}
             <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border-light">
               <a
-                href="https://github.com/datadrivenconstruction/OpenConstructionERP"
+                href={SOURCE_REPO_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-content-secondary hover:text-content-primary border border-border-light rounded-lg hover:bg-surface-secondary transition-colors"

@@ -119,6 +119,6 @@ MANIFEST = PartnerPackManifest(
             "social housing (vivienda social)",
             "private residential (vivienda residencial)",
         ],
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

@@ -110,7 +110,7 @@ read.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules then
+This pack ships inside Construction AI OS. Activate it from Modules then
 Partner Packs: click Rescan, find "India Construction Pack", then Activate
 pack.
 
@@ -122,5 +122,5 @@ OE_PACK=india-cpwd openconstructionerp serve
 
 ## License
 
-AGPL-3.0-or-later. OpenConstructionERP is authored and owned by
+AGPL-3.0-or-later. The original Construction AI OS is authored and owned by
 DataDrivenConstruction.

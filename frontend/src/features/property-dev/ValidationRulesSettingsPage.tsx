@@ -22,6 +22,7 @@
  */
 
 import { useMemo, useState } from 'react';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -115,7 +116,7 @@ export function ValidationRulesSettingsPage() {
               <p>
                 {t('validation_rules.intro_1', {
                   defaultValue:
-                    'All validation rules built into OpenConstructionERP. Use this catalogue to see what gets checked on every import (BOQs, CAD models, tender data, takeoff results).',
+                    `All validation rules built into ${APP_NAME}. Use this catalogue to see what gets checked on every import (BOQs, CAD models, tender data, takeoff results).`,
                 })}
               </p>
               <p>

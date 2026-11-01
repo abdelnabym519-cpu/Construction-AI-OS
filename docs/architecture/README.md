@@ -1,8 +1,8 @@
 # Architecture overview
 
-OpenConstructionERP is an open, modular platform for construction estimating and
-construction management, published by DataDrivenConstruction under AGPL-3.0 with a
-commercial option for enterprises. This page is the entry point to the architecture
+Construction AI OS is an open, modular platform for construction estimating and
+construction management, a modified distribution of the original Construction AI OS
+published by DataDrivenConstruction under AGPL-3.0. This page is the entry point to the architecture
 docs. It explains how the codebase fits together: the monorepo layout, the module
 system, the validation pipeline, the canonical data format, the data stores, and the
 split between the backend and the frontend. It describes the platform at the version
@@ -239,6 +239,17 @@ Two optional stores add capability without becoming hard requirements:
 
 ## Where to go next
 
+- **[Foundation audit](./FOUNDATION_AUDIT.md)** measures the platform as it stands at a
+  named commit: the repository and its governance, the architecture as built, the
+  construction capabilities with an implemented / partial / placeholder classification,
+  and the security position. It records the numbers this page states in prose and where
+  the two disagree.
+- **[Target architecture](./TARGET_ARCHITECTURE.md)** describes the intelligence layer the
+  platform is being taken toward, the ground rules it must respect, and how the fourteen
+  target capabilities map onto code that already exists.
+- **[Roadmap status](./ROADMAP_STATUS.md)** carries the phase status and the keep / adapt /
+  refactor / replace / build decision for every significant capability, with the evidence,
+  dependencies, risks and phase for each.
 - **Architecture Decision Records** record the non-obvious choices and their
   consequences. Start with the [ADR index](../adr/README.md). The most load-bearing
   ones are the [snapshot storage model](../adr/001-snapshot-storage-model.md),

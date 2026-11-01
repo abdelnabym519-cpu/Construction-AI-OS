@@ -1,4 +1,4 @@
-# Autostart OpenConstructionERP on system boot
+# Autostart Construction AI OS on system boot
 
 Three ready-to-use templates for the three major OSes. Pick yours.
 
@@ -87,18 +87,18 @@ those before running if you used a non-default install location.
 
 Verify:
 ```powershell
-schtasks /Query /TN OpenConstructionERP
+schtasks /Query /TN Construction AI OS
 curl http://localhost:8000/api/health
 ```
 
 To remove:
 ```powershell
-schtasks /Delete /TN OpenConstructionERP /F
+schtasks /Delete /TN Construction AI OS /F
 ```
 
 For LAN access on Windows, also open the firewall:
 ```powershell
-New-NetFirewallRule -DisplayName "OpenConstructionERP 8000" -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow
+New-NetFirewallRule -DisplayName "Construction AI OS 8000" -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow
 ```
 
 ---

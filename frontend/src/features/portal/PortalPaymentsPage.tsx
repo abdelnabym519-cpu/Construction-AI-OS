@@ -17,6 +17,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
@@ -146,14 +147,14 @@ export function PortalPaymentsPage() {
           </div>
         </Card>
         {/* Escape hatch — a stranded internal user (no magic link, no app
-            shell) can get back into OpenConstructionERP instead of being
+            shell) can get back into the product instead of being
             trapped on the sign-in wall. */}
         <Link
           to={escapeTo}
           className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-oe-blue transition-colors hover:underline"
         >
           <ArrowLeft size={14} />
-          {t('payportal.back_to_app', { defaultValue: 'Back to OpenConstructionERP' })}
+          {t('payportal.back_to_app', { defaultValue: `Back to ${APP_NAME}` })}
         </Link>
       </CenteredShell>
     );

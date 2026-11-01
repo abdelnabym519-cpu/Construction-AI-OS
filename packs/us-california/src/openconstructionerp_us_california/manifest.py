@@ -89,6 +89,6 @@ MANIFEST = PartnerPackManifest(
         ],
         "payment_clock_regimes": ["us_ca_public_20104", "us_ca_private_8800"],
         "state_general_contractor_licence": True,
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

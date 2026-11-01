@@ -1,4 +1,4 @@
-# OpenConstructionERP
+# Construction AI OS
 
 Open-source construction cost estimation: BOQ, cost matching, CAD/BIM takeoff.
 
@@ -18,7 +18,7 @@ pip install openconstructionerp
 
 Python 3.12+ required. No Docker, no separate PostgreSQL, no Redis. An embedded PostgreSQL database is bundled and starts on its own.
 
-Problem while installing or starting? See **[Installation help](https://openconstructionerp.com/install-help)** (also in the repo in [English](https://github.com/datadrivenconstruction/OpenConstructionERP/blob/main/docs/INSTALL_TROUBLESHOOTING.md), [Deutsch](https://github.com/datadrivenconstruction/OpenConstructionERP/blob/main/docs/INSTALL_TROUBLESHOOTING.de.md) and [Русский](https://github.com/datadrivenconstruction/OpenConstructionERP/blob/main/docs/INSTALL_TROUBLESHOOTING.ru.md)).
+Problem while installing or starting? See the installation help in the repo: [English](../docs/INSTALL_TROUBLESHOOTING.md), [Deutsch](../docs/INSTALL_TROUBLESHOOTING.de.md) and [Русский](../docs/INSTALL_TROUBLESHOOTING.ru.md).
 
 ## First run
 
@@ -149,10 +149,10 @@ The lint rule set is `E, F, W, I, N, UP, B, A, C4, PT, RET, SIM`. The exact conf
 
 ## Links
 
-- Docs: https://openconstructionerp.com
-- Issues: https://github.com/DataDrivenConstruction/OpenConstructionERP/issues
-- Source: https://github.com/DataDrivenConstruction/OpenConstructionERP
+- Docs: https://github.com/abdelnabym519-cpu/Construction-AI-OS/tree/main/docs
+- Issues: https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues
+- Source: https://github.com/abdelnabym519-cpu/Construction-AI-OS
 
 ## License
 
-AGPL-3.0-or-later. Commercial licensing available, contact info@datadrivenconstruction.io
+AGPL-3.0-or-later. This repository is a modified distribution; see the NOTICE preamble for attribution and for the scope of the upstream commercial licence.

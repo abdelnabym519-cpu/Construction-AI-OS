@@ -80,7 +80,7 @@ def _github_release(tag: str) -> _Response:
         200,
         {
             "tag_name": tag,
-            "html_url": f"https://github.com/datadrivenconstruction/OpenConstructionERP/releases/tag/{tag}",
+            "html_url": f"https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/tag/{tag}",
             "body": f"## {tag.lstrip('v')}\n\nWhat this particular release changed.",
             "published_at": "2026-08-01T09:00:00Z",
         },
