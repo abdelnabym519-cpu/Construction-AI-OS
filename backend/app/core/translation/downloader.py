@@ -55,15 +55,28 @@ _DOWNLOAD_TIMEOUT = httpx.Timeout(connect=10.0, read=300.0, write=30.0, pool=10.
 # IATE allowlist - any URL passed to ``download_iate_dump`` must start
 # with one of these prefixes. Without this, an authenticated user could
 # weaponize the backend as an SSRF probe (cloud metadata, internal
-# services, etc.).  Set the env var ``OE_IATE_EXTRA_HOSTS`` to a
-# comma-separated list of additional ``https://host/`` prefixes to allow
-# self-hosted mirrors per deployment.
+# services, etc.).
+#
+# The default is the official IATE source and nothing else. This list used
+# to also carry four upstream-owned mirrors - datadrivenconstruction.io,
+# openconstructionerp.com, and two datadrivenconstruction paths on GitHub -
+# which meant any logged-in user could make this installation fetch
+# reference data from the upstream project's hosts, with no operator
+# decision behind it and no record that it happened. What upstream
+# publishes is upstream's to serve, so those prefixes are no longer
+# defaults.
+#
+# An operator who runs a mirror, or who trusts the upstream one, opts in
+# per deployment with the env var ``OE_IATE_EXTRA_HOSTS``: a
+# comma-separated list of additional ``https://host/`` prefixes. Opt-in,
+# off by default, and resolved at call time so it can be changed without a
+# code edit.
+#
+# Offline installations are unaffected either way. ``local_tbx_path``
+# parses a dump that is already on the server's disk and never reaches the
+# network, which is why it stays the route an air-gapped deployment uses.
 _IATE_ALLOWED_PREFIXES: tuple[str, ...] = (
     "https://iate.europa.eu/",
-    "https://datadrivenconstruction.io/",
-    "https://openconstructionerp.com/",
-    "https://github.com/datadrivenconstruction/",
-    "https://raw.githubusercontent.com/datadrivenconstruction/",
 )
 
 
