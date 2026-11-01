@@ -44,8 +44,8 @@ an individual is officially representing the community in public spaces.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-**info@datadrivenconstruction.io**.
+reported privately to the maintainers of this repository via a
+[private security advisory](https://github.com/abdelnabym519-cpu/Construction-AI-OS/security/advisories/new).
 
 All complaints will be reviewed and investigated promptly and fairly.
 

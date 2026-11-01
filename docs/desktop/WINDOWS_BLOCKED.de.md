@@ -2,15 +2,15 @@
 
 Auch auf [English](WINDOWS_BLOCKED.md) und [Русский](WINDOWS_BLOCKED.ru.md).
 
-Bei anderen Warnungen oder Fehlern während Installation oder Start hilft die [Installationshilfe](../INSTALL_TROUBLESHOOTING.de.md) (auch [online](https://openconstructionerp.com/install-help)).
+Bei anderen Warnungen oder Fehlern während Installation oder Start hilft die [Installationshilfe](../INSTALL_TROUBLESHOOTING.de.md).
 
-Diese Seite ist für Sie, wenn Windows OpenConstructionERP nicht starten lässt, die App als Programm eines unbekannten oder nicht verifizierten Herausgebers bezeichnet, oder sie einmal laufen ließ und seitdem bei jedem Start blockiert.
+Diese Seite ist für Sie, wenn Windows Construction AI OS nicht starten lässt, die App als Programm eines unbekannten oder nicht verifizierten Herausgebers bezeichnet, oder sie einmal laufen ließ und seitdem bei jedem Start blockiert.
 
 Die Bezeichnungen der Windows-Oberfläche stehen hier so, wie ein deutsches Windows 11 sie zeigt, mit dem englischen Namen in Klammern. Je nach Windows-Version kann der deutsche Wortlaut leicht abweichen.
 
 ## Warum das passiert
 
-Die Windows-Builds von OpenConstructionERP sind noch nicht code-signiert. Über die Signatur erfährt Windows, wer ein Programm veröffentlicht hat. Ohne sie gilt die App als Programm eines unbekannten Herausgebers. Darauf reagieren zwei getrennte Windows-Funktionen, und sie brauchen unterschiedliche Schritte:
+Die Windows-Builds von Construction AI OS sind noch nicht code-signiert. Über die Signatur erfährt Windows, wer ein Programm veröffentlicht hat. Ohne sie gilt die App als Programm eines unbekannten Herausgebers. Darauf reagieren zwei getrennte Windows-Funktionen, und sie brauchen unterschiedliche Schritte:
 
 - **Microsoft Defender SmartScreen** zeigt ein blaues Fenster "Der Computer wurde durch Windows geschützt" (Windows protected your PC), wenn Sie ein aus dem Internet geladenes Programm starten, das Windows noch nicht kennt. SmartScreen warnt und lässt Sie fortfahren.
 - **Smart App Control** ist eine strengere Funktion von Windows 11. Wenn sie eingeschaltet ist, blockiert sie jede Programmdatei, für die der Cloud-Dienst von Microsoft nicht bürgen kann und die keine vertrauenswürdige Signatur trägt. Sie bietet keine Schaltfläche zum Fortfahren und keine Ausnahme für einzelne Apps. Ihre Meldung nennt Smart App Control und sagt meist, dass die App oder ein Teil davon blockiert wurde.
@@ -42,13 +42,13 @@ SmartScreen fragt nur bei Dateien, die aus dem Internet geladen wurden. Fragt es
 
 Solange Smart App Control eingeschaltet ist, lässt sich keine einzelne App freigeben. Microsoft selbst rät, die Funktion auszuschalten oder den Herausgeber um eine Signatur zu bitten, und unsere Windows-Builds sind derzeit nicht signiert. Damit bleiben zwei ehrliche Möglichkeiten.
 
-**Möglichkeit 1: Smart App Control eingeschaltet lassen und die App anders starten.** Das empfehlen wir, wenn Sie den Schutz behalten möchten. Docker und WSL führen OpenConstructionERP in einer kleinen Linux-Umgebung aus, und Linux-Programme prüft Smart App Control nicht. Beide Wege sind unten beschrieben.
+**Möglichkeit 1: Smart App Control eingeschaltet lassen und die App anders starten.** Das empfehlen wir, wenn Sie den Schutz behalten möchten. Docker und WSL führen Construction AI OS in einer kleinen Linux-Umgebung aus, und Linux-Programme prüft Smart App Control nicht. Beide Wege sind unten beschrieben.
 
 **Möglichkeit 2: Smart App Control ausschalten.** Das senkt den Schutz Ihres ganzen PCs, nicht nur für unsere App. Tun Sie es nur, wenn Sie damit einverstanden sind. Auf aktuellen Builds von Windows 11 können Sie Smart App Control später auf derselben Seite wieder einschalten, auf älteren Builds ist das Ausschalten dagegen endgültig, bis Windows zurückgesetzt oder neu installiert wird. Bietet die Seite nach dem Ausschalten keinen Weg zurück, haben Sie einen solchen Build.
 
 1. Öffnen Sie **Windows-Sicherheit**, dann **App- & Browsersteuerung** und die **Smart App Control-Einstellungen**.
 2. Wählen Sie **Aus** und bestätigen Sie.
-3. Starten Sie OpenConstructionERP erneut.
+3. Starten Sie Construction AI OS erneut.
 
 Microsoft Defender Antivirus und SmartScreen bleiben in jedem Fall aktiv.
 
@@ -57,11 +57,11 @@ Zeigt der Schutzverlauf stattdessen eine Erkennung durch Microsoft Defender Anti
 ## Mit Docker starten (funktioniert mit eingeschalteter Smart App Control)
 
 1. Installieren Sie **Docker Desktop** von docker.com und starten Sie es einmal. Docker Desktop ist kostenlos für private Nutzung, Bildung und kleine Unternehmen; größere Unternehmen brauchen ein kostenpflichtiges Docker-Abonnement.
-2. Legen Sie einen Ordner an, zum Beispiel `C:\OpenConstructionERP`, öffnen Sie darin **Windows PowerShell** und führen Sie aus:
+2. Legen Sie einen Ordner an, zum Beispiel `C:\Construction AI OS`, öffnen Sie darin **Windows PowerShell** und führen Sie aus:
 
 ```powershell
-curl.exe -fsSL https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/docker-compose.quickstart.yml -o docker-compose.yml
-curl.exe -fsSL https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/docker-compose.quickstart.image.yml -o docker-compose.override.yml
+curl.exe -fsSL https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/docker-compose.quickstart.yml -o docker-compose.yml
+curl.exe -fsSL https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/docker-compose.quickstart.image.yml -o docker-compose.override.yml
 function New-Secret([int]$n) { $b = New-Object byte[] $n; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); -join ($b | ForEach-Object { $_.ToString("x2") }) }
 Set-Content -Path .env -Encoding ascii -Value @("POSTGRES_PASSWORD=$(New-Secret 24)", "JWT_SECRET=$(New-Secret 32)")
 docker compose pull app
@@ -107,16 +107,16 @@ py -3.12 -m openconstructionerp
 Jedes Release enthält neben den Installern eine Datei `SHA256SUMS`. Laden Sie sie in denselben Ordner wie den Installer, öffnen Sie dort **Windows PowerShell** und führen Sie aus:
 
 ```powershell
-$exe = Get-ChildItem OpenConstructionERP_*_x64-setup.exe | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+$exe = Get-ChildItem "Construction AI OS_*_x64-setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 $line = Select-String -Path SHA256SUMS -Pattern $exe.Name -SimpleMatch
 (Get-FileHash $exe.FullName -Algorithm SHA256).Hash -eq $line.Line.Split(' ')[0]
 ```
 
-`True` bedeutet, dass die Datei genau die ist, die unser Release-Build erzeugt hat. `False` bedeutet, dass sie unterwegs beschädigt oder verändert wurde. Starten Sie sie dann nicht. Eine rote Fehlermeldung statt `True` oder `False` bedeutet, dass im Ordner eine `SHA256SUMS` aus einem anderen Release als der Installer liegt; laden Sie dann beide von derselben Release-Seite. Bleibt es bei `False`, laden Sie die Datei erneut von der [GitHub-Release-Seite](https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest). Die Prüfung belegt, dass die Datei unverändert ist. An der Entscheidung von SmartScreen oder Smart App Control ändert sie nichts. Für eine stärkere Prüfung trägt `SHA256SUMS` selbst eine Sigstore-Signatur, beschrieben in [RELEASE_SIGNATURE_INVENTORY.md](RELEASE_SIGNATURE_INVENTORY.md).
+`True` bedeutet, dass die Datei genau die ist, die unser Release-Build erzeugt hat. `False` bedeutet, dass sie unterwegs beschädigt oder verändert wurde. Starten Sie sie dann nicht. Eine rote Fehlermeldung statt `True` oder `False` bedeutet, dass im Ordner eine `SHA256SUMS` aus einem anderen Release als der Installer liegt; laden Sie dann beide von derselben Release-Seite. Bleibt es bei `False`, laden Sie die Datei erneut von der [GitHub-Release-Seite](https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest). Die Prüfung belegt, dass die Datei unverändert ist. An der Entscheidung von SmartScreen oder Smart App Control ändert sie nichts. Für eine stärkere Prüfung trägt `SHA256SUMS` selbst eine Sigstore-Signatur, beschrieben in [RELEASE_SIGNATURE_INVENTORY.md](RELEASE_SIGNATURE_INVENTORY.md).
 
 ## Es klappt immer noch nicht
 
-Schreiben Sie an info@datadrivenconstruction.io oder eröffnen Sie ein Issue auf GitHub. Nennen Sie Ihre Windows-Version (Start, `winver` eingeben), was die Seite Smart App Control-Einstellungen anzeigt, und den genauen Text der Meldung.
+Eröffnen Sie ein Issue auf GitHub: https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues. Nennen Sie Ihre Windows-Version (Start, `winver` eingeben), was die Seite Smart App Control-Einstellungen anzeigt, und den genauen Text der Meldung.
 
 ## Quellen
 

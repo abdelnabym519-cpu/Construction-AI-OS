@@ -1,7 +1,7 @@
 # Target architecture
 
 This page describes the architecture the platform is being taken toward: an intelligence
-layer over OpenConstructionERP that can reason about a construction project, cite its
+layer over Construction AI OS that can reason about a construction project, cite its
 evidence, and act only through authorized, approved, audited paths. It is a target, not a
 description of what exists. What exists is measured in
 [FOUNDATION_AUDIT.md](./FOUNDATION_AUDIT.md); what to do about the difference, and in

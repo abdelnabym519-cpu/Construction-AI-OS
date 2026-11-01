@@ -1,8 +1,8 @@
 # Architecture overview
 
-OpenConstructionERP is an open, modular platform for construction estimating and
-construction management, published by DataDrivenConstruction under AGPL-3.0 with a
-commercial option for enterprises. This page is the entry point to the architecture
+Construction AI OS is an open, modular platform for construction estimating and
+construction management, a modified distribution of the original Construction AI OS
+published by DataDrivenConstruction under AGPL-3.0. This page is the entry point to the architecture
 docs. It explains how the codebase fits together: the monorepo layout, the module
 system, the validation pipeline, the canonical data format, the data stores, and the
 split between the backend and the frontend. It describes the platform at the version

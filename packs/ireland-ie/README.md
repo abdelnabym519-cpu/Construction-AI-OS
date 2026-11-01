@@ -1,6 +1,6 @@
 # Ireland Construction Pack
 
-Configures OpenConstructionERP for the Irish construction market. Measurement
+Configures Construction AI OS for the Irish construction market. Measurement
 follows ARM (Agreed Rules of Measurement) and NRM, the two standards Irish QS
 practice sits between. Currency is EUR with 13.5% VAT on construction services,
 and the pack references BCAR (Building Control Amendment Regulations) and the
@@ -49,7 +49,7 @@ pack is legal, tax or regulatory advice.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules then Partner
+This pack ships inside Construction AI OS. Activate it from Modules then Partner
 Packs: click Rescan, find "Ireland Construction Pack", then Activate pack.
 
 To run a workspace that boots straight into it:
@@ -60,5 +60,5 @@ OE_PACK=ireland-ie openconstructionerp serve
 
 ## License
 
-AGPL-3.0-or-later. OpenConstructionERP is authored and owned by
+AGPL-3.0-or-later. The original Construction AI OS is authored and owned by
 DataDrivenConstruction.

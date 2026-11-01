@@ -1,21 +1,25 @@
 <div align="center">
 
-# OpenConstructionERP
+# Construction AI OS
 
 ### A leading open-source workspace for construction project management
+
+<sub>A modified, independently maintained distribution of
+<a href="https://github.com/datadrivenconstruction/OpenConstructionERP">OpenConstructionERP</a>
+by Artem Boiko / DataDrivenConstruction (AGPL-3.0-or-later). Attribution and what changed: <a href="NOTICE">NOTICE</a>.</sub>
 
 Professional BOQ, CAD and BIM takeoff, 4D scheduling, 5D cost model, and tendering - all in one self-hosted platform.
 
 **Like WordPress for construction companies** - pick modules from the marketplace, drop in your own, or replace ours with custom-built ones. Same plug-and-play model, but for BOQ, scheduling, cost control, BIM, and tendering.
 
-[Demo](https://openconstructionerp.com) · [Documentation](https://openconstructionerp.com/docs) · [Build on it](DEVELOPING.md) · [Community chat (Telegram)](https://t.me/datadrivenconstruction) · [Report Bug](https://github.com/datadrivenconstruction/OpenConstructionERP/issues)
+[Source code](https://github.com/abdelnabym519-cpu/Construction-AI-OS) · [Documentation](docs/) · [Build on it](DEVELOPING.md) · [Report an issue](https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues)
 
 <!-- Each badge row is one source line on purpose. A newline between two badges
      renders as a line break here, which stacks them into a single column. -->
-[![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE) [![Version](https://img.shields.io/github/v/release/datadrivenconstruction/OpenConstructionERP?label=version&color=green)](https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest) [![Release downloads](https://img.shields.io/github/downloads/datadrivenconstruction/OpenConstructionERP/total?label=downloads&color=brightgreen)](https://github.com/datadrivenconstruction/OpenConstructionERP/releases) [![PyPI](https://img.shields.io/pypi/v/openconstructionerp?color=informational&label=pypi)](https://pypi.org/project/openconstructionerp/) [![Downloads (pepy · per month)](https://static.pepy.tech/personalized-badge/openconstructionerp?period=month&units=international_system&left_color=grey&right_color=blue&left_text=downloads%20(pepy%20%C2%B7%20per%20month))](https://pepy.tech/project/openconstructionerp) [![Stars](https://img.shields.io/github/stars/datadrivenconstruction/OpenConstructionERP?style=flat&logo=github)](https://github.com/datadrivenconstruction/OpenConstructionERP/stargazers) [![Last commit](https://img.shields.io/github/last-commit/datadrivenconstruction/OpenConstructionERP?color=informational)](https://github.com/datadrivenconstruction/OpenConstructionERP/commits/main)
-![Languages](https://img.shields.io/badge/languages-44-orange) ![Cost Items](https://img.shields.io/badge/cost_items-120%2C000%2B-red) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/datadrivenconstruction/OpenConstructionERP/badge)](https://securityscorecards.dev/viewer/?uri=github.com/datadrivenconstruction/OpenConstructionERP) [![CodeQL](https://github.com/datadrivenconstruction/OpenConstructionERP/actions/workflows/codeql.yml/badge.svg)](https://github.com/datadrivenconstruction/OpenConstructionERP/actions/workflows/codeql.yml) [![Signed releases](https://img.shields.io/badge/releases-Sigstore_signed-8250df)](SECURITY.md)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE) [![Version](https://img.shields.io/github/v/release/abdelnabym519-cpu/Construction-AI-OS?label=version&color=green)](https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest) [![Release downloads](https://img.shields.io/github/downloads/abdelnabym519-cpu/Construction-AI-OS/total?label=downloads&color=brightgreen)](https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases) [![PyPI](https://img.shields.io/pypi/v/openconstructionerp?color=informational&label=pypi)](https://pypi.org/project/openconstructionerp/) [![Downloads (pepy · per month)](https://static.pepy.tech/personalized-badge/openconstructionerp?period=month&units=international_system&left_color=grey&right_color=blue&left_text=downloads%20(pepy%20%C2%B7%20per%20month))](https://pepy.tech/project/openconstructionerp) [![Stars](https://img.shields.io/github/stars/abdelnabym519-cpu/Construction-AI-OS?style=flat&logo=github)](https://github.com/abdelnabym519-cpu/Construction-AI-OS/stargazers) [![Last commit](https://img.shields.io/github/last-commit/abdelnabym519-cpu/Construction-AI-OS?color=informational)](https://github.com/abdelnabym519-cpu/Construction-AI-OS/commits/main)
+![Languages](https://img.shields.io/badge/languages-44-orange) ![Cost Items](https://img.shields.io/badge/cost_items-120%2C000%2B-red) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/abdelnabym519-cpu/Construction-AI-OS/badge)](https://securityscorecards.dev/viewer/?uri=github.com/abdelnabym519-cpu/Construction-AI-OS) [![CodeQL](https://github.com/abdelnabym519-cpu/Construction-AI-OS/actions/workflows/codeql.yml/badge.svg)](https://github.com/abdelnabym519-cpu/Construction-AI-OS/actions/workflows/codeql.yml) [![Signed releases](https://img.shields.io/badge/releases-Sigstore_signed-8250df)](SECURITY.md)
 
-<img src="docs/screenshots/banner.png" alt="OpenConstructionERP: a honeycomb of the eight company types and fifteen professional roles the platform is built around, over a second honeycomb of its 190+ backend modules and the two shared libraries drawn beside them, each cell coloured by the category its own manifest declares and shaded by how many of the others it is wired to" width="800" />
+<img src="docs/screenshots/banner.png" alt="Construction AI OS: a honeycomb of the eight company types and fifteen professional roles the platform is built around, over a second honeycomb of its 190+ backend modules and the two shared libraries drawn beside them, each cell coloured by the category its own manifest declares and shaded by how many of the others it is wired to" width="800" />
 
 <br/><br/>
 
@@ -23,9 +27,9 @@ Professional BOQ, CAD and BIM takeoff, 4D scheduling, 5D cost model, and tenderi
 
 <sub>No Python, no Docker, nothing to set up. Pick your system and run it.</sub>
 
-<a href="https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest"><img src="https://img.shields.io/badge/Windows-Download%20.exe-0078D6?style=for-the-badge&logo=windows11&logoColor=white" alt="Download OpenConstructionERP for Windows" height="46"></a> &nbsp;&nbsp; <a href="https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest"><img src="https://img.shields.io/badge/macOS-Apple%20Silicon%20.dmg-111111?style=for-the-badge&logo=apple&logoColor=white" alt="Download OpenConstructionERP for macOS on Apple Silicon" height="46"></a> &nbsp;&nbsp; <a href="https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest"><img src="https://img.shields.io/badge/Linux-.deb%20%2F%20.AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Download OpenConstructionERP for Linux" height="46"></a>
+<a href="https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest"><img src="https://img.shields.io/badge/Windows-Download%20.exe-0078D6?style=for-the-badge&logo=windows11&logoColor=white" alt="Download Construction AI OS for Windows" height="46"></a> &nbsp;&nbsp; <a href="https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest"><img src="https://img.shields.io/badge/macOS-Apple%20Silicon%20.dmg-111111?style=for-the-badge&logo=apple&logoColor=white" alt="Download Construction AI OS for macOS on Apple Silicon" height="46"></a> &nbsp;&nbsp; <a href="https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest"><img src="https://img.shields.io/badge/Linux-.deb%20%2F%20.AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Download Construction AI OS for Linux" height="46"></a>
 
-<sub>Not sure which file? <a href="https://openconstructionerp.com/download"><b>openconstructionerp.com/download</b></a> picks the right one for you automatically. Prefer the terminal? <code>pip install openconstructionerp</code> or Docker, see <a href="#quick-start">Quick Start</a> below.</sub>
+<sub>Prefer the terminal? <code>pip install openconstructionerp</code> or Docker, see <a href="#quick-start">Quick Start</a> below.</sub>
 
 <br/>
 
@@ -57,7 +61,7 @@ Professional BOQ, CAD and BIM takeoff, 4D scheduling, 5D cost model, and tenderi
 <td valign="top">
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/rocket-dark.svg"><img src="docs/readme-icons/rocket-light.svg" width="14" align="center" alt=""></picture> **Get Started**
-- [Why OpenConstructionERP?](#why-openconstructionerp)
+- [Why Construction AI OS?](#why-construction-ai-os)
 - [A Look Inside](#a-look-inside)
 - [Quick Start](#quick-start)
 - [Demo Accounts](#demo-accounts)
@@ -115,9 +119,9 @@ Professional BOQ, CAD and BIM takeoff, 4D scheduling, 5D cost model, and tenderi
 
 ---
 
-## Why OpenConstructionERP?
+## Why Construction AI OS?
 
-Construction cost estimation software is expensive, closed-source, and locked to specific regions. OpenConstructionERP changes that.
+Construction cost estimation software is expensive, closed-source, and locked to specific regions. Construction AI OS changes that.
 
 | What you get | How it works |
 |-------------|-------------|
@@ -150,7 +154,7 @@ The entire UI ships in **44 languages**, including full right-to-left support fo
 <thead>
 <tr>
 <th align="left">Capability</th>
-<th align="center">OpenConstructionERP</th>
+<th align="center">Construction AI OS</th>
 <th align="center">Enterprise<br/>BIM</th>
 <th align="center">CAD<br/>Takeoff</th>
 <th align="center">Legacy<br/>Estimating</th>
@@ -179,7 +183,7 @@ The entire UI ships in **44 languages**, including full right-to-left support fo
 </tbody>
 </table>
 
-<sub>Comparison reflects typical category capabilities based on publicly available information. Pricing is approximate (per-seat, list price) and varies by vendor and region. OpenConstructionERP is an independent open-source project and is not affiliated with any commercial vendor in the categories above.</sub>
+<sub>Comparison reflects typical category capabilities based on publicly available information. Pricing is approximate (per-seat, list price) and varies by vendor and region. Construction AI OS is an independent open-source project and is not affiliated with any commercial vendor in the categories above.</sub>
 
 ---
 
@@ -257,14 +261,13 @@ The platform also includes 3D globe visualization (Cesium), property development
 
 ## Quick Start
 
-> **Problem while installing or starting?** See the **[installation help page](https://openconstructionerp.com/install-help)** or the same guide in the repo: [English](docs/INSTALL_TROUBLESHOOTING.md), [Deutsch](docs/INSTALL_TROUBLESHOOTING.de.md), [Русский](docs/INSTALL_TROUBLESHOOTING.ru.md).
+> **Problem while installing or starting?** See the installation guide in the repo: [English](docs/INSTALL_TROUBLESHOOTING.md), [Deutsch](docs/INSTALL_TROUBLESHOOTING.de.md), [Русский](docs/INSTALL_TROUBLESHOOTING.ru.md).
 
 ### Easiest: download the desktop app (no Python, no setup)
 
-Download the installer for your operating system, run it, and OpenConstructionERP opens as a native desktop app. No Python, no pip, no Docker, and no database to set up. Everything runs locally on your machine.
+Download the installer for your operating system, run it, and Construction AI OS opens as a native desktop app. No Python, no pip, no Docker, and no database to set up. Everything runs locally on your machine.
 
-- **[Download for your platform](https://openconstructionerp.com/download)** picks the right file for your OS automatically.
-- Or grab one straight from the **[latest release](https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest)**: Windows `.exe` installer, macOS `.dmg` (Apple Silicon), or Linux `.deb` / `.AppImage`.
+- Grab one straight from the **[latest release](https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest)**: Windows `.exe` installer, macOS `.dmg` (Apple Silicon), or Linux `.deb` / `.AppImage`.
 
 **Your operating system will warn you before it runs the installer, and that is expected.** There is no code signing certificate for this project yet, so the desktop builds are unsigned. On Windows, SmartScreen says "Windows protected your PC"; choose More info, then Run anyway. If Windows 11 Smart App Control blocks the app instead, there is no Run anyway button, and [Windows blocks the app](docs/desktop/WINDOWS_BLOCKED.md) explains the options. On macOS, Gatekeeper says the developer cannot be verified; open the app from the Finder context menu and choose Open, or clear it with `xattr -dr com.apple.quarantine` on the installed app. Linux packages are unaffected. If you would rather verify the download than trust the warning, every release carries `SHA256SUMS` together with a Sigstore signature and certificate, so you can check the bytes you received against what the build produced.
 
@@ -305,21 +308,21 @@ python -m openconstructionerp
 
 ```bash
 # Linux / macOS
-curl -fsSL https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/scripts/install.sh | bash
 
 # Windows (PowerShell)
-irm https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/scripts/install.ps1 | iex
 ```
 
-If you would rather not think about PATH at all, use this. It picks Docker if installed, otherwise uv, otherwise a dedicated Python virtual environment, installs OpenConstructionERP there, puts the `openconstructionerp` command on your PATH automatically, and finishes with a short panel showing the URL, the demo login and how to start. It also offers to launch right away. Open a new terminal afterwards and `openconstructionerp` just works. Runs at **http://localhost:8080**.
+If you would rather not think about PATH at all, use this. It picks Docker if installed, otherwise uv, otherwise a dedicated Python virtual environment, installs Construction AI OS there, puts the `openconstructionerp` command on your PATH automatically, and finishes with a short panel showing the URL, how to sign in and how to start. It also offers to launch right away. Open a new terminal afterwards and `openconstructionerp` just works. Runs at **http://localhost:8080**.
 
 ### Alternative 2: Docker
 
 From the published image, no clone needed:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/docker-compose.quickstart.yml       -o docker-compose.yml
-curl -fsSL https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/docker-compose.quickstart.image.yml -o docker-compose.override.yml
+curl -fsSL https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/docker-compose.quickstart.yml       -o docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/docker-compose.quickstart.image.yml -o docker-compose.override.yml
 echo "POSTGRES_PASSWORD=$(openssl rand -base64 24)" >  .env
 echo "JWT_SECRET=$(openssl rand -hex 32)"           >> .env
 docker compose pull app && docker compose up -d
@@ -328,8 +331,8 @@ docker compose pull app && docker compose up -d
 Or build from source (also the better choice on Apple Silicon):
 
 ```bash
-git clone https://github.com/datadrivenconstruction/OpenConstructionERP.git
-cd OpenConstructionERP
+git clone https://github.com/abdelnabym519-cpu/Construction-AI-OS.git
+cd Construction-AI-OS
 echo "POSTGRES_PASSWORD=$(openssl rand -base64 24)" >  .env
 echo "JWT_SECRET=$(openssl rand -hex 32)"           >> .env
 make quickstart
@@ -340,8 +343,8 @@ Open **http://localhost:8080**. On Windows PowerShell, see [docs/getting-started
 ### Alternative 3: Local development (clone + npm + uvicorn)
 
 ```bash
-git clone https://github.com/datadrivenconstruction/OpenConstructionERP.git
-cd OpenConstructionERP
+git clone https://github.com/abdelnabym519-cpu/Construction-AI-OS.git
+cd Construction-AI-OS
 
 # Install dependencies
 pip install -e ./backend[server]
@@ -399,9 +402,9 @@ Demo data is opt-in: it loads only when you answer Yes to the first-run prompt (
 
 ### How the platform turns raw CAD/BIM into structured ERP data
 
-<img src="docs/screenshots/architecture-pipeline.jpg" alt="OpenConstructionERP - Digitalization of Processes: Pipelines for Automatic Data Creation" width="100%" />
+<img src="docs/screenshots/architecture-pipeline.jpg" alt="Construction AI OS - Digitalization of Processes: Pipelines for Automatic Data Creation" width="100%" />
 
-OpenConstructionERP is built around **seven cooperating pipelines** that turn closed CAD/BIM files (RVT, IFC, DWG) into structured, queryable ERP data - without locking you into a proprietary stack. Every module in the platform plugs into one or more of these stages:
+Construction AI OS is built around **seven cooperating pipelines** that turn closed CAD/BIM files (RVT, IFC, DWG) into structured, queryable ERP data - without locking you into a proprietary stack. Every module in the platform plugs into one or more of these stages:
 
 1. **Mining** - collect existing project data (CAD/BIM models, CDE drops, COBie deliverables) into a semi-structured pool. Handled by `cad`, `documents`, `bim_hub`, `file_search` modules + the **DDC Converters 2.0** (RVT/IFC/DWG → canonical JSON).
 2. **QTO Check & Quantity Take-off rules** - apply rule sets per discipline / family / type to extract quantities deterministically. Handled by `takeoff`, `requirements`, `validation`, and the rule editor in `match-elements`.
@@ -447,9 +450,12 @@ The right-hand side of the diagram is the **automatic data retrieval** layer tha
 
 ---
 
-## Project growth
+## Project growth of the original project
 
-<sub>Measured on 30 September 2026 from the GitHub API, PyPI and pypistats.org.</sub>
+<sub>The numbers and charts in this section describe the ORIGINAL
+OpenConstructionERP repository up to the point this distribution
+diverged from it, measured on 30 September 2026 from the GitHub API,
+PyPI and pypistats.org. This repository starts fresh.</sub>
 
 <table>
 <tr>
@@ -466,7 +472,7 @@ The right-hand side of the diagram is the **automatic data retrieval** layer tha
 
 ### Release downloads
 
-<sub>GitHub release assets only, does not include <code>pip install</code> from PyPI, <code>docker pull</code> from GHCR, <code>git clone</code>, or direct downloads from <a href="https://openconstructionerp.com/download">openconstructionerp.com</a>.</sub>
+<sub>GitHub release assets only, does not include <code>pip install</code> from PyPI, <code>docker pull</code> from GHCR, <code>git clone</code>, or direct downloads.</sub>
 
 [![Downloads (pepy · per month)](https://static.pepy.tech/personalized-badge/openconstructionerp?period=month&units=international_system&left_color=grey&right_color=blue&left_text=downloads%20(pepy%20%C2%B7%20per%20month))](https://pepy.tech/project/openconstructionerp)
 
@@ -474,7 +480,7 @@ The right-hand side of the diagram is the **automatic data retrieval** layer tha
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/readme-charts/download-history-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="docs/readme-charts/download-history-light.svg">
-    <img alt="OpenConstructionERP release downloads: 11,544 GitHub release asset downloads as of 30 September 2026, accumulated by release date" src="docs/readme-charts/download-history-light.svg" width="720">
+    <img alt="Original-project release downloads: 11,544 GitHub release asset downloads as of 30 September 2026, accumulated by release date" src="docs/readme-charts/download-history-light.svg" width="720">
   </picture>
 </a>
 
@@ -486,7 +492,7 @@ The right-hand side of the diagram is the **automatic data retrieval** layer tha
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/readme-charts/star-history-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="docs/readme-charts/star-history-light.svg">
-    <img alt="OpenConstructionERP star history: 878 stars as of 30 September 2026, from 2 April 2026" src="docs/readme-charts/star-history-light.svg" width="720">
+    <img alt="Original-project star history: 878 stars as of 30 September 2026, from 2 April 2026" src="docs/readme-charts/star-history-light.svg" width="720">
   </picture>
 </a>
 
@@ -494,22 +500,18 @@ The right-hand side of the diagram is the **automatic data retrieval** layer tha
 
 ## Support the Project
 
-OpenConstructionERP is built by [DataDrivenConstruction](https://datadrivenconstruction.io) and shaped by feedback from users worldwide. If you find it useful:
+Construction AI OS is maintained in this repository and builds on OpenConstructionERP by [DataDrivenConstruction](https://datadrivenconstruction.io). If you find it useful:
 
-- ⭐ **[Star this repo](https://github.com/datadrivenconstruction/OpenConstructionERP)** - helps others discover the project
-- <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/comment-discussion-dark.svg"><img src="docs/readme-icons/comment-discussion-light.svg" width="14" align="center" alt=""></picture> **[Community chat (Telegram)](https://t.me/datadrivenconstruction)** - ask questions, share ideas, help others
-- <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/bug-dark.svg"><img src="docs/readme-icons/bug-light.svg" width="14" align="center" alt=""></picture> **[Report issues](https://github.com/datadrivenconstruction/OpenConstructionERP/issues)** - help us improve
-- <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/briefcase-dark.svg"><img src="docs/readme-icons/briefcase-light.svg" width="14" align="center" alt=""></picture> **[Professional consulting](https://datadrivenconstruction.io/contact-support/)** - custom deployment, training, enterprise support
+- ⭐ **[Star this repo](https://github.com/abdelnabym519-cpu/Construction-AI-OS)** - helps others discover this distribution
+- <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/bug-dark.svg"><img src="docs/readme-icons/bug-light.svg" width="14" align="center" alt=""></picture> **[Report issues](https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues)** - help this distribution improve
 
 ## Contributors
 
-OpenConstructionERP is shaped by the people who report bugs, request features, and ask the sharp questions that push the platform forward. We credit every one of them. For supply-chain security, we do not merge external pull requests - see **[CONTRIBUTING.md](CONTRIBUTING.md)** for how contributions work here.
-
-See **[CONTRIBUTORS.md](CONTRIBUTORS.md)** for the full list. Want to join it? [Open an issue](https://github.com/datadrivenconstruction/OpenConstructionERP/issues) or say hello in the [community chat](https://t.me/datadrivenconstruction).
+The platform this distribution builds on was shaped by the people who reported bugs, requested features, and asked the sharp questions that pushed it forward - they are credited in **[CONTRIBUTORS.md](CONTRIBUTORS.md)**. For how contributions work in THIS repository, see **[CONTRIBUTING.md](CONTRIBUTING.md)**. Want to be credited here? [Open an issue](https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues).
 
 ## Security
 
-Report vulnerabilities privately via [GitHub Security Advisories](https://github.com/datadrivenconstruction/OpenConstructionERP/security/advisories/new) or [info@datadrivenconstruction.io](mailto:info@datadrivenconstruction.io). See [SECURITY.md](SECURITY.md) for the full coordinated-disclosure policy and supported versions.
+Report vulnerabilities privately via [GitHub Security Advisories](https://github.com/abdelnabym519-cpu/Construction-AI-OS/security/advisories/new) on this repository. See [SECURITY.md](SECURITY.md) for the full coordinated-disclosure policy and supported versions.
 
 ## AI disclaimer
 
@@ -523,9 +525,10 @@ tender-submission use. See [NOTICE](NOTICE) and [TERMS.md](docs/legal/TERMS.md) 
 All product names, logos, and trademarks referenced in this repository
 are property of their respective owners. Any comparative references to
 commercial categories or products are made for fair comparative purposes
-based on publicly available information. OpenConstructionERP is an
-independent project and is not affiliated with, endorsed by, or sponsored
-by any third-party trademark owners. Full attributions in [NOTICE](NOTICE).
+based on publicly available information. Construction AI OS is an
+independent modified distribution of the original OpenConstructionERP
+project and is not affiliated with, endorsed by, or sponsored by any
+third-party trademark owners. Full attributions in [NOTICE](NOTICE).
 
 ## Development and Contribution Model
 
@@ -540,10 +543,12 @@ You can freely use, modify, and distribute this software. If you modify
 and deploy it as a service, AGPL §13 requires you to make the
 corresponding source code available under the same license.
 
-For **commercial licensing**, which lifts the AGPL obligations on
-OpenConstructionERP itself so you can deploy it closed-source, see
-[COMMERCIAL-LICENSE.md](docs/legal/COMMERCIAL-LICENSE.md) or contact
-[info@datadrivenconstruction.io](mailto:info@datadrivenconstruction.io).
+The upstream project offers **commercial licensing** for the original
+OpenConstructionERP; see [COMMERCIAL-LICENSE.md](docs/legal/COMMERCIAL-LICENSE.md)
+and the note at its top - it does not automatically extend to this
+modified distribution. Deploying THIS distribution closed-source needs
+permission from the copyright holders of the code you deploy: see the
+NOTICE preamble.
 
 No dependency we ship is under the AGPL, so the commercial license
 covers everything a closed-source deployment runs. Releases up to and
@@ -559,23 +564,3 @@ has the details.
 - [SECURITY.md](SECURITY.md) - responsible disclosure
 
 ---
-
-<p align="left">
-  <!-- Social Links -->
-  <a href="https://x.com/datadrivenconst" target="_blank">
-    <img src="https://img.shields.io/twitter/follow/datadrivenconst?logo=X&style=flat&color=%23f5f5f5" alt="Follow on X">
-  </a>
-  <a href="https://www.youtube.com/@datadrivenconstruction" target="_blank">
-    <img src="https://img.shields.io/badge/YouTube-FF0000?logo=youtube&logoColor=white" alt="Subscribe on YouTube">
-  </a>
-  <a href="https://www.linkedin.com/company/78381569" target="_blank">
-    <img src="https://custom-icon-badges.demolab.com/badge/LinkedIn-0A66C2?logo=linkedin-white&logoColor=fff" alt="Connect on LinkedIn">
-  </a>
-</p>
-
-
-<p align="left">
-  <a href="https://datadrivenconstruction.io">
-    <img src="https://datadrivenconstruction.io/wp-content/uploads/2023/07/DataDrivenConstruction-1-1.png" alt="DataDrivenConstruction logo" width="200"/>
-  </a>
-</p>

@@ -2,7 +2,7 @@
 
 ## The position, in one sentence
 
-OpenConstructionERP is one open platform for building any construction
+Construction AI OS is one open platform for building any construction
 application. Not a horizontal business toolkit that happens to have a
 construction template, a platform whose core, data and standards are
 construction from the ground up.
@@ -28,7 +28,7 @@ about construction.
 
 ## This platform ships the hard part
 
-OpenConstructionERP inverts that. The construction foundations are the core,
+Construction AI OS inverts that. The construction foundations are the core,
 and they are already here in the repository:
 
 - Cost databases and rate management (`backend/app/modules/costs`,
@@ -65,7 +65,7 @@ your platform, and that is a deliberate choice rather than a gap.
 
 ## The licence model
 
-OpenConstructionERP is released under AGPL-3.0 for the community edition, with a
+Construction AI OS is released under AGPL-3.0 for the community edition, with a
 separate commercial licence for organisations that need terms the AGPL does not
 give them. In practice:
 

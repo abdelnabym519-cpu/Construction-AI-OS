@@ -1,4 +1,4 @@
-# OpenConstructionERP — Saudi Vision 2030 Pack
+# Construction AI OS — Saudi Vision 2030 Pack
 
 Partner pack pre-configuring [Construction AI OS](https://github.com/abdelnabym519-cpu/Construction-AI-OS)
 for Saudi Arabian mega-project contractors — NEOM, Red Sea Global,

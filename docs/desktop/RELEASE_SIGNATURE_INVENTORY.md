@@ -1,6 +1,6 @@
 # Which releases are signed, and what "signed" means
 
-This page states plainly what cryptographic guarantees an OpenConstructionERP
+This page states plainly what cryptographic guarantees an Construction AI OS
 download does and does not carry. It exists because "is it signed?" has four
 different answers here and they do not agree with each other, so a single yes or
 no would be misleading whichever way it went.
@@ -121,13 +121,13 @@ inferring it from its version number.
 
 ## Verifying a download yourself
 
-For a release that carries the three files:
+For a release published from this repository that carries the three files (artefacts published from the original project before the fork carry that repository's identity instead):
 
 ```
 cosign verify-blob \
   --certificate SHA256SUMS.pem \
   --signature SHA256SUMS.sig \
-  --certificate-identity-regexp 'https://github.com/datadrivenconstruction/OpenConstructionERP/.*' \
+  --certificate-identity-regexp 'https://github.com/abdelnabym519-cpu/Construction-AI-OS/.*' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   SHA256SUMS
 
@@ -141,14 +141,14 @@ says nothing about the file you downloaded.
 To look at a platform signature directly, on macOS:
 
 ```
-codesign -dv --verbose=4 /Applications/OpenConstructionERP.app
-spctl --assess --type execute -vv /Applications/OpenConstructionERP.app
+codesign -dv --verbose=4 "/Applications/Construction AI OS.app"
+spctl --assess --type execute -vv "/Applications/Construction AI OS.app"
 ```
 
 and on Windows, with the SDK's `signtool`:
 
 ```
-signtool verify /pa /v OpenConstructionERP_x64-setup.exe
+signtool verify /pa /v "Construction AI OS_x64-setup.exe"
 ```
 
 Today both of those report the absence described above. That is the expected

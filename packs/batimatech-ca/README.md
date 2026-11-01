@@ -1,4 +1,4 @@
-# OpenConstructionERP × Canada Batimatech
+# Construction AI OS × Canada Batimatech
 
 Partner pack pre-configuring [Construction AI OS](https://github.com/abdelnabym519-cpu/Construction-AI-OS)
 for Canadian construction companies.

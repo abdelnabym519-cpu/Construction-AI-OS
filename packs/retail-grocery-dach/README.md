@@ -1,6 +1,6 @@
 # Discount Grocery Retail pack (DACH)
 
-An industry pack for OpenConstructionERP that pre-configures the platform for
+An industry pack for Construction AI OS that pre-configures the platform for
 German-speaking discount food-retail new-builds.
 
 It ships three fully priced example projects, each a DIN 276 cost plan with a

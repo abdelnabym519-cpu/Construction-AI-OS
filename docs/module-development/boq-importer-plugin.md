@@ -1,6 +1,6 @@
 # BOQ Importer Plugin
 
-OpenConstructionERP ships native importers for 20+ regional BOQ
+Construction AI OS ships native importers for 20+ regional BOQ
 standards (GAEB, NRM, MasterFormat, DIN 276, DPGF, PBC, GESN,
 SINAPI, …) plus the cross-cutting GAEB XML 3.3 exchange. All of
 them go through one polymorphic frontend page and one backend

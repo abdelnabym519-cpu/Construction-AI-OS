@@ -1,6 +1,6 @@
-# OpenConstructionERP — New Zealand Partner Pack (`nzs`)
+# Construction AI OS — New Zealand Partner Pack (`nzs`)
 
-Pre-configures OpenConstructionERP for **New Zealand** contractors.
+Pre-configures Construction AI OS for **New Zealand** contractors.
 
 ## What's inside
 
