@@ -206,9 +206,19 @@ SYSTEM_COLUMNS = [
 
 
 # Default "unknown" contact - every COBie row needs a creator email,
-# even when we don't know one. Real deployments override this via
-# ``CobieOptions.default_contact_email``.
-DEFAULT_CONTACT_EMAIL = "handover@openconstructionerp.local"
+# even when we don't know one. It lands in the exported ``Email*`` and
+# ``CreatedBy`` columns of a handover file, so it must not name an
+# upstream-owned mailbox: this distribution ships no such address, and a
+# handover receiver who wrote to one would reach nobody. The placeholder
+# therefore uses the same reserved example domain as the ``support_email``
+# default in app/config.py. Real deployments override this via
+# ``CobieOptions.default_contact_email``, passing the installation's own
+# support address.
+#
+# Kept a module-level literal rather than resolved from settings:
+# ``CobieOptions`` is frozen and hashed into cache keys, so a default that
+# moved with ambient configuration would make those keys unstable.
+DEFAULT_CONTACT_EMAIL = "handover@example.com"
 DEFAULT_CREATED_BY = DEFAULT_CONTACT_EMAIL
 SHEET_NAME_OVERRIDES = {
     "Facility": "Facility",
