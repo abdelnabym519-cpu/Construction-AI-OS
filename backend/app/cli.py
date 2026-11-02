@@ -411,6 +411,30 @@ def _setup_env(data_dir: Path, host: str, port: int) -> None:
 
     if embedded_pg.is_requested():
         if embedded_pg.boot(data_dir):
+            # boot() has just written DATABASE_URL and DATABASE_SYNC_URL into
+            # this process, and get_settings() is @lru_cache'd while Settings
+            # reads the environment once, when it is constructed. This CLI has
+            # already read settings before any command ran: main() builds the
+            # argument parser first, and the parser's help and description
+            # strings carry the display name through _app_name(). The bare
+            # first-run greeting reads the same name again. That cached
+            # Settings still holds the empty database_url it was built with,
+            # and app/database.py builds its engine from get_settings() while
+            # it is being imported - so the first import of app.main died with
+            # "DATABASE_URL must be a PostgreSQL URL" while the cluster was up
+            # and the environment was correct.
+            #
+            # Dropping the cache here is what makes the ordering contract in
+            # app/core/embedded_pg.py hold again ("boot() MUST run ... before
+            # get_settings() is cached"): after a successful boot the next
+            # Settings is built from the environment boot just wrote. The guard
+            # in app/database.py is untouched - a genuinely missing or
+            # non-PostgreSQL URL still fails loudly, and now it fails for the
+            # operator's configuration instead of for our boot order.
+            from app.config import get_settings
+
+            get_settings.cache_clear()
+
             # The embedded cluster is up; the schema bring-up (create_all +
             # alembic) runs next, during app startup. Mark it so the desktop
             # launcher can show a "preparing database" step.
