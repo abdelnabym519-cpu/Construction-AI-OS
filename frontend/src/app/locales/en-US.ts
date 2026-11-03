@@ -13,15 +13,6 @@
 
 const resource = {
   "translation": {
-    "legal.link": "Legal",
-    "legal.page_title": "Legal",
-    "legal.notice_heading": "Attribution notice",
-    "legal.source_heading": "Source code offer",
-    "legal.source_body": "The complete corresponding source code for the version of this application you are using is available from the location below, as required by section 13 of the GNU Affero General Public License.",
-    "legal.machine_readable": "Machine-readable disclosure",
-    "legal.licence_heading": "Licence",
-    "legal.licence_reference": "The full licence text ships with this distribution as the LICENSE file.",
-    "legal.unavailable": "Some of this information could not be loaded.",
     "modules.catalog.boq": "Bid Schedule",
     "modules.catalog.preliminaries": "General conditions",
     "cost_match.blank_description": "blank line in the bid schedule",

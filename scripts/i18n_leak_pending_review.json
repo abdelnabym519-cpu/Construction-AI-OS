@@ -1775,65 +1775,92 @@
   },
   "legal.licence_heading": {
     "added_by": "part C legal page (2026-11-03)",
-    "differs_in": [],
+    "differs_in": [
+      "en-US"
+    ],
     "en_value": "Licence",
-    "n": 44,
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
     "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
   },
   "legal.licence_reference": {
     "added_by": "part C legal page (2026-11-03)",
-    "differs_in": [],
+    "differs_in": [
+      "en-US"
+    ],
     "en_value": "The full licence text ships with this distribution as the LICENSE file.",
-    "n": 44,
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
     "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
   },
   "legal.link": {
     "added_by": "part C legal page (2026-11-03)",
-    "differs_in": [],
+    "differs_in": [
+      "en-US"
+    ],
     "en_value": "Legal",
-    "n": 44,
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
     "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
   },
   "legal.machine_readable": {
     "added_by": "part C legal page (2026-11-03)",
-    "differs_in": [],
+    "differs_in": [
+      "en-US"
+    ],
     "en_value": "Machine-readable disclosure",
-    "n": 44,
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
     "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
   },
   "legal.notice_heading": {
     "added_by": "part C legal page (2026-11-03)",
-    "differs_in": [],
+    "differs_in": [
+      "en-US"
+    ],
     "en_value": "Attribution notice",
-    "n": 44,
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
     "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
   },
   "legal.page_title": {
     "added_by": "part C legal page (2026-11-03)",
-    "differs_in": [],
+    "differs_in": [
+      "en-US"
+    ],
     "en_value": "Legal",
-    "n": 44,
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
     "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
   },
   "legal.source_body": {
     "added_by": "part C legal page (2026-11-03)",
-    "differs_in": [],
+    "differs_in": [
+      "en-US"
+    ],
     "en_value": "The complete corresponding source code for the version of this application you are using is available from the location below, as required by section 13 of the GNU Affero General Public License.",
-    "n": 44,
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
     "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
   },
   "legal.source_heading": {
     "added_by": "part C legal page (2026-11-03)",
-    "differs_in": [],
+    "differs_in": [
+      "en-US"
+    ],
     "en_value": "Source code offer",
-    "n": 44,
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
     "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
   },
   "legal.unavailable": {
     "added_by": "part C legal page (2026-11-03)",
-    "differs_in": [],
+    "differs_in": [
+      "en-US"
+    ],
     "en_value": "Some of this information could not be loaded.",
-    "n": 44,
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
     "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
   },
   "leveling.legend_high": {

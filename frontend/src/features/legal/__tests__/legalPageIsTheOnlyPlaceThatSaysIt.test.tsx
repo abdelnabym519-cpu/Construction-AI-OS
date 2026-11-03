@@ -111,10 +111,27 @@ describe('the Legal page is reachable and translatable', () => {
   it('ships in every locale, so no language falls back to a missing key', () => {
     const files = localeFiles();
     expect(files.length).toBe(45);
+    // Six of the 45 are regional variants that resolve through a base language,
+    // and enUSFallsBackToEnglish.test.ts fails the build when a variant
+    // duplicates a value its base already carries. So "every locale can render
+    // the page" means: the file carries the key, or its base does. Asserting the
+    // key is physically present in all 45 was wrong, and it is the variant files
+    // that would have had to carry dead weight to satisfy it.
+    const base: Record<string, string> = {
+      'en-GB.ts': 'en.ts',
+      'en-US.ts': 'en.ts',
+      'es-CL.ts': 'es.ts',
+      'es-CO.ts': 'es.ts',
+      'es-MX.ts': 'es.ts',
+      'pt-BR.ts': 'pt.ts',
+    };
     const missing: string[] = [];
     for (const f of files) {
       const text = read(`${localesDir}/${f}`);
-      for (const k of LEGAL_KEYS) if (!text.includes(`"${k}"`)) missing.push(`${f}: ${k}`);
+      const fallback = base[f] ? read(`${localesDir}/${base[f]}`) : '';
+      for (const k of LEGAL_KEYS) {
+        if (!text.includes(`"${k}"`) && !fallback.includes(`"${k}"`)) missing.push(`${f}: ${k}`);
+      }
     }
     // check_i18n_orphan_keys.py fails the build on exactly this, from the other
     // direction; naming the gaps here makes the failure readable in the lane

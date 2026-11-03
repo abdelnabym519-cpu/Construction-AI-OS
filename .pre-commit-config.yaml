@@ -481,6 +481,18 @@ repos:
         pass_filenames: false
         files: ^(frontend/src/.*\.tsx?|scripts/i18n_orphan_baseline\.json)$
 
+      # Nothing the product renders may advertise that it is open source, name
+      # the project it came from, or point at a community somewhere else. CI
+      # runs the same script in repo hygiene. It inherited a per-file debt
+      # baseline when it landed, and those counts may only shrink - see the
+      # module docstring for what is exempt and why.
+      - id: no-promotional-strings-check
+        name: Gate promotional and upstream-attribution strings
+        entry: python scripts/check_no_promotional_strings.py
+        language: system
+        pass_filenames: false
+        files: ^(frontend/src/.*\.tsx?|scripts/promotional_(allowlist|debt_baseline)\.json)$
+
       # The orphan guard above asks whether a key is reachable at all, and
       # says in its own comments that it deliberately does not ask whether a
       # language has every form it needs: a Russian file carrying only
