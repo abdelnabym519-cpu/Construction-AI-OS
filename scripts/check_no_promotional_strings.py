@@ -221,9 +221,7 @@ def main() -> int:
             + "\n",
             encoding="utf-8",
         )
-        print(
-            f"baseline written: {len(counts)} file(s), {sum(counts.values())} violation(s) recorded as debt"
-        )
+        print(f"baseline written: {len(counts)} file(s), {sum(counts.values())} violation(s) recorded as debt")
         return 0
 
     if new:

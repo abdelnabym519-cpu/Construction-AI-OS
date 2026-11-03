@@ -276128,10 +276128,10 @@
     },
     {
       "name": "auth",
-      "ts_files": 20,
+      "ts_files": 21,
       "css_files": 0,
-      "test_files": 7,
-      "total_files": 20
+      "test_files": 8,
+      "total_files": 21
     },
     {
       "name": "authority-submission",
@@ -276832,6 +276832,13 @@
       "css_files": 0,
       "test_files": 1,
       "total_files": 4
+    },
+    {
+      "name": "legal",
+      "ts_files": 3,
+      "css_files": 0,
+      "test_files": 1,
+      "total_files": 3
     },
     {
       "name": "legal-entities",
@@ -279085,9 +279092,9 @@
     "total_routes": 4627,
     "total_schemas": 4120,
     "total_python_files": 2812,
-    "frontend_features": 207,
-    "frontend_ts_files": 3570,
-    "frontend_backend_mapped": 187
+    "frontend_features": 208,
+    "frontend_ts_files": 3574,
+    "frontend_backend_mapped": 188
   },
   "frontend_backend_mapping": {
     "about": null,
@@ -279203,6 +279210,7 @@
     "issues": null,
     "jobs": "jobs",
     "labor-rates": "labor_rates",
+    "legal": "legal_entities",
     "legal-entities": "legal_entities",
     "markups": "markups",
     "match": "match",
