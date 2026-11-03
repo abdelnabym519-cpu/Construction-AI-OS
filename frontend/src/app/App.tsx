@@ -669,6 +669,7 @@ const ImportDatabasePage = lazy(() =>
 const OnboardingWizard = lazy(() =>
   import('@/features/onboarding/OnboardingWizard').then((m) => ({ default: m.OnboardingWizard }))
 );
+const LegalPage = lazy(() => import('@/features/legal/LegalPage'));
 const LoginPageNext = lazy(() =>
   import('@/features/auth/LoginPageNext').then((m) => ({ default: m.LoginPageNext }))
 );
@@ -1216,6 +1217,10 @@ export default function App() {
         {/* Auth — public */}
         <Route path="/login" element={isAuthenticated ? <AuthedHome /> : <LoginPage />} />
         <Route path="/login-next" element={isAuthenticated ? <AuthedHome /> : <Suspense fallback={<LoadingScreen />}><LoginPageNext /></Suspense>} />
+        {/* The one page that states the licence, the attribution notice and
+            the source offer. Public: it has to be reachable before sign-in and
+            while signed in, so no isAuthenticated redirect. */}
+        <Route path="/legal" element={<Suspense fallback={<LoadingScreen />}><LegalPage /></Suspense>} />
         <Route path="/register" element={isAuthenticated ? <AuthedHome /> : <RegisterPage />} />
         <Route path="/auth/oidc/callback" element={<Suspense fallback={<LoadingScreen />}><OidcCallbackPage /></Suspense>} />
         <Route path="/forgot-password" element={isAuthenticated ? <AuthedHome /> : <ForgotPasswordPage />} />

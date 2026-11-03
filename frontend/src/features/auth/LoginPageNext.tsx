@@ -20,6 +20,7 @@ import {
   type FormEvent,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
+import { useLegalVisibility } from '@/features/legal/useLegalVisibility';
 import { APP_NAME } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
@@ -57,6 +58,7 @@ const TONE_STYLES: Record<ModuleTile['tone'], { bg: string; fg: string; ring: st
 };
 
 export function LoginPageNext() {
+  const legalLinkVisible = useLegalVisibility((s) => s.legalLinkVisible);
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -495,7 +497,13 @@ export function LoginPageNext() {
               /legal, which carries the licence, the NOTICE attribution and the
               source offer - the only place in the UI that does. */}
           <div className="relative mt-auto pt-10 text-[11px] text-content-tertiary/80 dark:text-white/40">
-            © 2026 {APP_NAME} · <Link to="/legal">{t('legal.link', { defaultValue: 'Legal' })}</Link>
+            © 2026 {APP_NAME}
+            {legalLinkVisible && (
+              <>
+                {' · '}
+                <Link to="/legal">{t('legal.link', { defaultValue: 'Legal' })}</Link>
+              </>
+            )}
           </div>
         </div>
 

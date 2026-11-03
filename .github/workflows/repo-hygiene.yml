@@ -1067,6 +1067,21 @@ jobs:
         if: ${{ !cancelled() }}
         run: python scripts/check_locale_stripped_diacritics.py
 
+      # Nothing the product renders may advertise that it is open source, or
+      # where it came from, or a community to join somewhere else. This is the
+      # ratchet on that: it fails on any new promotional or upstream-attribution
+      # string in a locale value or a component literal. It inherited a large
+      # debt baseline when it landed, recorded per file in
+      # scripts/promotional_debt_baseline.json, and those counts can only go
+      # down - the script prints a note naming any file that is clean now so the
+      # entry can be lowered in the same diff. Exemptions are the legal floor,
+      # the copyright headers, generated files, and functional strings that
+      # carry a written reason in scripts/promotional_allowlist.json; the module
+      # docstring says which is which and why.
+      - name: Check nothing rendered advertises the project's origins
+        if: ${{ !cancelled() }}
+        run: python scripts/check_no_promotional_strings.py
+
       # The requirements import sample is a row the user copies, and two of its
       # seven fields are vocabularies the importer matches literally. 36 of 42
       # locales had translated the priority, so RequirementCreate rejected the

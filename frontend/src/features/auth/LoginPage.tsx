@@ -15,6 +15,7 @@ import { BrandingEditorModal } from '@/app/layout/CustomBranding';
 import { extractErrorMessageFromBody } from '@/shared/lib/api';
 import { APP_NAME } from '@/shared/lib/brandName';
 import { isTauri } from '@/shared/lib/desktop';
+import { useLegalVisibility } from '@/features/legal/useLegalVisibility';
 import { APP_VERSION } from '@/shared/lib/version';
 import { loginFailureKindFromResponse } from './loginError';
 import { AuthBackground } from './AuthBackground';
@@ -70,6 +71,7 @@ function ThemeSwitch() {
 }
 
 export function LoginPage() {
+  const legalLinkVisible = useLegalVisibility((s) => s.legalLinkVisible);
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -663,10 +665,23 @@ export function LoginPage() {
 
 
           {/* Running build version - always visible so it's obvious which
-              version is live on a fresh open. Matches the Sidebar / About
-              treatment (v{APP_VERSION}). */}
-          <div className="mt-3 text-center text-2xs font-mono text-content-quaternary/80 tabular-nums">
-            v{APP_VERSION}
+              version is live on a fresh open. Matches the Sidebar treatment.
+              Beside it, the one small footer link to /legal: the only place in
+              the product that states the licence, the attribution notice and
+              the source offer. The link is a setting (default on) so an
+              operator who has cleared the licence position for their own
+              deployment can drop it; the version is not a setting, because
+              knowing which build is live is support information. */}
+          <div className="mt-3 flex items-center justify-center gap-1.5 text-2xs font-mono text-content-quaternary/80 tabular-nums">
+            <span>v{APP_VERSION}</span>
+            {legalLinkVisible && (
+              <>
+                <span aria-hidden>&middot;</span>
+                <Link to="/legal" className="transition-colors hover:text-content-secondary">
+                  {t('legal.link', { defaultValue: 'Legal' })}
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

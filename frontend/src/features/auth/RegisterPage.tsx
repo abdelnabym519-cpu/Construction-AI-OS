@@ -6,8 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Eye, EyeOff, Mail, Lock, User, Globe, ChevronDown,
-  ShieldCheck, HardDrive, Zap, Globe2, Brain, Users,
-  Building2, Briefcase, Search,
+  HardDrive, Zap, Globe2, Brain, Building2, Briefcase, Search,
 } from 'lucide-react';
 import { Button, Input, LogoWithText, CountryFlag } from '@/shared/ui';
 import { SUPPORTED_LANGUAGES, getLanguageByCode } from '@/app/i18n';
@@ -136,11 +135,9 @@ export function RegisterPage() {
 
   const benefits = [
     { icon: HardDrive, color: 'text-emerald-500 bg-emerald-500/10', title: t('login.benefit.local', 'Your data stays on your computer'), desc: t('login.benefit.local_desc', 'No cloud. No third-party servers. Full control.') },
-    { icon: ShieldCheck, color: 'text-blue-500 bg-blue-500/10', title: t('login.benefit.open_source', '100% open source'), desc: t('login.benefit.open_source_desc', 'Transparent code. No vendor lock-in.') },
     { icon: Globe2, color: 'text-violet-500 bg-violet-500/10', title: t('login.benefit.standards', 'Global cost databases'), desc: t('login.benefit.standards_desc', '55,000+ cost items, 48 databases.') },
     { icon: Brain, color: 'text-amber-500 bg-amber-500/10', title: t('login.benefit.ai', 'AI-assisted estimation'), desc: t('login.benefit.ai_desc', 'Smart suggestions. You decide, AI assists.') },
     { icon: Zap, color: 'text-rose-500 bg-rose-500/10', title: t('login.benefit.allinone', 'BOQ + 4D + 5D + Tendering'), desc: t('login.benefit.allinone_desc', 'Full workflow in one tool.') },
-    { icon: Users, color: 'text-cyan-500 bg-cyan-500/10', title: t('login.benefit.free', 'Free for everyone'), desc: t('login.benefit.free_desc', 'No fees. No limits. By estimators.') },
   ];
 
   return (
@@ -185,7 +182,12 @@ export function RegisterPage() {
             <span className="gradient-text">{t('login.hero_highlight', 'reimagined')}</span>
           </h2>
           <p className="mt-1.5 text-[13px] text-content-secondary leading-relaxed">
-            {t('login.hero_desc', 'Professional BOQ, 4D scheduling, 5D cost model, and tendering - all in one open-source platform.')}
+            {/* This used to reuse login.hero_desc, whose text ended "all in one
+                open-source platform" - a marketing claim about the project's
+                licence, on a page whose job is to register a workspace. It now
+                uses the same neutral product tagline the sign-in page carries,
+                which is already translated in every locale. */}
+            {t('login.workspace_tagline', 'Estimating, scheduling, cost control and site records in one place.')}
           </p>
         </div>
 

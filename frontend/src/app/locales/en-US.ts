@@ -13,6 +13,15 @@
 
 const resource = {
   "translation": {
+    "legal.link": "Legal",
+    "legal.page_title": "Legal",
+    "legal.notice_heading": "Attribution notice",
+    "legal.source_heading": "Source code offer",
+    "legal.source_body": "The complete corresponding source code for the version of this application you are using is available from the location below, as required by section 13 of the GNU Affero General Public License.",
+    "legal.machine_readable": "Machine-readable disclosure",
+    "legal.licence_heading": "Licence",
+    "legal.licence_reference": "The full licence text ships with this distribution as the LICENSE file.",
+    "legal.unavailable": "Some of this information could not be loaded.",
     "modules.catalog.boq": "Bid Schedule",
     "modules.catalog.preliminaries": "General conditions",
     "cost_match.blank_description": "blank line in the bid schedule",
@@ -374,7 +383,6 @@ const resource = {
     "demo.modal_subtitle": "Install a complete project with bid schedule, schedule, budget, and tendering",
     "demo_banner.modal_sample_data_body": "All projects, bid schedules, and figures shown here are sample data created for demonstration purposes only. Nothing here is real project data.",
     "login.benefit.allinone": "Bid Schedule + 4D + 5D + Tendering",
-    "login.hero_desc": "Professional bid schedule, 4D scheduling, 5D cost model, and tendering - all in one open-source platform.",
     "marketplace.demo_installed_message": "{{name}} created with full bid schedule, schedule, budget, and tendering.",
     "modules.dev_what_desc": "Construction AI OS ships with 100+ modules. Every business feature (bid schedule, BIM Hub, Schedule, CDE, regional bid schedule packs, AI tooling) is a self-contained module. A module can add REST routes, database tables, UI pages, validation rules, translations, or any combination. You can enable, disable, install, or replace any module without touching the core.",
     "modules.dev_what_frontend_ex": "e.g. a regional bid schedule-exchange UI or a niche report",
@@ -1120,7 +1128,6 @@ const resource = {
     "branding.title": "Customize branding",
     "about.svc_workshop_desc": "Hands-on sessions: estimating, BIM-to-bid schedule, AI takeoff, GAEB pipelines. Recorded for your team library.",
     "about.docs_pop_bim": "Import BIM (RVT/IFC) → Bid Schedule",
-    "about.license_commercial_short": "Need a commercial license (without AGPL obligations) or an enterprise SLA?",
     "ai.apply_cwicr_rates_hint": "Save {{count}} line(s) with the regional cost-database rate ({{region}}) instead of the AI estimate. The catalog code is recorded on each position.",
     "ai.tab_excel": "Spreadsheet with Bid Schedule data",
     "ai.tab_pdf": "Bid schedule sheets, specs, tender docs",

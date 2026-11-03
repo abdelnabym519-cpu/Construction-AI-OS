@@ -20,6 +20,7 @@ import { useNavPendingStore } from '@/shared/lib/navigationProgress';
 import { useRecentStore } from '@/stores/useRecentStore';
 import { useGlobalSearchStore } from '@/stores/useGlobalSearchStore';
 import { getModuleNavItems, navItemModuleId } from '@/modules/_registry';
+import { useLegalVisibility } from '@/features/legal/useLegalVisibility';
 import { APP_VERSION } from '@/shared/lib/version';
 
 import { useSidebarBadges } from '@/shared/hooks/useSidebarBadges';
@@ -491,7 +492,7 @@ function pickActiveRoute(
 }
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
-  const { t } = useTranslation();
+  const legalLinkVisible = useLegalVisibility((s) => s.legalLinkVisible);  const { t } = useTranslation();
   // The sidebar mounts at app boot, outside any Suspense boundary, exactly
   // like the Header. Under StrictMode's double-mount, `useTranslation`'s own
   // store subscription can be churned away and miss the bundle-added event
@@ -1741,22 +1742,28 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             which build you are on is support information, not promotion. */}
         {iconified ? (
           <div className="pt-2 pb-1 flex flex-col items-center gap-1">
-            <a href="/legal"
-              title={t('legal.link', { defaultValue: 'Legal' })}
-              aria-label={t('legal.link', { defaultValue: 'Legal' })}
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-border-light bg-surface-primary hover:bg-surface-elevated transition-all"
-            >
-              <Info size={13} strokeWidth={1.75} className="text-content-secondary" />
-            </a>
+            {legalLinkVisible && (
+              <a href="/legal"
+                title={t('legal.link', { defaultValue: 'Legal' })}
+                aria-label={t('legal.link', { defaultValue: 'Legal' })}
+                className="flex h-8 w-8 items-center justify-center rounded-md border border-border-light bg-surface-primary hover:bg-surface-elevated transition-all"
+              >
+                <Info size={13} strokeWidth={1.75} className="text-content-secondary" />
+              </a>
+            )}
           </div>
         ) : (
           <div className="pb-2 pt-1 flex flex-col gap-1.5">
             <div className="flex items-center justify-center gap-1.5 min-w-0">
               <span className="text-2xs text-content-tertiary">v{APP_VERSION}</span>
-              <span className="text-2xs text-content-quaternary/40">&middot;</span>
-              <a href="/legal" className="text-2xs text-content-tertiary hover:text-content-secondary transition-colors">
-                {t('legal.link', { defaultValue: 'Legal' })}
-              </a>
+              {legalLinkVisible && (
+                <>
+                  <span className="text-2xs text-content-quaternary/40">&middot;</span>
+                  <a href="/legal" className="text-2xs text-content-tertiary hover:text-content-secondary transition-colors">
+                    {t('legal.link', { defaultValue: 'Legal' })}
+                  </a>
+                </>
+              )}
             </div>
           </div>
         )}

@@ -1,0 +1,8 @@
+{
+  "_comment": "Every entry needs a reason. These are strings the product must be able to say because they are functional, not promotional: either the user is downloading a component from where its publisher puts it, or they are configuring a notification channel. An entry is matched either as an exact i18n key or as a substring of the offending literal.",
+  "bug.channel_github_desc": "Label for the bug-report channel in the Help menu. It tells the user the report is public and pre-filled, which is a warning about where their data goes, not an advertisement.",
+  "app.report_bug_not_configured": "Toast shown when the bug tracker is not configured for this install. Naming the missing setting is the only way the message is actionable.",
+  "issues/new?title=": "The bug-report URL built in Header.tsx. BugReportMenuLinks.test.tsx asserts it targets this product's own repository, and the same file already asserts that no upstream contact surface remains. Three test files guard a fixed defect here (the menu used to open the tracker with an empty body) and the rule that the report is written in English whatever language the UI is in. Filing a bug is a support function, not a promotional link.",
+  "integrations.telegram": "Telegram as a notification channel the workspace configures for its own alerts, alongside Slack and Teams. It is an integration, not a community link.",
+  "integrations.intro_": "Same as integrations.telegram: the notification-channel setup copy."
+}
