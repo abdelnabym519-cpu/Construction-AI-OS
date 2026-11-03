@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation, useMatch } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, ChevronDown, ChevronRight, LogOut, User, Settings, Menu, FolderOpen, CheckCircle2, XCircle, Bug, Loader2, Upload, HelpCircle, GraduationCap, ExternalLink, Github, Sun, Moon, Monitor, Globe } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, LogOut, User, Settings, Menu, FolderOpen, CheckCircle2, XCircle, Bug, Loader2, Upload, HelpCircle, GraduationCap, ExternalLink, Github, Info, Sun, Moon, Monitor, Globe } from 'lucide-react';
 import clsx from 'clsx';
 import { SUPPORTED_LANGUAGES, getLanguageByCode, changeLanguage } from '../i18n';
 import { sortLanguagesByName } from '@/shared/lib/languageOrder';
@@ -24,13 +24,12 @@ import {
   exportErrorReport,
   getErrorCount,
   getLastError,
-  isLastErrorNetworkOnly,
-} from '@/shared/lib/errorLogger';
+  isLastErrorNetworkOnly, } from '@/shared/lib/errorLogger';
 import { APP_VERSION, APP_BUILD_FINGERPRINT } from '@/shared/lib/version';
 import { useToastStore } from '@/stores/useToastStore';
 import { useI18nReady } from '@/shared/lib/useI18nReady';
 import { isTauri, openAppInBrowser, openLink } from '@/shared/lib/desktop';
-import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
+
 import { ProjectJourneyButton } from './ProjectJourney';
 import { PresenceAvatarStack } from '@/features/global_presence';
 import { getRouteIcon } from './routeIcons';
@@ -710,6 +709,17 @@ export function BugReportMenu() {
     return () => window.removeEventListener('oe:open-bug-report', openMenu);
   }, []);
 
+
+  const handleDownloadLog = () => {
+    setOpen(false);
+    triggerDownload(exportErrorReport(), errorLogFilename());
+    addToast({
+      type: 'success',
+      title: t('app.bug_log_downloaded', { defaultValue: 'Log downloaded' }),
+      message: t('app.bug_log_downloaded_desc', { defaultValue: 'Attach this JSON to your report.' }),
+    });
+  };
+
   const handleGithub = () => {
     if (descriptionTooShort) return;
     setOpen(false);
@@ -732,16 +742,6 @@ export function BugReportMenu() {
           title: t('app.report_bug_not_configured', { defaultValue: 'GitHub repo not configured' }),
         });
       }
-    });
-  };
-
-  const handleDownloadLog = () => {
-    setOpen(false);
-    triggerDownload(exportErrorReport(), errorLogFilename());
-    addToast({
-      type: 'success',
-      title: t('app.bug_log_downloaded', { defaultValue: 'Log downloaded' }),
-      message: t('app.bug_log_downloaded_desc', { defaultValue: 'Attach this JSON to your report.' }),
     });
   };
 
@@ -1033,18 +1033,18 @@ function HelpMenu() {
           </button>
           <div className="my-1 border-t border-border-light" role="separator" />
 
-          {/* Source code: the repository this install is built from. */}
+          {/* Legal: the licence, the NOTICE attribution and the source offer.
+              This menu used to link out to the upstream repository instead;
+              the product no longer advertises where it came from, and the one
+              place that has to say so is /legal. */}
           <a
             role="menuitem"
-            href={SOURCE_REPO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/legal"
             onClick={() => setOpen(false)}
             className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-content-primary hover:bg-surface-secondary transition-colors"
           >
-            <Github size={14} className="text-content-tertiary shrink-0" />
-            <span className="flex-1">{t('nav.github', { defaultValue: 'GitHub repository' })}</span>
-            <ExternalLink size={11} className="text-content-quaternary shrink-0" />
+            <Info size={14} className="text-content-tertiary shrink-0" />
+            <span className="flex-1">{t('legal.link', { defaultValue: 'Legal' })}</span>
           </a>
 
           {/* Desktop only: open the same app in the user's normal web browser.

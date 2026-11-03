@@ -7,7 +7,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { CustomBranding } from './CustomBranding';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { FolderOpen, Table2, CalendarDays, Boxes, Settings, Info, ChevronDown, ChevronRight, X, ClipboardList, Users, HelpCircle, History, Plus, Search, Pin, PinOff, Eye, EyeOff, Pencil, Check, Github, Loader2, LayoutGrid, Palette, RotateCcw, type LucideIcon,  } from 'lucide-react';
+import { FolderOpen, Table2, CalendarDays, Boxes, Settings, Info, ChevronDown, ChevronRight, X, ClipboardList, Users, HelpCircle, History, Plus, Search, Pin, PinOff, Eye, EyeOff, Pencil, Check, Loader2, LayoutGrid, Palette, RotateCcw, type LucideIcon, } from 'lucide-react';
 import { navGroups, type NavGroup, type NavItem } from './navCatalog';
 import { PRESET_WORKSPACES, resolveWorkspace, shownTab, workspaceSectionByRoute } from './workspaces';
 import { useCompanyWorkspace } from './useCompanyWorkspace';
@@ -21,7 +21,7 @@ import { useRecentStore } from '@/stores/useRecentStore';
 import { useGlobalSearchStore } from '@/stores/useGlobalSearchStore';
 import { getModuleNavItems, navItemModuleId } from '@/modules/_registry';
 import { APP_VERSION } from '@/shared/lib/version';
-import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
+
 import { useSidebarBadges } from '@/shared/hooks/useSidebarBadges';
 import { useHiddenModules } from '@/shared/hooks/useHiddenModules';
 import { usePartnerPack } from '@/shared/hooks/usePartnerPack';
@@ -32,12 +32,10 @@ import { useI18nReady } from '@/shared/lib/useI18nReady';
 import {
   useSidebarCollapseStore,
   SIDEBAR_WIDTH_FULL,
-  SIDEBAR_WIDTH_ICON,
-} from '@/stores/useSidebarCollapseStore';
+  SIDEBAR_WIDTH_ICON, } from '@/stores/useSidebarCollapseStore';
 import {
   useActiveProjectProfile,
-  buildModuleGate,
-} from '@/features/projects/useProjectProfile';
+  buildModuleGate, } from '@/features/projects/useProjectProfile';
 import { getIntlLocale } from '@/shared/lib/formatters';
 import { useAppearanceStore } from '@/stores/useAppearanceStore';
 import { sectionTone, useMenuIcon } from './menuIcons';
@@ -70,12 +68,10 @@ interface IconTarget {
 }
 
 
-
 /** An admin-grid tile. Extends NavItem with an optional `onClick`: when set,
  *  the tile runs that action in place instead of navigating to `to`. Used for
  *  the "Edit menu" tile, whose `to` is a non-routable sentinel. */
 type AdminGridItem = NavItem & { onClick?: () => void };
-
 
 
 // Admin / setup surfaces — rendered as a 2-column button grid pinned
@@ -1737,67 +1733,29 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           </div>
         )}
 
-        {/* Version + AGPL + GitHub link
-            Layout: GitHub icon (left) · version · AGPL link.
-            The GitHub link uses Lucide's Github mark — keeps the row aligned
-            with the rest of the sidebar's lucide icons and gives a clear
-            visual entry point to the source repo. */}
+        {/* Version, and the one plain link out of the product that the licence
+            needs. It used to be a GitHub mark plus an AGPL-3.0 link to the
+            upstream repository; both are gone from the UI, and /legal is now
+            the only surface that carries the licence, the NOTICE attribution
+            and the source offer. The row keeps the version because knowing
+            which build you are on is support information, not promotion. */}
         {iconified ? (
-          // Icon-only footer: the source-code link. The expand
-          // toggle lives on the floating edge-pill, not down here, so
-          // users see only one toggle entry-point — no duplicate UI.
           <div className="pt-2 pb-1 flex flex-col items-center gap-1">
-            <a
-              href={SOURCE_REPO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              title={`${t('sidebar.github_repo', { defaultValue: 'GitHub repository' })} (v${APP_VERSION})`}
-              aria-label={t('sidebar.github_repo', { defaultValue: 'GitHub repository' })}
+            <a href="/legal"
+              title={t('legal.link', { defaultValue: 'Legal' })}
+              aria-label={t('legal.link', { defaultValue: 'Legal' })}
               className="flex h-8 w-8 items-center justify-center rounded-md border border-border-light bg-surface-primary hover:bg-surface-elevated transition-all"
             >
-              <Github size={13} strokeWidth={1.75} className="text-content-secondary" />
+              <Info size={13} strokeWidth={1.75} className="text-content-secondary" />
             </a>
           </div>
         ) : (
-          // GitHub / version row.
-          //
-          // The horizontal padding here MUST mirror AdminGrid's column geometry
-          // (the parent `<div>` already gives us `px-2`; AdminGrid's `<ul>` uses
-          // `grid-cols-2 gap-1` with no extra inner padding). Earlier this row
-          // wrapped its buttons in another `px-2`, which made each button
-          // ~8 px narrower than every admin tile above. The card is a sibling
-          // of the admin grid in the layout coordinate space: same outer
-          // `px-2`.
           <div className="pb-2 pt-1 flex flex-col gap-1.5">
-            <div className="grid grid-cols-1 gap-1">
-              <a
-                href={SOURCE_REPO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={t('sidebar.github_repo', { defaultValue: 'GitHub repository' })}
-                aria-label={t('sidebar.github_repo', { defaultValue: 'GitHub repository' })}
-                className={clsx(
-                  'group flex h-8 w-full items-center justify-start gap-1.5 rounded-md border px-2 text-left transition-colors duration-fast ease-oe',
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-oe-blue/40',
-                  'border-border-light/60 bg-surface-primary text-content-secondary hover:bg-surface-secondary hover:text-content-primary hover:border-border-medium',
-                )}
-              >
-                <Github size={14} strokeWidth={1.75} aria-hidden className="shrink-0 text-content-secondary" />
-                <span className="min-w-0 flex-1 text-[11px] font-medium leading-none whitespace-nowrap overflow-hidden text-ellipsis text-content-secondary">
-                  GitHub
-                </span>
-              </a>
-            </div>
             <div className="flex items-center justify-center gap-1.5 min-w-0">
               <span className="text-2xs text-content-tertiary">v{APP_VERSION}</span>
-              <span className="text-2xs text-content-quaternary/40">·</span>
-              <a
-                href="/api/source"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-2xs text-content-tertiary hover:text-content-secondary transition-colors"
-              >
-                AGPL-3.0
+              <span className="text-2xs text-content-quaternary/40">&middot;</span>
+              <a href="/legal" className="text-2xs text-content-tertiary hover:text-content-secondary transition-colors">
+                {t('legal.link', { defaultValue: 'Legal' })}
               </a>
             </div>
           </div>
