@@ -156,6 +156,6 @@ MANIFEST = PartnerPackManifest(
             "TX": "IBC 2021, municipal adoption",
             "MA": "780 CMR 9th Edition, based on IBC 2015 + Massachusetts amendments",
         },
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

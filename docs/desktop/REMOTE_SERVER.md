@@ -1,12 +1,12 @@
 # Pointing the desktop app at a server you already run
 
-By default the OpenConstructionERP desktop application runs its own server and its own
+By default the Construction AI OS desktop application runs its own server and its own
 database on the computer it is installed on. Nothing about that changes, and on a machine
 where nobody has followed this document, nothing in it applies: the first run asks no
 question and offers no chooser.
 
 This document is for the other case. If your organisation already runs one
-OpenConstructionERP server, you can point desktop installations at it, so that everybody
+Construction AI OS server, you can point desktop installations at it, so that everybody
 works in the same projects instead of in a separate database per desk.
 
 ## The four places the answer can come from
@@ -63,8 +63,8 @@ One file per machine, in a conventional location that an unprivileged user canno
 
 | Platform | Path |
 |---|---|
-| Windows | `%ProgramData%\OpenConstructionERP\config.json` |
-| macOS | `/Library/Application Support/OpenConstructionERP/config.json` |
+| Windows | `%ProgramData%\Construction AI OS\config.json` |
+| macOS | `/Library/Application Support/Construction AI OS/config.json` |
 | Linux | `/etc/openconstructionerp/config.json` |
 
 ```json
@@ -124,7 +124,7 @@ in the clear. Use `https` wherever you can terminate it.
 
 The application does not open a blank window. The startup screen names the server that was
 tried, names which of the four layers configured it, says what went wrong (refused,
-timed out, answered but is not an OpenConstructionERP server, answered with an HTTP
+timed out, answered but is not an Construction AI OS server, answered with an HTTP
 error), and offers a button that starts a server on this computer instead. That button
 records the choice before restarting, so the restart does not come straight back to the
 same screen.

@@ -213,7 +213,7 @@ async def test_binding_concept_is_changed_only_through_a_change_request(world: W
             {"release_gate_code": OTHER_GATE},
             actor_id=world.manager,
             can_manage=True,
-            tenant_id=str(world.manager),
+            tenant_id=str(world.tenants[world.manager]),
         )
 
 
@@ -228,7 +228,7 @@ async def _set(w: World, data: dict, *, actor: uuid.UUID | None = None, can_mana
         data,
         actor_id=actor or w.manager,
         can_manage=can_manage,
-        tenant_id=str(w.manager),
+        tenant_id=str(w.tenants[w.manager]),
     )
 
 
@@ -788,7 +788,7 @@ async def test_two_first_writes_of_a_concept_or_a_package_end_with_one_row(world
                 {"catalogue_source": "shipped", "catalogue_id": "neutral"},
                 actor_id=other.manager,
                 can_manage=True,
-                tenant_id=str(other.manager),
+                tenant_id=str(other.tenants[other.manager]),
             )
             return "ok"
         except ProcurementError as exc:
@@ -838,7 +838,11 @@ async def test_moving_a_candidate_onto_a_company_already_listed_is_a_conflict(wo
 
 
 async def _framework(w: World, code: str, *, max_value: str = "500000", currency: str = "EUR", tenant=None):
-    tenant = tenant or str(w.manager)
+    # A framework belongs to a company, so the default is the manager's company and not
+    # the manager. Naming the person here only worked while project_tenant answered with
+    # the project owner's id too, which made the two halves of every framework lookup
+    # agree by accident of the old convention rather than by contract.
+    tenant = tenant or str(w.tenants[w.manager])
     async with w.factory() as s:
         svc = ProcurementConceptService(s)
         fw = await svc.create_framework(
@@ -870,7 +874,7 @@ def _call_off(fw, value: str = "300000", currency: str = "EUR") -> dict:
 
 
 async def test_framework_call_off_ledger_and_exhaustion(world: World) -> None:
-    tenant = str(world.manager)
+    tenant = str(world.tenants[world.manager])
     fw = await _framework(world, "FW-1")
     await add_contract_package(world, "S1", "supply")
     await add_contract_package(world, "S2", "supply")
@@ -909,14 +913,14 @@ async def test_a_project_member_calls_off_the_framework_of_the_projects_company(
             _call_off(fw),
             actor_id=world.area_owner,
             can_manage=False,
-            tenant_id=str(world.area_owner),
+            tenant_id=str(world.tenants[world.area_owner]),
         )
         await s.commit()
     assert row.framework_agreement_id == fw.id
-    listed = await svc_call(world, "project_frameworks", world.project_id, str(world.area_owner))
+    listed = await svc_call(world, "project_frameworks", world.project_id, str(world.tenants[world.area_owner]))
     assert [f.id for f in listed] == [fw.id]
     # Their own company list stays empty, and so does a stranger's view of the project list.
-    assert await svc_call(world, "list_frameworks", str(world.area_owner)) == []
+    assert await svc_call(world, "list_frameworks", str(world.tenants[world.area_owner])) == []
 
 
 async def test_a_purchase_order_of_another_company_does_not_consume_the_framework(world: World) -> None:
@@ -945,7 +949,7 @@ async def test_a_purchase_order_of_another_company_does_not_consume_the_framewor
             )
         )
         await s.commit()
-    ledger = await svc_call(world, "ledger", str(world.manager), fw.id)
+    ledger = await svc_call(world, "ledger", str(world.tenants[world.manager]), fw.id)
     assert [(e["kind"], e["amount"]) for e in ledger["items"]] == [("purchase_order", "120000")]
     assert ledger["remaining_value"] == "380000.00"
 
@@ -965,7 +969,7 @@ async def test_a_ledger_entry_in_another_currency_makes_the_remainder_unknown(wo
             )
         )
         await s.commit()
-    ledger = await svc_call(world, "ledger", str(world.manager), fw.id)
+    ledger = await svc_call(world, "ledger", str(world.tenants[world.manager]), fw.id)
     assert (ledger["remaining_value"], ledger["remaining_known"], ledger["unconverted_entries"]) == (None, False, 1)
     await add_contract_package(world, "S1", "supply")
     with _raises("framework_remaining_unknown", 422):
@@ -973,7 +977,7 @@ async def test_a_ledger_entry_in_another_currency_makes_the_remainder_unknown(wo
 
 
 async def test_framework_changes_keep_its_ledger_consistent(world: World) -> None:
-    tenant = str(world.manager)
+    tenant = str(world.tenants[world.manager])
     fw = await _framework(world, "FW-1")
     await add_contract_package(world, "S1", "supply")
     await put(world, "S1", _call_off(fw))

@@ -227,6 +227,35 @@ jobs:
           pytest tests/unit -q -ra --durations=25
           --timeout=300 --timeout-method=signal
           --splits 6 --group ${{ matrix.shard }}
+          --junitxml="${{ runner.temp }}/unit-shard.xml"
+
+      - name: Annotate every failure this shard produced
+        if: always()
+        # Continue-on-error is scoped to this one step and is here because of an
+        # incident, not as a default: this step once exited on a shell error of its
+        # own making and turned three shards whose tests had all passed into three
+        # red jobs. A step that only reports must not be able to decide the build.
+        # The tests decide it, in the step above, whose conclusion is not softened.
+        continue-on-error: true
+        # A red shard here used to say nothing but "Process completed with exit
+        # code 1". The job log is not downloadable from every environment and the
+        # REST API returns an empty output.summary for a job, so the only place the
+        # failing test's name existed was a log nobody could fetch. Annotations are
+        # readable through /check-runs/<id>/annotations, so this parses the JUnit
+        # report the step above wrote and turns every failure into one, naming the
+        # file and line, plus a notice per target with its collected, passed,
+        # failed and skipped counts. GitHub keeps ten annotations of each level per
+        # step; the script folds what it could not emit into the totals notice
+        # rather than let a reader mistake ten for the whole answer.
+        #
+        # runner.temp is used instead of $RUNNER_TEMP because the Windows runners
+        # this job also runs on default to pwsh, where that spelling expands to
+        # nothing at all and the report would be written to the working directory.
+        run: >-
+          python ../scripts/publish_test_counts.py
+          --junit "${{ runner.temp }}/unit-shard.xml"
+          --annotate
+          --title "### Backend unit shard ${{ matrix.shard }}/6 (${{ matrix.os }})"
 
   backend-gate:
     name: Backend CI
@@ -786,3 +815,102 @@ jobs:
           pytest tests/unit -q -ra --durations=25
           --timeout=300 --timeout-method=thread
           --splits 3 --group ${{ matrix.shard }}
+          --junitxml="${{ runner.temp }}/unit-shard.xml"
+
+      - name: Annotate every failure this shard produced
+        if: always()
+        # Continue-on-error is scoped to this one step and is here because of an
+        # incident, not as a default: this step once exited on a shell error of its
+        # own making and turned three shards whose tests had all passed into three
+        # red jobs. A step that only reports must not be able to decide the build.
+        # The tests decide it, in the step above, whose conclusion is not softened.
+        continue-on-error: true
+        # A red shard here used to say nothing but "Process completed with exit
+        # code 1". The job log is not downloadable from every environment and the
+        # REST API returns an empty output.summary for a job, so the only place the
+        # failing test's name existed was a log nobody could fetch. Annotations are
+        # readable through /check-runs/<id>/annotations, so this parses the JUnit
+        # report the step above wrote and turns every failure into one, naming the
+        # file and line, plus a notice per target with its collected, passed,
+        # failed and skipped counts. GitHub keeps ten annotations of each level per
+        # step; the script folds what it could not emit into the totals notice
+        # rather than let a reader mistake ten for the whole answer.
+        #
+        # runner.temp is used instead of $RUNNER_TEMP because the Windows runners
+        # this job also runs on default to pwsh, where that spelling expands to
+        # nothing at all and the report would be written to the working directory.
+        run: >-
+          python ../scripts/publish_test_counts.py
+          --junit "${{ runner.temp }}/unit-shard.xml"
+          --annotate
+          --title "### Backend unit shard ${{ matrix.shard }}/3 (${{ matrix.os }})"
+
+  cli-cold-start:
+    name: CLI cold start (${{ matrix.os }})
+    # The lane the pytest jobs above cannot be. Every one of them runs with a
+    # database already arranged for the process: the Linux shards point
+    # DATABASE_URL at the postgres:16 service, and the Windows and macOS shards
+    # let conftest boot the embedded cluster before any app module is imported.
+    # A startup-ordering defect is invisible from inside that, so twenty green
+    # jobs once sat behind a product that no installer could start.
+    #
+    # This job starts the real command - python -m app.cli serve - on an empty
+    # data directory with nothing configured, demo data off, and waits for
+    # /api/health, which is unauthenticated by design. The probe refuses to run
+    # at all if DATABASE_URL or DATABASE_SYNC_URL is already set, so the lane
+    # cannot quietly degrade into what the shards do, and it fails if health
+    # answers without the boot having initialised a cluster.
+    #
+    # The defect it was written for: the CLI reads Settings while it builds its
+    # argument parser (the help strings carry the display name), get_settings()
+    # is @lru_cache'd, and app/database.py builds its engine from that cache at
+    # import time - so every cold start died with "DATABASE_URL must be a
+    # PostgreSQL URL" while the embedded cluster was up and os.environ was
+    # correct. backend/tests/unit/
+    # test_the_cli_boots_the_database_before_settings_are_cached.py pins the
+    # same contract in-process on all three OSes; this job pins it for real.
+    runs-on: ${{ matrix.os }}
+    # A cold start runs initdb, creates every module's tables and then serves.
+    # The probe's own wait is 900s; the margin above it is the install.
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: Create empty frontend dist (hatchling force-include)
+        # mkdir -p / touch are POSIX; force the Git Bash shell so this step
+        # behaves the same on the Windows runner (default there is PowerShell).
+        shell: bash
+        run: |
+          mkdir -p ../frontend/dist
+          touch ../frontend/dist/.gitkeep
+
+      - name: Install the product
+        # The base extra only: this gates the dependency closure a real install
+        # gets, not the one a test runner gets. pixeltable-pgserver, which boots
+        # the embedded cluster, is a base dependency.
+        id: install
+        run: pip install -e .
+
+      - name: Start it through the CLI and probe /api/health
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        # No service container, no DATABASE_URL, no fixture. The CLI's own STAGE
+        # lines and any traceback are inherited straight into this log, and on
+        # failure the probe names the embedded cluster's PostgreSQL log too.
+        shell: bash
+        run: python ../scripts/ci/cli_cold_start_probe.py --port 8765 --timeout 900

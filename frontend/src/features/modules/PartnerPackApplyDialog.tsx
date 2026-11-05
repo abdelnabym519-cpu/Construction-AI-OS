@@ -30,6 +30,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import i18n, {
@@ -210,7 +211,7 @@ function baseCountry(flag: string | null | undefined, market: string | null | un
 }
 
 /** Where someone who may only view packs can get a copy they administer. */
-export const PACK_INSTALL_DOWNLOAD_URL = 'https://openconstructionerp.com/download';
+export const PACK_INSTALL_DOWNLOAD_URL = `${SOURCE_REPO_URL}/releases`;
 
 /**
  * Whether this server is the public demo. Same shared ``['system-status']``

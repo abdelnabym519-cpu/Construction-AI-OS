@@ -17,7 +17,7 @@ export const teamsModules: ModuleExplanation[] = [
     icon: 'Users',
     category: 'admin',
     keywords:
-      'team teams workspace members roles license plan edition agpl version invite manage administrator manager editor viewer settings panel member list active',
+      'team teams workspace members roles license plan edition version invite manage administrator manager editor viewer settings panel member list active',
     titleKey: 'howto.teams.title',
     titleDefault: 'Team & plan',
     summaryKey: 'howto.teams.summary',
@@ -25,7 +25,7 @@ export const teamsModules: ModuleExplanation[] = [
       'See who shares this workspace, the roles they hold, and your edition and license, in the Settings Team & Plan tab.',
     whatKey: 'howto.teams.what',
     whatDefault:
-      'The Team & Plan panel in Settings gives you the people picture of your workspace at a glance: how many members there are, how many are active, and how many hold each role from administrator down to viewer. A members list shows each person with their role and active status, and the License & Plan card confirms your edition (Community, AGPL-3.0), version and modules loaded. Administrators and managers see the full team here; everyone else sees their own membership. For inviting people, changing roles and setting per-module access, it links straight to User Management.',
+      'The Team & Plan panel in Settings gives you the people picture of your workspace at a glance: how many members there are, how many are active, and how many hold each role from administrator down to viewer. A members list shows each person with their role and active status, and the License & Plan card confirms your edition, version and modules loaded. Administrators and managers see the full team here; everyone else sees their own membership. For inviting people, changing roles and setting per-module access, it links straight to User Management.',
     how: [
       {
         key: 'howto.teams.how.1',
@@ -46,11 +46,6 @@ export const teamsModules: ModuleExplanation[] = [
         key: 'howto.teams.how.4',
         default:
           'As an administrator, use Invite User or Manage users to open User Management, where you invite people, change roles, set per-module access and deactivate accounts.',
-      },
-      {
-        key: 'howto.teams.how.5',
-        default:
-          'Check the License & Plan card for your edition (Community, AGPL-3.0), version and modules loaded, and request a commercial license from there if you need support or an enterprise agreement.',
       },
     ],
     tips: [

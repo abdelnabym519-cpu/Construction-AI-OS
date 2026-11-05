@@ -49,7 +49,7 @@ def sender_addresses(configured: str) -> tuple[str, str]:
     """The ``From:`` header and the envelope sender for a configured address.
 
     A bare address (the ``smtp_from`` default) is shown under the brand name,
-    so the inbox reads "OpenConstructionERP" rather than an address; an
+    so the inbox reads the brand name rather than an address; an
     address that already carries a display name keeps it. The envelope
     sender is always the bare address.
     """
@@ -118,7 +118,7 @@ class SmtpEmailBackend(EmailBackend):
 
     def _send_sync(self, message: EmailMessage) -> DeliveryResult:
         settings = self._settings
-        from_header, from_addr = sender_addresses(message.from_addr or settings.smtp_from)
+        from_header, from_addr = sender_addresses(message.from_addr or settings.smtp_from or settings.support_email)
 
         # Body is always multipart/alternative (plain + HTML). When the
         # message carries attachments we wrap that body in a multipart/mixed

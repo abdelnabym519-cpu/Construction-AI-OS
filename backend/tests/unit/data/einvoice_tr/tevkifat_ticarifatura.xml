@@ -81,7 +81,7 @@
       </cac:PartyTaxScheme>
       <cac:Contact>
         <cbc:Telephone>+90 312 000 00 00</cbc:Telephone>
-        <cbc:ElectronicMail>info@datadrivenconstruction.io</cbc:ElectronicMail>
+        <cbc:ElectronicMail>billing@example.com</cbc:ElectronicMail>
       </cac:Contact>
     </cac:Party>
   </cac:AccountingSupplierParty>

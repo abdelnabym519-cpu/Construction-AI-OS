@@ -2,6 +2,8 @@
 // Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 import clsx from 'clsx';
 
+import { APP_NAME } from '@/shared/lib/brandName';
+
 interface LogoProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   animate?: boolean;
@@ -18,42 +20,24 @@ const sizeMap = {
 };
 
 /**
- * Brand logo — 3 ascending bars + building on gradient background.
- * Per BRAND.md: gradient #0066ff → #5856d6, white elements.
+ * Brand mark — a neutral placeholder: white "C" monogram on the platform
+ * gradient (#0066ff → #5856d6). The public/logo.svg, public/favicon.svg and
+ * public/pwa/icon-*.svg files carry the same mark; a real designed identity
+ * replaces all of them together (see NOTICE for what shipped before).
  *
- * `animate` triggers a staggered entrance:
+ * `animate` triggers a two-step entrance:
  *   1. Background scales in
- *   2. Bars grow up one by one
- *   3. Building slides in from right
- *   4. Windows fade in
+ *   2. Monogram fades in
  */
 export function Logo({ size = 'md', animate = false, className }: LogoProps) {
-  const isSmall = size === 'xs' || size === 'sm';
   const gradientId = `oe-lg-${size}-${animate ? 'a' : 's'}`;
 
-  const barStyle = (delay: number, _height: number) =>
-    animate
-      ? {
-          transformOrigin: 'bottom',
-          animation: `oeBarGrow 500ms cubic-bezier(0.34,1.56,0.64,1) both`,
-          animationDelay: `${delay}ms`,
-        }
-      : undefined;
-
-  const buildingStyle = animate
+  const monogramStyle = animate
     ? {
-        animation: `oeBuildingSlide 600ms cubic-bezier(0.22,1,0.36,1) both`,
-        animationDelay: '300ms',
+        animation: `oeWindowFade 500ms ease both`,
+        animationDelay: '250ms',
       }
     : undefined;
-
-  const windowStyle = (delay: number) =>
-    animate
-      ? {
-          animation: `oeWindowFade 400ms ease both`,
-          animationDelay: `${delay}ms`,
-        }
-      : undefined;
 
   const bgStyle = animate
     ? {
@@ -77,28 +61,16 @@ export function Logo({ size = 'md', animate = false, className }: LogoProps) {
         {/* Background */}
         <rect x="32" y="32" width="448" height="448" rx="96" fill={`url(#${gradientId})`} style={bgStyle} />
 
-        {/* Bar 1 (short) */}
-        <rect x="102" y="296" width="42" height="114" rx="6" fill="#fff" opacity=".85" style={barStyle(120, 114)} />
-        {/* Bar 2 (medium) */}
-        <rect x="162" y="233" width="42" height="177" rx="6" fill="#fff" opacity=".95" style={barStyle(200, 177)} />
-        {/* Bar 3 (tall) */}
-        <rect x="222" y="176" width="42" height="234" rx="6" fill="#fff" opacity=".85" style={barStyle(280, 234)} />
-
-        {/* Building body */}
-        <rect x="282" y="150" width="128" height="260" rx="8" fill="#fff" opacity=".9" style={buildingStyle} />
-
-        {/* Windows + door — only shown at medium+ sizes */}
-        {!isSmall && (
-          <g style={buildingStyle}>
-            <rect x="304" y="182" width="26" height="28" rx="4" fill={`url(#${gradientId})`} opacity=".5" style={windowStyle(550)} />
-            <rect x="362" y="182" width="26" height="28" rx="4" fill={`url(#${gradientId})`} opacity=".5" style={windowStyle(600)} />
-            <rect x="304" y="226" width="26" height="28" rx="4" fill={`url(#${gradientId})`} opacity=".5" style={windowStyle(650)} />
-            <rect x="362" y="226" width="26" height="28" rx="4" fill={`url(#${gradientId})`} opacity=".5" style={windowStyle(700)} />
-            <rect x="304" y="272" width="26" height="28" rx="4" fill={`url(#${gradientId})`} opacity=".45" style={windowStyle(750)} />
-            <rect x="362" y="272" width="26" height="28" rx="4" fill={`url(#${gradientId})`} opacity=".45" style={windowStyle(800)} />
-            <rect x="329" y="328" width="34" height="82" rx="4" fill={`url(#${gradientId})`} opacity=".55" style={windowStyle(850)} />
-          </g>
-        )}
+        {/* Monogram: an open ring reading as "C" */}
+        <path
+          d="M333 164 A 120 120 0 1 0 333 348"
+          stroke="#fff"
+          strokeWidth="56"
+          strokeLinecap="round"
+          fill="none"
+          opacity=".95"
+          style={monogramStyle}
+        />
       </svg>
     </div>
   );
@@ -128,13 +100,18 @@ const gapSizeMap = {
 };
 
 /**
- * Logo + brand name. Per BRAND.md:
+ * Logo + product name. The name renders from the ONE frontend display
+ * constant, APP_NAME in '@/shared/lib/brandName', which the backend test
+ * test_the_display_name_is_one_constant.py holds equal to the backend
+ * app_name. The wordmark is never retyped here.
  * - Font: Plus Jakarta Sans 800
- * - Name: "OpenConstructionERP" (PascalCase, one word)
  * - Letter-spacing: -0.02em
  * - Icon is compact, name is prominent
+ * - `showVersion` is accepted for API compatibility and no longer changes
+ *   the output: the display name renders whole, because a wordmark that
+ *   could be truncated token by token is exactly how the name used to drift.
  */
-export function LogoWithText({ size = 'md', animate, showVersion = true, className }: LogoWithTextProps) {
+export function LogoWithText({ size = 'md', animate, showVersion: _showVersion = true, className }: LogoWithTextProps) {
   return (
     <div className={clsx('flex items-center', gapSizeMap[size], className)}>
       <Logo size={size} animate={animate} />
@@ -145,8 +122,7 @@ export function LogoWithText({ size = 'md', animate, showVersion = true, classNa
         )}
         style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.02em' }}
       >
-        Open<span className="text-oe-blue">Construction</span>
-        {showVersion && <span className="text-content-quaternary">ERP</span>}
+        {APP_NAME}
       </span>
     </div>
   );

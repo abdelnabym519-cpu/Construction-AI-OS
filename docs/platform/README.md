@@ -1,6 +1,6 @@
-# Build on OpenConstructionERP
+# Build on Construction AI OS
 
-OpenConstructionERP is an open platform for building construction software. The
+Construction AI OS is an open platform for building construction software. The
 same modular core that runs the shipped product, projects, bills of quantities,
 takeoff, cost databases, validation, tendering and more than 150 other modules,
 is the core you build on. Adding a capability means writing a module, not

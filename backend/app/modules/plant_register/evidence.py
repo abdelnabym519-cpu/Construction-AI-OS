@@ -18,7 +18,7 @@ the reason, never silence: an empty answer would read as "nothing to check".
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 from app.modules.project_governance.evidence import (
@@ -50,7 +50,14 @@ def _unresolved(project_id: uuid.UUID, reason: str) -> list[EvidenceItem]:
     ]
 
 
-async def plant_readiness(session: Any, project_id: uuid.UUID, attempt: GateAttempt, area: Any) -> list[EvidenceItem]:
+async def plant_readiness(
+    session: Any,
+    project_id: uuid.UUID,
+    attempt: GateAttempt,
+    area: Any,
+    *,
+    today: date | None = None,
+) -> list[EvidenceItem]:
     from app.modules.plant_register.hosting import project_host
     from app.modules.plant_register.repository import PlantRepository
     from app.modules.plant_register.service import PlantService
@@ -71,7 +78,16 @@ async def plant_readiness(session: Any, project_id: uuid.UUID, attempt: GateAtte
         return []
     if not host.gate_codes:
         return _unresolved(project_id, "no_phase_enables_construction_start")
-    r = await PlantService(session).readiness(project_id, today=datetime.now(UTC).date())
+    # The day is an input to this answer, not the weather it happens to be read in. Production asks for
+    # the real one and still gets it, because ``today`` defaults to None. A caller that has already
+    # decided the day - a test whose world was built on a fixed date - has to be able to say so, because
+    # every rule below is date arithmetic: calc.is_stale gives a basis quote quote_max_age_days (90) from
+    # its enquiry date, and calc.long_lead_open calls a long-lead item unsecured the moment that quote
+    # goes stale. Read off the wall clock instead, a world built for 2026-10-11 whose quote was asked on
+    # 2026-08-03 started answering "long lead not secured" on 2026-11-02, on any commit whatsoever, and
+    # the gate reported not met with nothing in the tree to blame.
+    day = today if today is not None else datetime.now(UTC).date()
+    r = await PlantService(session).readiness(project_id, today=day)
     link = (LINK_KIND, str(project_id))
 
     def item(code: str, ok: bool | None, detail: str = "", label: str | None = None) -> EvidenceItem:

@@ -270,13 +270,14 @@ def _document(buffer: io.BytesIO, title: str, *, letterhead_on_first_page: bool 
     template = PageTemplate(id="main", frames=[frame], onPage=_page_furniture(letterhead_on_first_page))
     meta = branded_doc_metadata()
     if meta["author"] == DEFAULT_BRAND:
-        # An unbranded workspace keeps the properties these letters always had.
+        # An unbranded workspace keeps a stable document-property set, drawn
+        # from the one display-name constant.
         meta = {
-            "author": "OpenConstructionERP",
-            "subject": "Tender decision · DDC-CWICR-OE",
-            "creator": "OpenConstructionERP · DataDrivenConstruction",
-            "producer": "OpenConstructionERP / reportlab · datadrivenconstruction.io",
-            "keywords": "DDC-CWICR-OE-2026,OpenConstructionERP,Tendering,DataDrivenConstruction",
+            "author": DEFAULT_BRAND,
+            "subject": "Tender decision",
+            "creator": DEFAULT_BRAND,
+            "producer": f"{DEFAULT_BRAND} / reportlab",
+            "keywords": f"{DEFAULT_BRAND},Tendering",
         }
     doc = BaseDocTemplate(
         buffer,

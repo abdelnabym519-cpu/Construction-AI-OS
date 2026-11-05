@@ -31,6 +31,7 @@ from typing import Annotated, Any
 import yaml
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from app.core.tenant_scope import resolve_tenant_id
 from app.core.validation.dsl import (
     list_supported_patterns,
     parse_nl_to_dsl,
@@ -82,14 +83,6 @@ def _user_id_from_payload(payload: dict[str, Any]) -> uuid.UUID:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid user id in token.",
         ) from exc
-
-
-def _tenant_id_from_payload(payload: dict[str, Any]) -> str | None:
-    tenant = payload.get("tenant_id")
-    if tenant:
-        return str(tenant)
-    sub = payload.get("sub") or payload.get("user_id")
-    return str(sub) if sub else None
 
 
 def _raise_compliance_http(exc: ComplianceError) -> None:
@@ -148,7 +141,7 @@ async def compile_rule_endpoint(
     session: SessionDep,
 ) -> DSLRuleOut:
     user_id = _user_id_from_payload(payload)
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = ComplianceDSLService(
         repo=ComplianceDSLRepository(session),
     )
@@ -182,7 +175,7 @@ async def list_rules(
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> DSLRuleListResponse:
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = ComplianceDSLService(
         repo=ComplianceDSLRepository(session),
     )
@@ -209,7 +202,7 @@ async def get_rule(
     payload: CurrentUserPayload,
     session: SessionDep,
 ) -> DSLRuleOut:
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = ComplianceDSLService(
         repo=ComplianceDSLRepository(session),
     )
@@ -234,7 +227,7 @@ async def delete_rule(
     session: SessionDep,
 ) -> None:
     user_id = _user_id_from_payload(payload)
-    tenant_id = _tenant_id_from_payload(payload)
+    tenant_id = resolve_tenant_id(payload)
     service = ComplianceDSLService(
         repo=ComplianceDSLRepository(session),
     )

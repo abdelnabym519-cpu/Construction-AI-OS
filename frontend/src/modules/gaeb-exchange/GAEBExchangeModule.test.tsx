@@ -11,6 +11,7 @@ import {
 } from './data/gaebExport';
 import { parseGAEBXML, parseGAEBProjectName, truncateFinding } from '@/features/boq/gaebImport';
 import { isSection as isSectionRow } from '@/features/boq/api';
+import { APP_NAME } from '@/shared/lib/brandName';
 
 // ---------------------------------------------------------------------------
 // Test data
@@ -96,7 +97,9 @@ describe('generateGAEBXML', () => {
     const result = generateGAEBXML(makeOptions());
     expect(result.xml).toContain('<VersMajor>3</VersMajor>');
     expect(result.xml).toContain('<VersMinor>3</VersMinor>');
-    expect(result.xml).toContain('<ProgSystem>OpenConstructionERP</ProgSystem>');
+    // Derived from the one display-name constant; previously pinned the
+    // upstream brand literal.
+    expect(result.xml).toContain(`<ProgSystem>${APP_NAME}</ProgSystem>`);
   });
 
   it('includes project info', () => {

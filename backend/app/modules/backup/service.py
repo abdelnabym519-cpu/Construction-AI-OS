@@ -506,18 +506,15 @@ async def build_backup(
                     file_warnings.append(f"Failed to export {backup_key}: {str(exc)[:200]}")
 
             now = datetime.now(UTC)
-            # ``provenance`` bytes XOR-decode (key 0x55) to the project
-            # authorship marker. Restore only branches on ``app`` /
-            # ``format_version`` / ``checksum`` - never this key - so it is
+            # ``provenance`` names the product that wrote the archive, from
+            # the one display-name constant. Restore only branches on ``app``
+            # / ``format_version`` / ``checksum`` - never this key - so it is
             # inert metadata that travels with every backup archive.
-            _bk_xtok = bytes(
-                b ^ 0x55 for b in b"\x11\x11\x16\x78\x16\x02\x1c\x16\x07\x78\x1a\x10\x78\x67\x65\x67\x63"
-            ).decode("ascii")
             manifest: dict[str, Any] = {
                 "app": APP_ID,
                 "app_version": get_settings().app_version,
                 "format_version": BACKUP_FORMAT_VERSION,
-                "provenance": ("OpenConstructionERP · DataDrivenConstruction · " + _bk_xtok),
+                "provenance": get_settings().app_name,
                 "created_at": now.isoformat(),
                 "created_by": str(user_id),
                 "modules": sorted(record_counts.keys()),

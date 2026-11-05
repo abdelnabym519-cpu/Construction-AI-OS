@@ -141,7 +141,7 @@ they are relied on for a tender. The fee percentages offered in the onboarding
 wizard are defaults for Shanghai practice and are not a substitute for the
 provincial fee schedule in force, which is where the real numbers live.
 
-Corrections are welcome at info@datadrivenconstruction.io.
+Corrections are welcome at support@example.com.
 
 ## License
 

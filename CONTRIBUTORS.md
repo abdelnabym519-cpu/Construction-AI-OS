@@ -1,5 +1,10 @@
 # Contributors
 
+> The credits below describe the ORIGINAL OpenConstructionERP project and are preserved
+> as attribution for this modified distribution, Construction AI OS (see the NOTICE
+> preamble).
+
+
 OpenConstructionERP is authored and owned by DataDrivenConstruction (see
 [AUTHORS.md](AUTHORS.md)). The people listed here are contributors: they have sent bug
 reports, questions, ideas and patches that made the project better. They are not authors

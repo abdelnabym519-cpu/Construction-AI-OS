@@ -56,6 +56,6 @@ MANIFEST = PartnerPackManifest(
             "Code of Practice on Buildability (BCA)",
         ],
         "vat_standard_rate": 9,
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

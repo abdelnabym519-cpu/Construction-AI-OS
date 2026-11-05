@@ -85,19 +85,25 @@ def test_csp_header_present_and_has_key_directives(client: TestClient) -> None:
     assert "style-src 'self' 'unsafe-inline';" in csp
 
 
-def test_csp_frames_the_privacy_enhanced_video_host_only(client: TestClient) -> None:
-    """The Videos page plays tutorials in an iframe from the no-cookie host.
+def test_csp_frames_no_third_party_host(client: TestClient) -> None:
+    """Framing is same-origin only, plus the blob:/data: previews the app makes.
 
-    Without the host on frame-src the player renders blank. Only the no-cookie
-    host is allowed: the regular host sets tracking cookies on embed, which is
-    the reason the page uses the other one.
+    The tutorial-video page that used to embed a privacy-enhanced video host is
+    gone, and nothing else in the product frames a third party. The host stays
+    off the list rather than being allowed "just in case": an allowance nobody
+    needs is an allowance an injected page can use.
     """
     r = client.get("/ping")
     csp = r.headers["Content-Security-Policy"]
-    frame_src = next(d for d in csp.split(";") if d.strip().startswith("frame-src"))
+    frame_src = next(d for d in csp.split(";") if d.strip().startswith("frame-src")).split()
 
-    assert "https://www.youtube-nocookie.com" in frame_src.split()
-    assert "https://www.youtube.com" not in frame_src.split()
+    assert "https://www.youtube-nocookie.com" not in frame_src
+    assert "https://www.youtube.com" not in frame_src
+    assert not any(source.startswith("http") for source in frame_src)
+    # The retained half: the app's own PDF and media previews still frame.
+    assert "'self'" in frame_src
+    assert "blob:" in frame_src
+    assert "data:" in frame_src
 
 
 def _admits(sources: list[str], url: str) -> bool:
@@ -107,19 +113,20 @@ def _admits(sources: list[str], url: str) -> bool:
     return f"{scheme}:" in sources or f"{scheme}://{host}" in sources or host in sources
 
 
-def test_csp_admits_the_video_thumbnail_host(client: TestClient) -> None:
-    """The Videos page shows a published video's cover from the YouTube image host.
+def test_csp_admits_the_remote_images_the_app_embeds(client: TestClient) -> None:
+    """The map draws its tiles as plain <img> tags from whichever host a deployment picks.
 
-    The covers are plain <img> tags pointing at i.ytimg.com, so img-src has to
-    admit that host, or every published video renders with a blank cover.
+    img-src stays open on https: for them: the tile hosts a deployment picks are
+    configurable, so a closed list would blank a map that is otherwise working.
     """
     r = client.get("/ping")
     csp = r.headers["Content-Security-Policy"]
     img_src = next(d for d in csp.split(";") if d.strip().startswith("img-src")).split()[1:]
 
-    assert _admits(img_src, "https://i.ytimg.com/vi/WjDK-uk9b1w/maxresdefault.jpg")
+    assert _admits(img_src, "https://tile.openstreetmap.org/12/2198/1370.png")
+    assert _admits(img_src, "https://tiles.openfreemap.org/styles/libertystyle/12/2198/1370.png")
     # The helper itself tells a closed list from an open one.
-    assert not _admits(["'self'", "data:"], "https://i.ytimg.com/vi/x/hqdefault.jpg")
+    assert not _admits(["'self'", "data:"], "https://tile.openstreetmap.org/12/1/1.png")
 
 
 def test_csp_skipped_for_swagger_docs(client: TestClient) -> None:

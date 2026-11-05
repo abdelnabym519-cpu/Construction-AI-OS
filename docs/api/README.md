@@ -1,6 +1,6 @@
-# OpenConstructionERP HTTP API
+# Construction AI OS HTTP API
 
-A practical guide to the OpenConstructionERP REST API. The backend is a Python 3.12+ FastAPI application (Pydantic v2, async). Every business module exposes its own router, and all of them are served from a single origin under one version prefix.
+A practical guide to the Construction AI OS REST API. The backend is a Python 3.12+ FastAPI application (Pydantic v2, async). Every business module exposes its own router, and all of them are served from a single origin under one version prefix.
 
 ## Base URL and version prefix
 

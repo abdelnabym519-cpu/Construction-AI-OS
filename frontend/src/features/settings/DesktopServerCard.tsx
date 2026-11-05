@@ -6,7 +6,7 @@
  * The desktop build normally starts its own server and its own database on the
  * machine it is installed on, and that is still what happens on every install
  * where nobody has been here. An office that already runs one central
- * OpenConstructionERP does not want a second copy per desk, so this card is
+ * The product does not want a second copy per desk, so this card is
  * where a person points their desktop app at that central server instead.
  *
  * It renders nothing outside the desktop shell. In a browser the question is

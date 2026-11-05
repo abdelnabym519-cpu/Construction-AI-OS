@@ -49,8 +49,21 @@ async def session() -> AsyncSession:
 class TestContactCrudRoundTrip:
     @pytest.mark.asyncio
     async def test_create_list_update_delete(self, session: AsyncSession) -> None:
+        from app.modules.users.models import Organization
+
         service = ContactService(session)
         user_id = str(uuid.uuid4())
+
+        # The tenant column names the caller's organization and ``created_by`` names
+        # the caller; since ADR 005 those are different values. This test used to
+        # invent one uuid and use it for both, asserting the contact came back stamped
+        # with the person, which was the person-as-tenant contract Phase 02b removed.
+        # A caller that names no organization now gets NULL rather than a guess, so a
+        # round trip that wants to read its own contact back has to name a company.
+        organization = Organization(slug=f"crud-{uuid.uuid4().hex[:8]}", name="Acme Construction GmbH")
+        session.add(organization)
+        await session.flush()
+        tenant_id = str(organization.id)
 
         # Create
         created = await service.create_contact(
@@ -61,14 +74,15 @@ class TestContactCrudRoundTrip:
                 primary_phone="+49 170 1234567",
             ),
             user_id=user_id,
+            tenant_id=tenant_id,
         )
         assert created.id is not None
-        assert created.tenant_id == user_id
+        assert created.tenant_id == tenant_id
         # Service normalises e-mail to lower-case so dup-detection works.
         assert created.primary_email == "info@acme.de"
 
-        # List (tenant-scoped)
-        items, total = await service.list_contacts(owner_id=user_id)
+        # List (tenant-scoped: ``owner_id`` is compared against the tenant column)
+        items, total = await service.list_contacts(owner_id=tenant_id)
         assert total == 1
         assert [c.id for c in items] == [created.id]
 
@@ -82,10 +96,10 @@ class TestContactCrudRoundTrip:
 
         # Soft-delete
         await service.deactivate_contact(created.id, user_id=user_id)
-        items_active, total_active = await service.list_contacts(owner_id=user_id)
+        items_active, total_active = await service.list_contacts(owner_id=tenant_id)
         assert total_active == 0
         # And still listable via is_active=False — soft-delete, not purge.
-        items_archive, total_archive = await service.list_contacts(owner_id=user_id, is_active=False)
+        items_archive, total_archive = await service.list_contacts(owner_id=tenant_id, is_active=False)
         assert total_archive == 1
 
     @pytest.mark.asyncio

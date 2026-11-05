@@ -79,14 +79,6 @@ export function RecoveryCard({ error, onRetry, redirectTo }: RecoveryCardProps) 
           defaultValue:
             'Your role is missing the permission needed to view this. Ask a project administrator to grant you access.',
         })}
-        action={
-          <a
-            href="mailto:info@datadrivenconstruction.io?subject=Access%20request"
-            className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-surface-primary px-4 text-sm font-medium text-content-primary hover:bg-surface-secondary transition-colors"
-          >
-            {t('recovery.request_access', { defaultValue: 'Request access' })}
-          </a>
-        }
       />
     );
   }

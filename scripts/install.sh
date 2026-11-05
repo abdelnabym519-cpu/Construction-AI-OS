@@ -1,8 +1,8 @@
 #!/bin/bash
-# OpenConstructionERP - One-Line Installer for Linux / macOS
+# Construction AI OS - One-Line Installer for Linux / macOS
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/scripts/install.sh | bash
 #
 # What it does:
 #   1. If Docker is installed → runs via docker compose
@@ -22,7 +22,7 @@ OE_VERSION="${OE_VERSION:-latest}"
 OE_INSTALL_DIR="${OE_INSTALL_DIR:-$HOME/.openconstructionerp}"
 OE_METHOD="${OE_METHOD:-auto}"
 OE_PORT="${OE_PORT:-8080}"
-OE_REPO="https://github.com/datadrivenconstruction/OpenConstructionERP"
+OE_REPO="https://github.com/abdelnabym519-cpu/Construction-AI-OS"
 
 # ── Colors ───────────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -209,7 +209,7 @@ install_docker() {
     info "Pulling the published image..."
     docker compose pull app
 
-    info "Starting OpenConstructionERP..."
+    info "Starting Construction AI OS..."
     docker compose up -d
 
     # Wait for the application to answer, rather than announcing that it runs
@@ -254,18 +254,18 @@ install_docker() {
 
     case "$health" in
         *'"status":"healthy"'*)
-            ok "OpenConstructionERP is running at http://localhost:${OE_PORT}"
+            ok "Construction AI OS is running at http://localhost:${OE_PORT}"
             ;;
         *'"status":"degraded"'*)
             # The same word covers a missing module, where the product works,
             # and a database the process cannot reach, where it does not.
             if printf '%s' "$health" | grep -q '"database":"ok"'; then
-                ok "OpenConstructionERP is running at http://localhost:${OE_PORT}"
+                ok "Construction AI OS is running at http://localhost:${OE_PORT}"
                 warn "Reporting degraded: not every enabled module loaded"
                 echo "  The application is usable. A restart usually loads the rest."
                 echo "  Which module is missing is in the log: cd ${OE_INSTALL_DIR} && docker compose logs -f"
             else
-                warn "OpenConstructionERP started but cannot reach its database"
+                warn "Construction AI OS started but cannot reach its database"
                 echo "  Check logs: cd ${OE_INSTALL_DIR} && docker compose logs -f"
             fi
             ;;
@@ -291,14 +291,15 @@ install_uv() {
         export PATH="$HOME/.local/bin:$PATH"
     fi
 
-    # Install OpenConstructionERP (PyPI package name — see pyproject.toml).
+    # Install the server (PyPI package name openconstructionerp — internal
+    # identifier, see pyproject.toml — never renamed).
     # Honour OE_VERSION env var (advertised in file header).
     if [ "$OE_VERSION" = "latest" ]; then
         uv tool install openconstructionerp
     else
         uv tool install "openconstructionerp==$OE_VERSION"
     fi
-    ok "OpenConstructionERP installed!"
+    ok "Construction AI OS installed!"
 
     # Create systemd service if on Linux
     if [ "$(uname -s)" = "Linux" ] && command -v systemctl &>/dev/null; then
@@ -346,7 +347,7 @@ install_pip() {
         pip install --upgrade "openconstructionerp==$OE_VERSION"
     fi
 
-    ok "OpenConstructionERP installed in $OE_INSTALL_DIR/venv"
+    ok "Construction AI OS installed in $OE_INSTALL_DIR/venv"
 
     # Convenience launcher.
     cat > "$OE_INSTALL_DIR/start.sh" << 'SCRIPT'
@@ -363,7 +364,7 @@ SCRIPT
 
     echo ""
     echo "  +-------------------------------------------------+"
-    echo "  |  OpenConstructionERP is installed               |"
+    echo "  |  Construction AI OS is installed                |"
     echo "  +-------------------------------------------------+"
     echo ""
     if echo "$PATH" | tr ':' '\n' | grep -qx "$HOME/.local/bin"; then
@@ -377,7 +378,8 @@ SCRIPT
     fi
     echo ""
     echo "  That starts the server and serves http://localhost:$OE_PORT"
-    echo "  Sign in with:  demo@openconstructionerp.com  /  DemoPass1234!"
+    echo "  Register the first account - it becomes the admin."
+    echo "  Demo data is opt-in: start once with SEED_DEMO=true to load it."
     echo ""
     echo "  Or start it right now:  $OE_INSTALL_DIR/start.sh --open"
 }
@@ -391,7 +393,7 @@ create_systemd_service() {
 
     cat > "$service_file" << EOF
 [Unit]
-Description=OpenConstructionERP Server
+Description=Construction AI OS Server
 After=network.target
 
 [Service]
@@ -412,7 +414,7 @@ EOF
 main() {
     echo ""
     echo "  ╔═══════════════════════════════════════════════╗"
-    echo "  ║      OpenConstructionERP Installer            ║"
+    echo "  ║      Construction AI OS Installer             ║"
     echo "  ║      Construction Cost Estimation Platform    ║"
     echo "  ╚═══════════════════════════════════════════════╝"
     echo ""

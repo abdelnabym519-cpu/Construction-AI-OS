@@ -2219,9 +2219,10 @@ def _stamp_ai_origin(pdf_bytes: bytes, sources: list[str]) -> bytes:
     xmp = (
         '<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>'
         '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'
-        '<rdf:Description rdf:about="" xmlns:oce="https://openconstructionerp.com/ns/ai-origin/1.0/">'
-        f"<oce:aiGenerated>true</oce:aiGenerated><oce:aiRows>{len(sources)}</oce:aiRows>"
-        f"<oce:aiSources>{html.escape(distinct)}</oce:aiSources>"
+        '<rdf:Description rdf:about="" '
+        'xmlns:cao="https://github.com/abdelnabym519-cpu/Construction-AI-OS/ns/ai-origin/1.0/">'
+        f"<cao:aiGenerated>true</cao:aiGenerated><cao:aiRows>{len(sources)}</cao:aiRows>"
+        f"<cao:aiSources>{html.escape(distinct)}</cao:aiSources>"
         '</rdf:Description></rdf:RDF></x:xmpmeta><?xpacket end="w"?>'
     )
     writer.xmp_metadata = xmp.encode("utf-8")

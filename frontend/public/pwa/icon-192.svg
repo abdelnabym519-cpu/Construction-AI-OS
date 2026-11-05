@@ -1,13 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 512 512" fill="none">
+  <!-- Construction AI OS placeholder brand mark: "C" monogram on the platform
+       gradient. Neutral by design; a designed identity replaces logo.svg,
+       favicon.svg and pwa/icon-*.svg together. The previous mark is credited
+       in the repository NOTICE. -->
   <defs>
     <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="0%" stop-color="#0066ff"/>
       <stop offset="100%" stop-color="#5856d6"/>
     </linearGradient>
   </defs>
   <rect x="32" y="32" width="448" height="448" rx="96" fill="url(#lg)"/>
-  <rect x="102" y="296" width="42" height="114" rx="6" fill="#fff" opacity=".85"/>
-  <rect x="162" y="233" width="42" height="177" rx="6" fill="#fff" opacity=".95"/>
-  <rect x="222" y="176" width="42" height="234" rx="6" fill="#fff" opacity=".85"/>
-  <rect x="282" y="150" width="128" height="260" rx="8" fill="#fff" opacity=".9"/>
+  <path d="M333 164 A 120 120 0 1 0 333 348" stroke="#fff" stroke-width="56" stroke-linecap="round" fill="none" opacity=".95"/>
 </svg>

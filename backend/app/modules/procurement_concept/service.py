@@ -2074,13 +2074,38 @@ class ProcurementConceptService:
         return row
 
     async def project_tenant(self, project_id: uuid.UUID) -> str | None:
-        """The company a project belongs to: its owner's tenant (the platform has no other company key)."""
+        """The company a project belongs to: its ``organization_id``.
+
+        This used to read ``owner_id``, which was the right answer while a person was
+        their own tenant and the platform had no other company key. ADR 005 made an
+        organization the tenant and gave the project an ``organization_id``, so reading
+        the owner here compares a person against rows that carry a company: the project
+        half of :meth:`project_frameworks` then matches nothing and a member of the
+        project can no longer see the project's own frameworks.
+
+        A project whose company was never filled in falls back to its owner's preferred
+        active organization. That is the same derivation the tenancy repair writes into
+        the column and the same one a token mint uses, so the read path cannot disagree
+        with either of them; the repair's own comment makes matching them the point.
+        Where the owner has no active membership there is nothing honest to derive, so
+        the answer stays ``None`` and the project-scoped reads stay narrow rather than
+        widening to a guess. ``tests/pg/test_a_legacy_project_with_no_organization_names_its_owners_company.py``
+        pins both halves.
+        """
+        from app.core.tenant_scope import active_organization_id
         from app.modules.projects.models import Project
 
-        owner = (
-            await self.session.execute(select(Project.owner_id).where(Project.id == project_id))
-        ).scalar_one_or_none()
-        return str(owner) if owner else None
+        row = (
+            await self.session.execute(
+                select(Project.organization_id, Project.owner_id).where(Project.id == project_id)
+            )
+        ).one_or_none()
+        if row is None:
+            return None
+        organization, owner = row
+        if organization is not None:
+            return str(organization)
+        return await active_organization_id(self.session, owner) if owner is not None else None
 
     async def list_frameworks(self, tenant_id: str | None) -> list[FrameworkAgreement]:
         if not tenant_id:
@@ -2168,14 +2193,28 @@ class ProcurementConceptService:
         return await self._ledger_of(row)
 
     async def _tenant_project_ids(self, tenant_id: str) -> set[uuid.UUID]:
-        """Projects of the framework's company (those its tenant owns)."""
+        """Projects of the framework's company: those whose ``organization_id`` is that company.
+
+        This used to read ``Project.owner_id``, which treats the tenant as a person and
+        matches the projects that person owns. Since ADR 005 the tenant is a company, so
+        the comparison matched nothing at all and the ledger came back empty: no purchase
+        orders counted, a remainder that looked fully known when it was not, and a
+        foreign-currency entry that stopped being reported as unconverted. A project with
+        no company of its own is not in any tenant's set, which is the narrow answer;
+        ``project_tenant`` derives one for it from the owner's membership, and a project
+        whose owner has none is the ambiguity an administrator has to resolve.
+        """
         from app.modules.projects.models import Project
 
         try:
-            owner = uuid.UUID(tenant_id)
-        except ValueError:
+            organization = uuid.UUID(tenant_id)
+        except (AttributeError, TypeError, ValueError):
             return set()
-        return set((await self.session.execute(select(Project.id).where(Project.owner_id == owner))).scalars().all())
+        return set(
+            (await self.session.execute(select(Project.id).where(Project.organization_id == organization)))
+            .scalars()
+            .all()
+        )
 
     async def _ledger_of(self, row: FrameworkAgreement) -> dict[str, Any]:
         """Everything that consumes the framework, and what is left of it.

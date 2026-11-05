@@ -41,8 +41,8 @@ function manifestJson(): Record<string, unknown> {
 describe('PWA manifest', () => {
   it('has the required identity fields', () => {
     const manifest = manifestJson();
-    expect(manifest.name).toBe('OpenConstructionERP');
-    expect(manifest.short_name).toBe('OCERP');
+    expect(manifest.name).toBe('Construction AI OS');
+    expect(manifest.short_name).toBe('CAIOS');
     expect(typeof manifest.description).toBe('string');
   });
 
@@ -84,11 +84,11 @@ describe('PWA manifest', () => {
 // from vite.config.ts, which the build-output half above would report as a
 // missing file rather than as a removed plugin.
 describe('PWA plugin configuration', () => {
-  it('vite.config.ts still wires VitePWA with the OCERP manifest', () => {
+  it('vite.config.ts still wires VitePWA with the product manifest', () => {
     const config = readFileSync(resolve(__dirname, '..', '..', 'vite.config.ts'), 'utf-8');
     expect(config).toContain('VitePWA');
-    expect(config).toContain("'OpenConstructionERP'");
-    expect(config).toContain("'OCERP'");
+    expect(config).toContain("'Construction AI OS'");
+    expect(config).toContain("'CAIOS'");
     expect(config).toContain("'#0284c7'");
   });
 });

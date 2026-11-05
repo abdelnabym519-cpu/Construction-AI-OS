@@ -145,8 +145,13 @@ async def test_user_agent_header_set_correctly():
         )
     assert captured, "Nominatim was never called"
     ua = captured[0].headers.get("User-Agent") or ""
-    assert "OpenConstructionERP" in ua
-    assert "info@datadrivenconstruction.io" in ua
+    # The UA names this installation: settings.app_name folded into one
+    # product token, and the configurable support contact inside it.
+    from app.config import get_settings
+
+    s = get_settings()
+    assert s.app_name.replace(" ", "-") in ua
+    assert (s.support_email or "support@example.com") in ua
 
 
 @pytest.mark.asyncio

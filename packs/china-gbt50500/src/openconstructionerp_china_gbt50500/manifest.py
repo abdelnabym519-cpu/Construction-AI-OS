@@ -174,7 +174,7 @@ MANIFEST = PartnerPackManifest(
             "增值税一般计税方法 9% (VAT general tax method)",
             "规费 (statutory charges)",
         ],
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
         # Pre-defined city presets surfaced in the onboarding wizard. The
         # corresponding CWICR regional cost databases arrive in marketplace
         # updates; for now only Shanghai is wired in.

@@ -2,9 +2,9 @@
 
 Also available in [Deutsch](INSTALL_TROUBLESHOOTING.de.md) and [Русский](INSTALL_TROUBLESHOOTING.ru.md).
 
-This page is for you if OpenConstructionERP shows a warning or an error while you install or start it. Find the message you see, read what it means, and do what the third line says. Most cases take a minute to fix and none of them put your projects at risk.
+This page is for you if Construction AI OS shows a warning or an error while you install or start it. Find the message you see, read what it means, and do what the third line says. Most cases take a minute to fix and none of them put your projects at risk.
 
-For a normal installation without problems, see [Install OpenConstructionERP](desktop/INSTALL.md).
+For a normal installation without problems, see [Install Construction AI OS](desktop/INSTALL.md).
 
 ## Before anything else: the log files
 
@@ -25,7 +25,7 @@ If you installed with pip, run `openconstructionerp doctor` in a terminal. It ch
 
 **You see:** a blue window "Windows protected your PC".
 **It means:** the installer is not code signed yet, so Windows does not know the publisher. It is a warning, not a virus finding.
-**Do:** click **More info**, check that the file name starts with `OpenConstructionERP`, then click **Run anyway**. Details and a way to check the download are in [Windows blocks the app](desktop/WINDOWS_BLOCKED.md).
+**Do:** click **More info**, check that the file name starts with `Construction AI OS`, then click **Run anyway**. Details and a way to check the download are in [Windows blocks the app](desktop/WINDOWS_BLOCKED.md).
 
 **You see:** Smart App Control says it blocked the app, or the app ran once and is blocked on every start since.
 **It means:** Windows 11 Smart App Control refuses unsigned programs and offers no button to continue.
@@ -33,7 +33,7 @@ If you installed with pip, run `openconstructionerp doctor` in a terminal. It ch
 
 **You see:** "Please choose an installation folder whose path uses only Latin letters, digits and spaces. The built-in database cannot start from a folder with other characters in its path".
 **It means:** the folder you picked has letters such as Cyrillic, Chinese or accented ones in its path. The built-in database cannot start from such a folder.
-**Do:** keep the suggested folder `C:\Program Files\OpenConstructionERP`, or pick one like `C:\OpenConstructionERP`. In a silent installation (`/S`) the installer shows the same message, exits with code 3 and writes the reason to `%TEMP%\OpenConstructionERP-install-error.log`.
+**Do:** keep the suggested folder `C:\Program Files\Construction AI OS`, or pick one like `C:\Construction AI OS`. In a silent installation (`/S`) the installer shows the same message, exits with code 3 and writes the reason to `%TEMP%\OpenConstructionERP-install-error.log`.
 
 **You see:** the installer stops with an error about WebView2.
 **It means:** Windows could not install Microsoft WebView2, the component that draws the app window. The installer carries it, so no internet connection is needed; the failure comes from Windows itself, for example a policy, a pending update or a damaged earlier WebView2.
@@ -41,7 +41,7 @@ If you installed with pip, run `openconstructionerp doctor` in a terminal. It ch
 
 **You see:** your antivirus deletes or quarantines a file during the installation.
 **It means:** the program is new and unsigned, so some antivirus products treat it with suspicion.
-**Do:** check the download as described in [Windows blocks the app](desktop/WINDOWS_BLOCKED.md). If the check says `True`, restore the file from quarantine and allow the folder `C:\Program Files\OpenConstructionERP` in your antivirus. If you are not sure, write to us before you allow anything.
+**Do:** check the download as described in [Windows blocks the app](desktop/WINDOWS_BLOCKED.md). If the check says `True`, restore the file from quarantine and allow the folder `C:\Program Files\Construction AI OS` in your antivirus. If you are not sure, write to us before you allow anything.
 
 ## Windows: upgrading to a new version
 
@@ -49,7 +49,7 @@ If you installed with pip, run `openconstructionerp doctor` in a terminal. It ch
 **It means:** that line comes from the installer toolkit and we cannot change it.
 **Do:** keep the option that is already selected (write over it). The installer closes the running app for you and keeps all your projects. The first start after an upgrade can take longer while the database updates itself.
 
-**You see:** you also run OpenConstructionERP with pip or from a terminal on the same computer.
+**You see:** you also run Construction AI OS with pip or from a terminal on the same computer.
 **It means:** both use the same `.openestimate` folder and the same database. The installer stops that database to replace the program files, which cuts off the terminal version. When you upgrade from 18.4.0, the old uninstaller also closes any program named `openconstructionerp.exe`, which includes a terminal version started with pip.
 **Do:** stop the terminal version (Ctrl+C in its window) before you install or upgrade, and start it again afterwards.
 
@@ -63,7 +63,7 @@ If you installed with pip, run `openconstructionerp doctor` in a terminal. It ch
 **It means:** the app is creating its local database. This takes a minute or two once, and longer on a slow disk.
 **Do:** wait and do not close the window. Later starts are fast.
 
-**You see:** a box "OpenConstructionERP failed to start" that names a log file.
+**You see:** a box "Construction AI OS failed to start" that names a log file.
 **It means:** the app could not open its window at all.
 **Do:** start it once more. If the box comes back, send us the log file it names.
 
@@ -85,7 +85,7 @@ If you installed with pip, run `openconstructionerp doctor` in a terminal. It ch
 
 **You see:** a message that the folder for the local database "sits too deep in the filesystem", with two numbers in characters.
 **It means:** Windows limits how long a full file path may be, and your data folder path is too long for the database files inside it. Reinstalling into the same place will not help, and switching on long paths in Windows does not help either.
-**Do:** use a shorter data folder. Set the user environment variable `OE_DATA_DIR` to a short path such as `C:\OpenConstructionERP\data` (Start, type "environment variables", "Edit environment variables for your account", New), then start the app again. If you run it from a terminal, use `openconstructionerp serve --data-dir C:\OpenConstructionERP\data`.
+**Do:** use a shorter data folder. Set the user environment variable `OE_DATA_DIR` to a short path such as `C:\cao-data` (Start, type "environment variables", "Edit environment variables for your account", New), then start the app again. If you run it from a terminal, use `openconstructionerp serve --data-dir C:\cao-data`.
 
 **You see:** your Windows user name has non-Latin letters (for example Cyrillic or Chinese), and you look for your database.
 **It means:** the database cannot work from such a path, so the app keeps it in `C:\ProgramData\OpenConstructionERP\clusters\<id>\pgdata`. The file `pgdata.location` in your `.openestimate` folder names the exact folder.
@@ -113,12 +113,12 @@ If you installed with pip, run `openconstructionerp doctor` in a terminal. It ch
 **It means:** the Mac build is for Apple Silicon (M1 and later) only. There is no build for Intel Macs.
 **Do:** on an Intel Mac, use pip or Docker as described in the README.
 
-**You see:** "OpenConstructionERP is damaged and can't be opened", or "cannot be opened because the developer cannot be verified".
+**You see:** "Construction AI OS is damaged and can't be opened", or "cannot be opened because the developer cannot be verified".
 **It means:** the app is not notarized by Apple yet, and macOS blocks downloaded apps it cannot check. The app is not damaged.
 **Do:** open Terminal and run once:
 
 ```
-xattr -dr com.apple.quarantine /Applications/OpenConstructionERP.app
+xattr -dr com.apple.quarantine "/Applications/Construction AI OS.app"
 ```
 
 Or right-click the app in Applications and choose **Open**. On recent macOS go to **System Settings**, **Privacy & Security**, scroll down and click **Open Anyway**. You need to do this only once.
@@ -127,15 +127,15 @@ Or right-click the app in Applications and choose **Open**. On recent macOS go t
 
 **You see:** the `.deb` asks for `libwebkit2gtk-4.1-0` or refuses to install.
 **It means:** the app needs the WebKitGTK 4.1 library to draw its window.
-**Do:** install it with `sudo apt install ./OpenConstructionERP_*_amd64.deb`, which pulls the library in. If your distribution has no `libwebkit2gtk-4.1-0` (Ubuntu older than 22.04, Debian older than 12), use pip.
+**Do:** install it with `sudo apt install ./construction-ai-os_*_amd64.deb`, which pulls the library in. If your distribution has no `libwebkit2gtk-4.1-0` (Ubuntu older than 22.04, Debian older than 12), use pip.
 
 **You see:** the `.rpm` refuses to install or reports missing dependencies.
 **It means:** `rpm -i` does not install the libraries the app needs.
-**Do:** install with `sudo dnf install ./OpenConstructionERP-*.x86_64.rpm`, which pulls them in.
+**Do:** install with `sudo dnf install ./construction-ai-os-*.x86_64.rpm`, which pulls them in.
 
 **You see:** the AppImage does nothing when you double-click it.
 **It means:** the file is not marked as a program yet.
-**Do:** run `chmod +x OpenConstructionERP*.AppImage` and start it again.
+**Do:** run `chmod +x "Construction AI OS"*.AppImage` and start it again.
 
 **You see:** an AppImage error that mentions FUSE or `libfuse.so.2`.
 **It means:** newer distributions no longer install the FUSE 2 library that AppImages use.
@@ -148,7 +148,7 @@ Or right-click the app in Applications and choose **Open**. On recent macOS go t
 ## pip (any system)
 
 **You see:** pip says no matching version was found, or that Python is too old.
-**It means:** OpenConstructionERP needs Python 3.12 or newer.
+**It means:** Construction AI OS needs Python 3.12 or newer.
 **Do:** install Python 3.12 or newer and run `python3.12 -m pip install --upgrade openconstructionerp` (on Windows `py -3.12 -m pip ...`).
 
 **You see:** `error: externally-managed-environment` (Ubuntu 23.04 and newer, Debian 12 and newer).
@@ -191,7 +191,7 @@ Uninstalling removes the program and keeps your projects. They live in the `.ope
 
 ## Still stuck
 
-Write to info@datadrivenconstruction.io or open an issue at [github.com/datadrivenconstruction/OpenConstructionERP/issues](https://github.com/datadrivenconstruction/OpenConstructionERP/issues). Please include:
+Open an issue at [github.com/abdelnabym519-cpu/Construction-AI-OS/issues](https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues). Please include:
 
 - the version you installed and how (Windows installer, `.dmg`, `.deb`, `.rpm`, AppImage, pip or Docker),
 - your system (Windows: Start, type `winver`; macOS: Apple menu, About This Mac),

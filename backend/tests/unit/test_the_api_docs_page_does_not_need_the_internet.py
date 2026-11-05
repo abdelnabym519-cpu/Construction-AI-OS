@@ -233,6 +233,9 @@ def test_the_schema_is_rebuilt_when_the_route_table_moves() -> None:
     after = app.openapi()
 
     assert marker in after["paths"], "a route added after the first build never reached the schema"
-    # The markers the override exists to add must survive the rebuild.
-    assert after["info"]["x-ddc-author"].startswith("Artem Boiko")
-    assert "DataDrivenConstruction" in after["info"]["x-ddc-origin"]
+    # The upstream vendor markers the old override injected into info must
+    # NOT come back on a rebuild in this distribution: attribution lives in
+    # /api/source, LICENSE and NOTICE, not in the OpenAPI document. The test
+    # previously pinned those markers, which encoded the upstream brand.
+    assert "x-ddc-author" not in after["info"]
+    assert "x-ddc-origin" not in after["info"]

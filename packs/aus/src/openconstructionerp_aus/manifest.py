@@ -89,6 +89,6 @@ MANIFEST = PartnerPackManifest(
             "NT": "NT Building Practitioners Board",
         },
         "default_contract": "AS 4000-1997",
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )
