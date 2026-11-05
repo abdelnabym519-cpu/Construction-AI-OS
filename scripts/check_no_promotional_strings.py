@@ -64,6 +64,12 @@ FORBIDDEN = [
     "Data Driven Construction",
     "#1",
 ]
+# "#1" only as the marketing claim. Unqualified it matched CSS hex colours
+# ('#10b981') and licence placeholders ("CA License #1234567"), which is how 106
+# component hits and 38 locale hits entered the baseline that were never a claim
+# about being number one. A hex colour always continues with a hex digit; the
+# claim never does.
+HEX_TAIL = re.compile(r"#1[0-9a-fA-F]")
 # "free" only in its marketing sense. On its own the word is everywhere in this
 # product for legitimate reasons (free text, free-form, duty-free, risk-free),
 # so it is matched in the collocations that make it a sales claim.
@@ -87,6 +93,8 @@ HEADER_LINES = 8  # the copyright/SPDX header every source file carries
 
 def hits(text: str) -> list[str]:
     found = [w for w in FORBIDDEN if w.lower() in text.lower()]
+    if "#1" in found and not HEX_TAIL.sub("", text).count("#1"):
+        found.remove("#1")
     if FREE_MARKETING.search(text):
         found.append("free (marketing)")
     return found
@@ -186,10 +194,21 @@ def main() -> int:
         text = p.read_text(encoding="utf-8", errors="replace")
         if not any(w.lower() in text.lower() for w in FORBIDDEN) and not FREE_MARKETING.search(text):
             continue
-        for ln, s in component_strings(text):
-            found = hits(s)
-            if found and ln > HEADER_LINES:
-                record(rel, f"line {ln}", s, found)
+        lines = text.splitlines()
+        for ln, lit in component_strings(text):
+            found = hits(lit)
+            if not found or ln <= HEADER_LINES:
+                continue
+            # A defaultValue on the line that renders an allowlisted key is the
+            # same string the key stands for, so it gets the same treatment.
+            # boq.source_open is the case that needs it: its default is the two
+            # words "Open source", where "Open" is a verb and "source document"
+            # is what it opens. Allowlisting the bare phrase would exempt every
+            # real occurrence of it, so the exemption is tied to the key.
+            src = lines[ln - 1] if ln - 1 < len(lines) else ""
+            if any(f"'{k}'" in src or f'"{k}"' in src for k in allow):
+                continue
+            record(rel, f"line {ln}", lit, found)
 
     new: list[str] = []
     for rel, items in sorted(violations.items()):

@@ -5223,14 +5223,6 @@ export function OnboardingWizard() {
               )}
             </StepTransition>
           </div>
-
-          {/* Trust footer — small line directly below the card. */}
-          <p className="mt-3 text-center text-[11px] text-content-tertiary">
-            {t('onboarding.footer_trust', {
-              defaultValue:
-                'Free and open-source · Your data stays on your server · AGPL-3.0',
-            })}
-          </p>
         </div>
       </div>
     </div>

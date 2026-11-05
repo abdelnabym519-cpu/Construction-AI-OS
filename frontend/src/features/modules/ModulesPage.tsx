@@ -1,7 +1,7 @@
 // DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 // Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 import { useState, useMemo, useCallback } from 'react';
-import { APP_NAME, SOURCE_REPO_URL } from '@/shared/lib/brandName';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, Link, Navigate, useSearchParams } from 'react-router-dom';
@@ -1238,15 +1238,6 @@ function DataPackagesTab() {
                 {t('modules.community_desc', { defaultValue: `${APP_NAME} has a modular plugin architecture. Anyone can create custom modules - cost databases, regional standards, CAD converters, analytics dashboards, integrations with external systems, or any other functionality.` })}
               </p>
               <div className="flex flex-wrap gap-3">
-                <a
-                  href={`${SOURCE_REPO_URL}/issues/new?title=Module%20Proposal:%20&labels=module-proposal`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg border border-border-light bg-surface-secondary px-4 py-2 text-sm font-medium text-content-primary hover:bg-surface-secondary/80 transition-colors"
-                >
-                  <Info size={16} />
-                  {t('modules.community_submit_github', { defaultValue: 'Propose on GitHub' })}
-                </a>
               </div>
             </div>
           </div>

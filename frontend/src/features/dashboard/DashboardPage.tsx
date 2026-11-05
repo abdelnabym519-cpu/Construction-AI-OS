@@ -1,7 +1,6 @@
 // DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 // Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -38,7 +37,6 @@ import {
   FileText,
   Calendar,
   Upload,
-  ExternalLink,
   AlertTriangle,
   TrendingUp,
   Users,
@@ -2851,19 +2849,6 @@ function DashboardPageInner() {
       {/* ─── 2. Hero · row B - thin meta-strip ───────────────────────── */}
       <div className="flex items-center flex-wrap gap-x-4 gap-y-2 pl-2 animate-stagger-in" style={{ animationDelay: '140ms' }}>
         {/* Open-source pill - slimmer (was a heavy gradient card) */}
-        <a
-          href={SOURCE_REPO_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group/oss inline-flex items-center gap-2 text-xs font-medium text-content-secondary hover:text-content-primary transition-colors"
-        >
-          <span className="relative flex h-2 w-2 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-          </span>
-          <span>{t('dashboard.open_source_badge', { defaultValue: 'Open-source construction ERP' })}</span>
-          <ExternalLink size={11} className="text-content-quaternary group-hover/oss:text-oe-blue transition-colors" />
-        </a>
 
         <span aria-hidden className="h-3 w-px bg-border-light" />
 

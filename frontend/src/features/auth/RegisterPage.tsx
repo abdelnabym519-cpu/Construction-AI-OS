@@ -330,7 +330,6 @@ export function RegisterPage() {
                     >
                       <option value="">{t('auth.how_found_select', '- Select -')}</option>
                       <option value="google">{t('auth.how_found_google', 'Google Search')}</option>
-                      <option value="github">{t('auth.how_found_github', 'GitHub')}</option>
                       <option value="linkedin">{t('auth.how_found_linkedin', 'LinkedIn')}</option>
                       <option value="reddit">{t('auth.how_found_reddit', 'Reddit')}</option>
                       <option value="youtube">{t('auth.how_found_youtube', 'YouTube')}</option>

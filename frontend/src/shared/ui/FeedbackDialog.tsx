@@ -1,13 +1,11 @@
 // DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 // Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 import { useState, useEffect, useRef } from 'react';
-import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
-import { X, Bug, Lightbulb, MessageCircle, ExternalLink, Loader2 } from 'lucide-react';
+import { X, Bug, Lightbulb, MessageCircle, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import { apiPost } from '@/shared/lib/api';
-import { openLink } from '@/shared/lib/desktop';
 import { useToastStore } from '@/stores/useToastStore';
 
 interface FeedbackDialogProps {
@@ -23,8 +21,6 @@ const CATEGORIES: { key: FeedbackCategory; icon: typeof Bug; labelKey: string; d
   { key: 'general', icon: MessageCircle, labelKey: 'feedback.category_general', defaultLabel: 'General' },
 ];
 
-const GITHUB_ISSUES_URL =
-  `${SOURCE_REPO_URL}/issues/new`;
 
 export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
   const { t } = useTranslation();
@@ -108,13 +104,6 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
     }
   }
 
-  function openGitHub() {
-    const params = new URLSearchParams({
-      title: subject.trim() ? `[${category}] ${subject.trim()}` : '',
-      body: description.trim() || '',
-    });
-    openLink(`${GITHUB_ISSUES_URL}?${params}`);
-  }
 
   if (!open) return null;
 
@@ -258,14 +247,6 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
 
           {/* Footer */}
           <div className="flex items-center justify-between pt-1">
-            <button
-              type="button"
-              onClick={openGitHub}
-              className="flex items-center gap-1 text-xs text-content-tertiary hover:text-content-secondary transition-colors"
-            >
-              {t('feedback.github_link', { defaultValue: 'Or report on GitHub' })}
-              <ExternalLink size={11} />
-            </button>
             <button
               type="submit"
               disabled={sending || !subject.trim() || !description.trim()}
