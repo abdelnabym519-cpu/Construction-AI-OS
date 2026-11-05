@@ -26,7 +26,7 @@
 
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate , Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   Users,
@@ -36,7 +36,6 @@ import {
   Eye,
   Building2,
   BadgeCheck,
-  ExternalLink,
   ArrowUpRight,
   UserPlus,
   Mail,
@@ -47,7 +46,6 @@ import { apiGet, ApiError } from '@/shared/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { fetchUsers, type User, type UserRole } from '@/features/users/api';
 
-const AGPL_URL = 'https://www.gnu.org/licenses/agpl-3.0.html';
 
 // ── Role display config (icon + badge variant). The human labels are read
 // from the SAME i18n keys the User Management page uses (users.roles.*), so
@@ -384,26 +382,14 @@ export function SettingsTeamPanel() {
                 <span className="text-sm font-semibold text-content-primary">
                   {t('settings.license_edition_community', { defaultValue: 'Community Edition' })}
                 </span>
-                <Badge variant="blue" size="sm">
-                  AGPL-3.0
-                </Badge>
               </div>
-              <p className="mt-1 max-w-prose text-xs leading-relaxed text-content-secondary">
-                {t('settings.license_community_desc', {
-                  defaultValue:
-                    'This is the free, open-source build. You can use it for any purpose, including commercial, self-host it on your own hardware, and modify it. In return, network users must be able to get the source under the same AGPL-3.0 license.',
-                })}
-              </p>
             </div>
-            <a
-              href={AGPL_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/legal"
               className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-oe-blue hover:underline"
             >
-              {t('settings.license_read_agpl', { defaultValue: 'Read the AGPL-3.0 license' })}
-              <ExternalLink size={11} />
-            </a>
+              {t('legal.link', { defaultValue: 'Legal' })}
+            </Link>
           </div>
 
           {/* Version / build facts from /api/health */}

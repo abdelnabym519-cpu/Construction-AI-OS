@@ -70,6 +70,13 @@ FORBIDDEN = [
 # about being number one. A hex colour always continues with a hex digit; the
 # claim never does.
 HEX_TAIL = re.compile(r"#1[0-9a-fA-F]")
+# AGPL as a word, not a substring. Matched loosely it fired inside ordinary words
+# in two languages: Danish "Tagplantrum" (a roof plant room) and Filipino
+# "Magplano" (to plan) both contain "agpl". Twenty keys across da.ts and fil.ts
+# were baselined as licence claims for that reason alone. The acronym is always
+# written in capitals in real use, and a word boundary keeps "AGPL-3.0" matching
+# while leaving both languages alone.
+AGPL_WORD = re.compile(r"\bAGPL\b")
 # "free" only in its marketing sense. On its own the word is everywhere in this
 # product for legitimate reasons (free text, free-form, duty-free, risk-free),
 # so it is matched in the collocations that make it a sales claim.
@@ -95,6 +102,8 @@ def hits(text: str) -> list[str]:
     found = [w for w in FORBIDDEN if w.lower() in text.lower()]
     if "#1" in found and not HEX_TAIL.sub("", text).count("#1"):
         found.remove("#1")
+    if "AGPL" in found and not AGPL_WORD.search(text):
+        found.remove("AGPL")
     if FREE_MARKETING.search(text):
         found.append("free (marketing)")
     return found

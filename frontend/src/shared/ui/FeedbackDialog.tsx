@@ -97,7 +97,7 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
     } catch {
       addToast({
         type: 'error',
-        title: t('feedback.error', { defaultValue: 'Could not send feedback. Please try again or report on GitHub.' }),
+        title: t('feedback.error', { defaultValue: 'Could not send feedback. Please try again.' }),
       });
     } finally {
       setSending(false);

@@ -256,12 +256,6 @@ export const DEFAULT_PRODUCT_TOUR_STEPS: ProductTourStep[] = [
     revealGroupId: 'grp_reality',
   },
   {
-    selector: '[data-testid="header-help-menu"]',
-    titleKey: 'tour.step.7.title',
-    bodyKey: 'tour.step.7.body',
-    preferredPosition: 'bottom',
-  },
-  {
     selector: null,
     titleKey: 'tour.step.8.title',
     bodyKey: 'tour.step.8.body',
