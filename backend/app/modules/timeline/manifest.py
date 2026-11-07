@@ -15,7 +15,7 @@ manifest = ModuleManifest(
         "the history of any single record, and an event-bus bridge subscriber "
         "that persists those events so the timeline survives a restart"
     ),
-    author="OpenConstructionERP Core Team",
+    author="Construction AI OS Core Team",
     category="core",
     depends=["oe_users", "oe_projects"],
     auto_install=True,

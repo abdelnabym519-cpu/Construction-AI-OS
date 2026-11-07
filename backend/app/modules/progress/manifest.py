@@ -13,7 +13,7 @@ manifest = ModuleManifest(
         "per-period deltas, cumulative rollup, S-curve generation, parent rollup "
         "from children, geo-tagged field entries."
     ),
-    author="OpenConstructionERP Core Team",
+    author="Construction AI OS Core Team",
     category="core",
     depends=["oe_projects", "oe_boq"],
     auto_install=True,

@@ -62,7 +62,7 @@ class MarketplaceModule:
 # ---------------------------------------------------------------------------
 
 _DDC = "Data Driven Construction"
-_OE = "OpenConstructionERP Core Team"
+_OE = "Construction AI OS Core Team"
 
 #: What a vector-index card says about the encoder it needs. sentence-transformers
 #: is in requirements-desktop.lock, reaching the bundle through the

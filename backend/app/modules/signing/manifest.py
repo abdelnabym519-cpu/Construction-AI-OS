@@ -19,7 +19,7 @@ manifest = ModuleManifest(
         "no keys, passwords or credentials; regional schemes plug in as "
         "provider adapters."
     ),
-    author="OpenConstructionERP Core Team",
+    author="Construction AI OS Core Team",
     category="core",
     depends=["oe_users", "oe_projects"],
     auto_install=True,

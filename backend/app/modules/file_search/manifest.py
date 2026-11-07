@@ -13,7 +13,7 @@ manifest = ModuleManifest(
         "sheets, markups and reports. PDFium + Tesseract extractors, "
         "Postgres tsvector / SQLite LIKE fallback."
     ),
-    author="OpenConstructionERP Core Team",
+    author="Construction AI OS Core Team",
     category="core",
     depends=["oe_projects", "oe_documents"],
     auto_install=True,
