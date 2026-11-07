@@ -26,7 +26,9 @@ const LOCALES = join(__dirname, '..', 'app', 'locales');
 // src/tests -> src -> frontend -> repository root, where scripts/ lives.
 const SCRIPTS = join(__dirname, '..', '..', '..', 'scripts');
 
-const FORBIDDEN = [
+// A plain string[], not `as const`: the list is compared and pushed to, and a
+// readonly literal union makes "free (marketing)" unassignable to its own result.
+const FORBIDDEN: string[] = [
   'open source',
   'open-source',
   'opensource',
@@ -36,7 +38,8 @@ const FORBIDDEN = [
   'openconstructionerp',
   'DataDrivenConstruction',
   'Data Driven Construction',
-] as const;
+  '#1',
+];
 
 /** "#1" only as a rank claim: IFC entity ids are written "#1=IFCPROJECT". */
 const RANK_CLAIM = /\b(?:the|world'?s|region'?s|industry'?s)\s+#1\b|^#1(?![=\w-])/i;
@@ -51,8 +54,8 @@ const FREE_NOT_MARKETING = /\bfree[\s-]+(?:text|texts|form|format|response|entry
 const PAIR = /^\s*"([^"]+)":\s*"(.*)",?\s*$/;
 
 function offenders(value: string): string[] {
-  const found = FORBIDDEN.filter((w) => value.toLowerCase().includes(w.toLowerCase()));
-  const at = found.indexOf('#1' as (typeof FORBIDDEN)[number]);
+  const found: string[] = FORBIDDEN.filter((w) => value.toLowerCase().includes(w.toLowerCase()));
+  const at = found.indexOf('#1');
   if (at >= 0 && !RANK_CLAIM.test(value.replace(HEX_TAIL, ''))) found.splice(at, 1);
   const ag = found.indexOf('AGPL');
   if (ag >= 0 && !AGPL_WORD.test(value)) found.splice(ag, 1);
@@ -100,9 +103,12 @@ describe('locale values', () => {
       for (const file of files) {
         for (const line of readFileSync(join(LOCALES, file), 'utf8').split('\n')) {
           const m = PAIR.exec(line);
-          if (!m) continue;
+          // noUncheckedIndexedAccess makes every capture group string|undefined,
+          // so the groups are read and narrowed rather than destructured.
+          const key = m?.[1];
+          const value = m?.[2];
+          if (key === undefined || value === undefined) continue;
           checked += 1;
-          const [, key, value] = m;
           const found = offenders(value);
           if (!found.length) continue;
           if (keys.has(key) || exact.has(value) || sub.some((pat) => value.includes(pat))) continue;

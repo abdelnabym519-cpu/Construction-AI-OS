@@ -45,6 +45,15 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+# Every relative path below is taken with as_posix(), never str(). str() of a
+# Path uses the platform separator, so on a Windows checkout the exemption
+# patterns - "frontend/src/features/legal/", "/locales/", "__tests__", "/tests/"
+# - matched nothing at all, and the guard reported the licence page and all 45
+# locale bundles as new violations. It failed on Windows while passing on Linux,
+# which is what it did in CI inside a backend unit test that ran it as a
+# subprocess. The baseline files are keyed with forward slashes as well, so
+# normalising keeps their counts comparable across platforms too.
 LOCALES = ROOT / "frontend" / "src" / "app" / "locales"
 SRC = ROOT / "frontend" / "src"
 ALLOWLIST = ROOT / "scripts" / "promotional_allowlist.json"
@@ -315,7 +324,7 @@ def main() -> int:
         violations.setdefault(rel, []).append(f"{key}: {', '.join(found)} -> {text[:90]!r}")
 
     for p in sorted(LOCALES.glob("*.ts")):
-        rel = str(p.relative_to(ROOT))
+        rel = p.relative_to(ROOT).as_posix()
         for ln, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
             if ln <= HEADER_LINES:
                 continue
@@ -330,7 +339,7 @@ def main() -> int:
     for p in sorted(SRC.rglob("*")):
         if not p.is_file() or p.suffix not in {".ts", ".tsx"}:
             continue
-        rel = str(p.relative_to(ROOT))
+        rel = p.relative_to(ROOT).as_posix()
         if p.name in GENERATED or ".test." in p.name or "__tests__" in rel or "/locales/" in rel:
             continue
         if any(rel.startswith(x) for x in EXEMPT_PATHS) or p.name in EXEMPT_NAMES:
@@ -356,7 +365,7 @@ def main() -> int:
 
     backend_violations: dict[str, list[str]] = {}
     for p in backend_files():
-        rel = str(p.relative_to(ROOT))
+        rel = p.relative_to(ROOT).as_posix()
         if "/tests/" in rel or rel.endswith("_test.py"):
             continue
         text = p.read_text(encoding="utf-8", errors="replace")
