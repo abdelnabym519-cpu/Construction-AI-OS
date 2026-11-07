@@ -12,6 +12,17 @@ rather than absent from the application. It stays registered, because the e2e
 suite and a seeded demo sign in through it; what it must not do is advertise
 itself in the documentation handed to an integrator.
 
+This lives in tests/unit rather than tests/integration, which is where it was
+first written and where it did no good at all: the sharded Backend CI runs
+``pytest tests/unit`` only, and the one lane that collects the integration tree
+selects by the ``tenant_isolation`` marker, so an unmarked file there is imported
+and then deselected. It ran nowhere, and it put a module that imports the whole
+application into the import path of a lane that could never execute it - which is
+where the tenant lane's unannotated exit-1 came from, since a collection-time
+import error reports no test-level annotation at all. Under tests/unit the
+sharded lane both collects and runs it, alongside the other unit tests that
+import app.main.
+
 The routes are inspected instead of the rendered document on purpose. Building
 the full OpenAPI schema is measured in tens of seconds on this application and
 has been seen to block the single-worker event loop while it runs, so a test
