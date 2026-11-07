@@ -368,6 +368,7 @@ def _demo_login_setting_state() -> DemoLoginSettingResponse:
 @router.get(
     "/auth/demo-login/settings/",
     response_model=DemoLoginSettingResponse,
+    include_in_schema=False,
     dependencies=[Depends(RequireRole("admin"))],
 )
 @router.get(
@@ -384,6 +385,7 @@ async def get_demo_login_setting() -> DemoLoginSettingResponse:
 @router.put(
     "/auth/demo-login/settings/",
     response_model=DemoLoginSettingResponse,
+    include_in_schema=False,
     dependencies=[Depends(RequireRole("admin"))],
 )
 @router.put(

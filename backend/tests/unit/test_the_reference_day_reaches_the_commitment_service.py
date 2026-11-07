@@ -11,7 +11,10 @@ without the argument and the shipped product must keep reading the clock.
 The service is replaced rather than a database stood up. What is under test is the
 hand-off at this layer, not the overdue arithmetic, which belongs to the service's
 own tests; a fake that records the day it was given is enough to prove the
-hand-off and needs no fixtures.
+hand-off and needs no fixtures. It returns the real return shape - a mapping with
+an ``items`` key, which the provider sorts - because a fake that returns the wrong
+shape fails for a reason that has nothing to do with the day, and the first run of
+this file failed exactly that way.
 """
 
 from __future__ import annotations
@@ -39,10 +42,12 @@ async def test_the_day_given_is_the_day_the_service_receives(monkeypatch: pytest
         def __init__(self, session: object) -> None:
             self.session = session
 
-        async def item_views(self, project_id: uuid.UUID, today: date, item_ids: list[object]) -> list[dict]:
+        async def item_views(
+            self, project_id: uuid.UUID, *, today: date, item_ids: list[uuid.UUID] | None = None
+        ) -> dict[str, list[dict]]:
             seen["today"] = today
             seen["project_id"] = project_id
-            return []
+            return {"items": []}
 
     monkeypatch.setattr("app.modules.commitment_release.service.CommitmentService", _FakeService)
     item = SimpleNamespace(id=uuid.uuid4())
@@ -66,9 +71,11 @@ async def test_with_no_day_given_the_provider_uses_the_real_one(monkeypatch: pyt
         def __init__(self, session: object) -> None:
             self.session = session
 
-        async def item_views(self, project_id: uuid.UUID, today: date, item_ids: list[object]) -> list[dict]:
+        async def item_views(
+            self, project_id: uuid.UUID, *, today: date, item_ids: list[uuid.UUID] | None = None
+        ) -> dict[str, list[dict]]:
             seen["today"] = today
-            return []
+            return {"items": []}
 
     monkeypatch.setattr("app.modules.commitment_release.service.CommitmentService", _FakeService)
     before = datetime.now(UTC).date()
