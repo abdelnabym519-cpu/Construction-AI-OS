@@ -10,8 +10,8 @@ manifest = ModuleManifest(
     description=(
         "Bridges clash detection (BIM coordination) and the BOQ module to "
         "surface an estimated rework cost per clash and a project-level "
-        "open-impact rollup - the unique-to-AGPL-ERP move competitors "
-        "cannot match, since they ship coordination without a BOQ side."
+        "open-impact rollup, so a coordination finding carries a cost and "
+        "not only a location."
     ),
     author="Construction AI OS Core Team",
     category="core",

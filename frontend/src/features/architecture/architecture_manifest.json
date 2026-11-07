@@ -11926,7 +11926,7 @@
         "version": "1.0.0",
         "display_name": "BI Dashboards & Reporting",
         "description": "Role-based dashboards, KPI library, custom report builder, alerts, scheduled digests. Module 20 of the 18-module extension wave - pure consumer of cross-module data.",
-        "author": "OpenConstructionERP",
+        "author": "Construction AI OS",
         "category": "extension",
         "depends": [
           "oe_projects",
@@ -45836,7 +45836,7 @@
         "name": "oe_clash_cost_impact",
         "version": "1.0.0",
         "display_name": "Clash Cost Impact",
-        "description": "Bridges clash detection (BIM coordination) and the BOQ module to surface an estimated rework cost per clash and a project-level open-impact rollup - the unique-to-AGPL-ERP move competitors cannot match, since they ship coordination without a BOQ side.",
+        "description": "Bridges clash detection (BIM coordination) and the BOQ module to surface an estimated rework cost per clash and a project-level open-impact rollup, so a coordination finding carries a cost and not only a location.",
         "author": "Construction AI OS Core Team",
         "category": "core",
         "depends": [
@@ -47816,7 +47816,7 @@
         "version": "1.0.0",
         "display_name": "Commissioning (Cx)",
         "description": "Systems commissioning - prefunctional and functional checklists, issue log, system-readiness scoring and a gated commission action",
-        "author": "OpenConstructionERP",
+        "author": "Construction AI OS",
         "category": "business",
         "depends": [
           "oe_projects",
@@ -162780,7 +162780,7 @@
         "version": "1.0.0",
         "display_name": "Plan Room",
         "description": "Read-only overlay compositor for a document page - defect pins, markups, measurements and photos - plus positioned photo / note pins",
-        "author": "OpenConstructionERP",
+        "author": "Construction AI OS",
         "category": "business",
         "depends": [
           "oe_projects",
@@ -178683,7 +178683,7 @@
         "version": "1.0.0",
         "display_name": "Project Controls",
         "description": "Executive cross-module controls dashboard. Cost (EVM), schedule, quality, safety, risk and change KPIs side by side, currency-honest, with one-click drill-down to the owning module. Pure read-only consumer over the shared KPI registry.",
-        "author": "OpenConstructionERP",
+        "author": "Construction AI OS",
         "category": "extension",
         "depends": [
           "oe_projects",
@@ -200365,7 +200365,7 @@
         "version": "1.0.0",
         "display_name": "Quality Management System (QMS)",
         "description": "Unified ITP + Inspections + NCR + Punch List + Audits with COPQ analytics",
-        "author": "OpenConstructionERP",
+        "author": "Construction AI OS",
         "category": "extension",
         "depends": [
           "oe_projects",
@@ -237639,7 +237639,7 @@
         "version": "1.1.0",
         "display_name": "Site Logistics & Delivery",
         "description": "Plan and control what arrives on site: access gates with operating hours and slot capacity, material laydown zones, and a delivery booking board with approve/reject scheduling. Windows are validated against gate hours and checked for clashes so two approved deliveries never fight for the same gate. Deliveries are booked against the bill positions they carry, so every estimate line reads back as booked, delivered and outstanding. The logistics plan adds expansion stages with an area balance, gate load limits, utility connections, the logistics concept, transports with permits, customs data and the neighbourhood.",
-        "author": "OpenConstructionERP",
+        "author": "Construction AI OS",
         "category": "business",
         "depends": [
           "oe_projects",
@@ -252163,7 +252163,7 @@
         "version": "1.0.0",
         "display_name": "Supplier Catalogs & Vendor Management",
         "description": "Extends Procurement: vendor master, item catalogs, price lists, purchase requisitions, extended POs, goods receipts with batch/serial tracking, vendor invoices with 3-way match, and warehouse stock control.",
-        "author": "OpenConstructionERP",
+        "author": "Construction AI OS",
         "category": "extension",
         "depends": [
           "oe_projects",
@@ -267260,7 +267260,7 @@
         "version": "1.0.0",
         "display_name": "Direct Uploads",
         "description": "HMAC-signed direct PUT endpoint for LocalStorageBackend presigned URLs.",
-        "author": "OpenConstructionERP Core",
+        "author": "Construction AI OS Core",
         "category": "core",
         "depends": [],
         "auto_install": true,

@@ -214,6 +214,19 @@ BACKEND_USER_VISIBLE = (
     "backend/app/modules/boq/pdf_export.py",
     "backend/app/modules/tendering/pdf_documents.py",
     "backend/app/modules/module_builder/",
+    # Module manifests are data the Modules page renders: author, display_name and
+    # description reach the screen through the modules API. 202 of them carried the
+    # old product name in the author field before they were cleaned, and nothing
+    # caught it, because a manifest is not an exporter, an e-mail, a PDF, the CLI
+    # or the OpenAPI document - it is a Python file whose strings happen to be
+    # shown. Listed as a glob so a new module is covered the day it is created.
+    "backend/app/modules/*/manifest.py",
+    # Seeded demo content is rendered as if the user created it: project and
+    # meeting names, document placeholders, marketplace cards and the demo
+    # accounts an operator signs in with.
+    "backend/app/core/demo_projects.py",
+    "backend/app/core/demo_accounts.py",
+    "backend/app/core/marketplace.py",
 )
 
 
@@ -274,17 +287,21 @@ def python_strings(text: str) -> list[tuple[int, str]]:
 
 
 def backend_files() -> list[Path]:
+    """Every file the backend scan reads, from the declared surface list.
+
+    A directory means all of its Python files; anything else is a glob relative to
+    the repository root, so "backend/app/modules/*/manifest.py" picks up the
+    manifest of every module including one added tomorrow. Globbing rather than
+    naming files is the point: a list of today's filenames silently stops covering
+    the tree as it grows, which is how 202 module manifests went unscanned.
+    """
     out: list[Path] = []
     for pat in BACKEND_USER_VISIBLE:
         p = ROOT / pat
         if p.is_dir():
             out.extend(sorted(x for x in p.rglob("*.py") if x.is_file()))
-        elif p.is_file():
-            out.append(p)
-        elif ROOT.glob(pat + "*"):
-            out.extend(sorted(x for x in ROOT.glob(pat + "*") if x.is_file() and x.suffix == ".py"))
-        elif p.parent.is_dir():
-            out.extend(sorted(x for x in p.parent.rglob(p.name + "*.py") if x.is_file()))
+        else:
+            out.extend(sorted(x for x in ROOT.glob(pat) if x.is_file() and x.suffix == ".py"))
     seen: set[Path] = set()
     return [x for x in out if not (x in seen or seen.add(x))]
 
