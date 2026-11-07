@@ -23,7 +23,7 @@ A project that has not pinned a framework has no register and answers nothing.
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 from app.modules.project_governance.evidence import (
@@ -141,7 +141,7 @@ def placement(area_code: str, host: str | None, first_area: str | None) -> str:
 
 
 async def governance_readiness(
-    session: Any, project_id: uuid.UUID, attempt: GateAttempt, area: Any
+    session: Any, project_id: uuid.UUID, attempt: GateAttempt, area: Any, *, today: date | None = None
 ) -> list[EvidenceItem]:
     from app.modules.stakeholders import hosting
     from app.modules.stakeholders.service import StakeholderService
@@ -153,7 +153,9 @@ async def governance_readiness(
     catalogue = await hosting.project_catalogue(session, project_id)
     first = hosting.first_area_code(catalogue) if catalogue is not None else None
     link = (LINK_KIND, str(project_id))
-    today = datetime.now(UTC).date()
+    today = (
+        today if today is not None else datetime.now(UTC).date()
+    )  # the reference day is a parameter; production callers pass nothing and get the real date
     checks: dict[str, dict[str, Any]] | None = None
     out: list[EvidenceItem] = []
     for subject in SUBJECTS:

@@ -22,7 +22,7 @@ registry.
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 from app.modules.project_governance.evidence import EvidenceItem, GateAttempt, register_evidence_provider
@@ -160,7 +160,9 @@ async def permit_condition_items(session: Any, project_id: uuid.UUID, link: tupl
     ]
 
 
-async def quality_readiness(session: Any, project_id: uuid.UUID, attempt: GateAttempt, area: Any) -> list[EvidenceItem]:
+async def quality_readiness(
+    session: Any, project_id: uuid.UUID, attempt: GateAttempt, area: Any, *, today: date | None = None
+) -> list[EvidenceItem]:
     from app.modules.project_governance import public
     from app.modules.quality_concept.service import QualityConceptService
 
@@ -184,7 +186,8 @@ async def quality_readiness(session: Any, project_id: uuid.UUID, attempt: GateAt
     if not await svc._frame_documents(project_id):
         # The model hosts quality, but this project was pinned before the document type existed.
         return [_unknown("quality_frame_document_missing", link)]
-    items = readiness_items(await svc.readiness(project_id, datetime.now(UTC).date()), link)
+    ref_day = today if today is not None else datetime.now(UTC).date()
+    items = readiness_items(await svc.readiness(project_id, ref_day), link)
     return [*items, *await permit_condition_items(session, project_id, link)]
 
 
