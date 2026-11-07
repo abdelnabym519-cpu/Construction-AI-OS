@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
@@ -70,12 +71,79 @@ MENU_OPTIONS: dict[str, tuple[str, ...]] = {
 }
 
 #: Shape returned when nothing has been customised.
+#: Where a bug report is sent. Two kinds and nothing else: a support page the
+#: operator runs, or a mailbox they read. There is deliberately no third kind
+#: that points at this repository's issue tracker - the channel used to open one,
+#: which told every user of every deployment where the software came from.
+SUPPORT_KINDS = ("url", "email")
+
+#: Bound on a support destination, so a hostile or fat-fingered payload cannot
+#: bloat the file or the public response. Generous: a URL with a long query or a
+#: mailbox with a subdomain and a plus-address fits easily.
+MAX_SUPPORT_VALUE = 300
+
+#: Schemes a support URL may use. It is opened by a browser on a user's machine,
+#: and the value is admin-set but served from a PUBLIC endpoint, so anything that
+#: executes rather than navigates is refused outright: ``javascript:``, ``data:``
+#: and ``vbscript:`` are the ones that matter, and an allowlist refuses the ones
+#: nobody thought of yet.
+SUPPORT_URL_SCHEMES = ("https://", "http://")
+
+#: A mailbox, loosely. Deliberately not strict: rejecting a real address a
+#: support team actually reads is worse than accepting an odd one, because the
+#: failure is silent - reports go nowhere and nobody sees an error. What it does
+#: refuse is a scheme, whitespace and anything without exactly one @.
+_EMAIL_RE = re.compile(r"^[^@\s,;:<>]+@[^@\s,;:<>]+\.[^@\s,;:<>]{2,}$")
+
+
+def sanitise_support_destination(data: Any) -> dict[str, str] | None:
+    """Coerce a submitted support destination into a safe one, or None.
+
+    ``None`` is the default and it is meaningful: with no destination configured
+    the product hides the bug-report channel entirely rather than offering a
+    button that goes nowhere, or worse, one that opens somebody else's tracker.
+
+    Accepts a mapping or anything carrying ``kind`` and ``value`` attributes,
+    because the write path hands this the validated request model itself: the
+    router merges submitted fields straight onto the stored payload, so what
+    arrives here is a ``SupportDestination`` on the way in and a dict on the way
+    back out of the file. Treating only a dict as valid would silently discard
+    every destination an admin saved.
+    """
+    if hasattr(data, "kind") and hasattr(data, "value"):
+        data = {"kind": data.kind, "value": data.value}
+    if not isinstance(data, dict):
+        return None
+    kind = data.get("kind")
+    value = data.get("value")
+    if kind not in SUPPORT_KINDS or not isinstance(value, str):
+        return None
+    value = value.strip()[:MAX_SUPPORT_VALUE]
+    if not value:
+        return None
+    if kind == "url":
+        if not value.lower().startswith(SUPPORT_URL_SCHEMES):
+            return None
+        # A credential or a fragment-only target in a support URL is a mistake,
+        # not a feature: it would be handed to every user's browser.
+        if "@" in value.split("//", 1)[-1].split("/", 1)[0]:
+            return None
+    else:
+        if not _EMAIL_RE.match(value):
+            return None
+    return {"kind": str(kind), "value": value}
+
+
 DEFAULT_BRANDING: dict[str, Any] = {
     "mode": "default",
     "logo_data_url": None,
     "logo_png_data_url": None,
     "company_name": "",
     "appearance": None,
+    # No destination until an admin sets one, and the Legal link visible until an
+    # admin who has cleared the licence position turns it off.
+    "support_destination": None,
+    "legal_link_visible": True,
 }
 
 
@@ -153,12 +221,20 @@ def sanitise(data: Any) -> dict[str, Any]:
     elif mode == "text" and not name:
         mode = "default"
 
+    visible = data.get("legal_link_visible")
+
     return {
         "mode": mode,
         "logo_data_url": logo,
         "logo_png_data_url": png,
         "company_name": name,
         "appearance": sanitise_appearance(data.get("appearance")),
+        "support_destination": sanitise_support_destination(data.get("support_destination")),
+        # Anything that is not exactly False means visible. The link is the
+        # product's one required pointer at the licence notice and the source
+        # offer, so the default and every ambiguous value fall on the side of
+        # showing it: a corrupt file, a hand-edited "yes", a missing key.
+        "legal_link_visible": visible is not False,
     }
 
 
