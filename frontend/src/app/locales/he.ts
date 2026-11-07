@@ -9749,7 +9749,6 @@ const resource = {
     "auth.server_error": "לא ניתן להתחבר לשרת. אנא נסו שוב.",
     "auth.sign_in": "כניסה",
     "auth.sso_login": "כניסה עם SSO",
-    "auth.source_code": "קוד מקור",
     "backup.confirm_replace_btn": "החלפת כל הנתונים",
     "backup.confirm_replace_message": "פעולה זו תחליף את כל הנתונים הקיימים בתוכן הגיבוי. לא ניתן לבטל פעולה זו.",
     "backup.confirm_replace_title": "להחליף את כל הנתונים?",

@@ -10181,7 +10181,6 @@ const resource = {
     "auth.server_error": "Kan ikke oprette forbindelse til serveren. Prøv venligst igen.",
     "auth.sign_in": "Log ind",
     "auth.sso_login": "Log ind med SSO",
-    "auth.source_code": "Kildekode",
     "boq.aace_accuracy": "Nøjagtighed",
     "boq.aace_accuracy_range": "Nøjagtighedsinterval",
     "boq.aace_class": "AACE-klasse",

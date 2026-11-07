@@ -188,7 +188,6 @@ MIN_PYTHON = (3, 12)
 # install's source code and issue tracker live (AGPL-3.0-or-later).
 REPO_URL = "https://github.com/abdelnabym519-cpu/Construction-AI-OS"
 ISSUES_URL = f"{REPO_URL}/issues"
-GITHUB_URL = REPO_URL
 
 logger = logging.getLogger("openestimate.cli")
 
@@ -1977,9 +1976,6 @@ def print_welcome(*, next_command_hint: bool = True) -> None:
     print()
     print(f"  {_dim('Advanced:')}  openconstructionerp serve {_dim('|')} init-db {_dim('|')} doctor {_dim('|')} --help")
     print()
-    print(f"  {_bold('Source code')}")
-    print(f"    {_dim('GitHub'.ljust(10))} {GITHUB_URL}")
-    print()
     if next_command_hint:
         print(
             f"  {_dim('Tip: run')} {_amber('openconstructionerp')} {_dim('(or')} {_amber('python -m openconstructionerp')}{_dim(') any time to start the server.')}"
@@ -2835,7 +2831,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="openconstructionerp",
         description=(
-            f"{_app_name()}, open-source construction cost estimation platform.\n\n"
+            f"{_app_name()}, construction cost estimation platform.\n\n"
             "Quick start, one command does everything:\n"
             "    openconstructionerp\n\n"
             "It creates the local database, asks whether to load demo data, starts\n"

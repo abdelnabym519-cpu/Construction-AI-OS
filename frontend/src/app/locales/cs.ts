@@ -10069,7 +10069,6 @@ const resource = {
     "auth.server_error": "Nelze se připojit k serveru. Zkuste to prosím znovu.",
     "auth.sign_in": "Přihlásit se",
     "auth.sso_login": "Přihlásit se přes SSO",
-    "auth.source_code": "Zdrojový kód",
     "boq.aace_accuracy": "Přesnost",
     "boq.aace_accuracy_range": "Rozsah přesnosti",
     "boq.aace_class": "Třída AACE",

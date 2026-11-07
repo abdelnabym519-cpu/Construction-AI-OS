@@ -51159,7 +51159,6 @@ const resource = {
     "boq.list_projects_skipped": "Hindi kasama: {{projects}}. Na-archive na ang mga proyektong ito o hindi na ibinabahagi sa iyo, kaya hindi sila isinasama ng mga tantiya at kabuuan dito.",
     "auth.or": "o",
     "auth.sso_login": "Mag-sign in gamit ang SSO",
-    "auth.source_code": "Source code",
     "schedule.activate": "I-activate",
     "schedule.activated": "Na-activate na ang iskedyul",
     "schedule.activity_deleted": "Natanggal na ang aktibidad",

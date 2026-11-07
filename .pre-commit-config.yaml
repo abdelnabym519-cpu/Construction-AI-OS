@@ -491,7 +491,7 @@ repos:
         entry: python scripts/check_no_promotional_strings.py
         language: system
         pass_filenames: false
-        files: ^(frontend/src/.*\.tsx?|scripts/promotional_(allowlist|debt_baseline)\.json)$
+        files: ^(frontend/src/.*\.tsx?|backend/app/.*\.py|scripts/promotional_(allowlist|debt_baseline|debt_baseline_backend)\.json)$
 
       # The orphan guard above asks whether a key is reachable at all, and
       # says in its own comments that it deliberately does not ask whether a

@@ -9709,7 +9709,6 @@ const resource = {
     "auth.server_error": "سرور سے منسلک نہیں ہو سکا۔ براہِ کرم دوبارہ کوشش کریں۔",
     "auth.sign_in": "سائن ان کریں",
     "auth.sso_login": "SSO سے سائن ان کریں",
-    "auth.source_code": "سورس کوڈ",
     "backup.confirm_replace_btn": "تمام ڈیٹا بدلیں",
     "backup.confirm_replace_message": "یہ تمام موجودہ ڈیٹا کو backup مواد سے بدل دے گا۔ اس عمل کو واپس نہیں کیا جا سکتا۔",
     "backup.confirm_replace_title": "تمام ڈیٹا بدلیں؟",

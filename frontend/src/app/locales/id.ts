@@ -50960,7 +50960,6 @@ const resource = {
     "boq.list_projects_skipped": "Tidak disertakan: {{projects}}. Proyek ini telah diarsipkan atau tidak lagi dibagikan kepada Anda, sehingga estimasi dan total di sini tidak menyertakannya.",
     "auth.or": "atau",
     "auth.sso_login": "Masuk dengan SSO",
-    "auth.source_code": "Kode sumber",
     "schedule.activate": "Aktifkan",
     "schedule.activated": "Jadwal diaktifkan",
     "schedule.activity_deleted": "Aktivitas dihapus",

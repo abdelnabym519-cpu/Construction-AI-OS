@@ -10395,7 +10395,6 @@ const resource = {
     "auth.server_error": "Nie można połączyć się z serwerem. Spróbuj ponownie.",
     "auth.sign_in": "Zaloguj się",
     "auth.sso_login": "Zaloguj się przez SSO",
-    "auth.source_code": "Kod źródłowy",
     "boq.aace_accuracy": "Dokładność",
     "boq.aace_accuracy_range": "Zakres dokładności",
     "boq.aace_class": "Klasa AACE",

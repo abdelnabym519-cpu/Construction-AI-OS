@@ -9663,7 +9663,6 @@ const resource = {
     "auth.server_error": "Verbindung zum Server nicht möglich. Bitte versuchen Sie es erneut.",
     "auth.sign_in": "Anmelden",
     "auth.sso_login": "Mit SSO anmelden",
-    "auth.source_code": "Quellcode",
     "boq.aace_accuracy": "Genauigkeit",
     "boq.aace_accuracy_range": "Genauigkeitsbereich",
     "boq.aace_class": "AACE-Klasse",

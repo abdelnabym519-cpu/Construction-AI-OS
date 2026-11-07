@@ -51471,7 +51471,6 @@ const resource = {
     "boq.list_projects_skipped": "অন্তর্ভুক্ত নয়: {{projects}}। এই প্রকল্পগুলি আর্কাইভ করা হয়েছে বা আর আপনার সাথে শেয়ার করা নেই, তাই এখানকার প্রাক্কলন ও মোট হিসাব এগুলি বাদ দেয়।",
     "auth.or": "অথবা",
     "auth.sso_login": "SSO দিয়ে সাইন ইন করুন",
-    "auth.source_code": "সোর্স কোড",
     "schedule.activate": "সক্রিয় করুন",
     "schedule.activated": "সময়সূচী সক্রিয় করা হয়েছে",
     "schedule.activity_deleted": "কার্যক্রম মুছে ফেলা হয়েছে",

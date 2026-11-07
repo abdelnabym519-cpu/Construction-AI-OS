@@ -2005,7 +2005,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
         version=settings.app_version,
-        description="Open-source modular platform for construction cost estimation",
+        description="Modular platform for construction cost estimation",
         contact=_openapi_contact,
         license_info={
             "name": "AGPL-3.0-or-later",

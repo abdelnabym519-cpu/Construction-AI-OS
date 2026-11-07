@@ -50980,7 +50980,6 @@ const resource = {
     "boq.list_projects_skipped": "Không bao gồm: {{projects}}. Các dự án này đã được lưu trữ hoặc không còn được chia sẻ với bạn, nên dự toán và tổng ở đây không tính chúng.",
     "auth.or": "hoặc",
     "auth.sso_login": "Đăng nhập bằng SSO",
-    "auth.source_code": "Mã nguồn",
     "schedule.activate": "Kích hoạt",
     "schedule.activated": "Đã kích hoạt lịch trình",
     "schedule.activity_deleted": "Đã xóa hoạt động",

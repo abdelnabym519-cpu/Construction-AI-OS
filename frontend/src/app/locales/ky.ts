@@ -4224,7 +4224,6 @@ const resource = {
     "auth.server_error": "Серверге туташуу мүмкүн эмес. Кайра аракет кылыңыз.",
     "auth.sign_in": "Кирүү",
     "auth.sso_login": "SSO аркылуу кирүү",
-    "auth.source_code": "Баштапкы код",
     "boq.aace_accuracy": "Тактык",
     "boq.tab_field_history": "Талаа тарыхы",
     "boq.tab_snapshots": "Снапшоттор",

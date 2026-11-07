@@ -1,30 +1,4 @@
 {
   "_comment": "Per-file counts of promotional strings that were already in the tree when check_no_promotional_strings.py landed. This is labelled debt, not permission: the guard fails if any count grows or a new file appears, so these numbers can only go down. Lower an entry in the same diff that removes the strings it counts.",
-  "counts": {
-    "frontend/src/features/about/Changelog.tsx": 1,
-    "frontend/src/features/auth/RegisterPage.tsx": 1,
-    "frontend/src/features/bim/AutoInstallConverterNotice.tsx": 2,
-    "frontend/src/features/bim/BIMConverterStatusBanner.tsx": 5,
-    "frontend/src/features/bim/InstallConverterPrompt.tsx": 1,
-    "frontend/src/features/bim/api.ts": 1,
-    "frontend/src/features/bim_requirements/SEED_PACKS.ts": 10,
-    "frontend/src/features/cases/data/measure-the-drawing-into-a-coded-bill-item.playbook.ts": 1,
-    "frontend/src/features/costs/ImportDatabasePage.tsx": 7,
-    "frontend/src/features/geo-hub/CesiumViewer.tsx": 3,
-    "frontend/src/features/integrations/IntegrationsPage.tsx": 8,
-    "frontend/src/features/integrations/integrationsGuide.ts": 1,
-    "frontend/src/features/modules/ModulesPage.tsx": 1,
-    "frontend/src/features/projects/ProjectDetailPage.tsx": 1,
-    "frontend/src/features/quantities/QuantitiesPage.tsx": 3,
-    "frontend/src/features/settings/BackupRestore.tsx": 1,
-    "frontend/src/features/settings/SettingsPage.tsx": 7,
-    "frontend/src/features/settings/settingsGuide.ts": 1,
-    "frontend/src/features/setup/DatabaseSetupPage.tsx": 2,
-    "frontend/src/features/translation/api.ts": 4,
-    "frontend/src/modules/cost-benchmark/data/benchmarks.ts": 1,
-    "frontend/src/shared/lib/brandName.ts": 1,
-    "frontend/src/shared/ui/DemoBanner.tsx": 4,
-    "frontend/src/shared/ui/ProductTour.tsx": 1,
-    "frontend/src/shared/ui/UpdateChecker.tsx": 2
-  }
+  "counts": {}
 }

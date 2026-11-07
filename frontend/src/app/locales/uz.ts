@@ -9960,7 +9960,6 @@ const resource = {
     "auth.server_error": "Serverga ulanib boʻlmadi. Qayta urinib koʻring.",
     "auth.sign_in": "Tizimga kirish",
     "auth.sso_login": "SSO orqali kirish",
-    "auth.source_code": "Manba kodi",
     "boq.aace_accuracy": "Aniqlik",
     "boq.aace_accuracy_range": "Aniqlik diapazoni",
     "boq.aace_class": "AACE sinfi",

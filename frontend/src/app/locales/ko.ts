@@ -51590,7 +51590,6 @@ const resource = {
     "boq.list_projects_skipped": "포함되지 않음: {{projects}}. 이 프로젝트는 보관되었거나 더 이상 공유되지 않아 여기의 견적과 합계에서 제외됩니다.",
     "auth.or": "또는",
     "auth.sso_login": "SSO로 로그인",
-    "auth.source_code": "소스 코드",
     "schedule.activate": "활성화",
     "schedule.activated": "일정이 활성화되었습니다",
     "schedule.activity_deleted": "활동이 삭제되었습니다",

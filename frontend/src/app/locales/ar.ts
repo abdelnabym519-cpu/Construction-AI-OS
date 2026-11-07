@@ -10845,7 +10845,6 @@ const resource = {
     "auth.server_error": "تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى.",
     "auth.sign_in": "تسجيل الدخول",
     "auth.sso_login": "تسجيل الدخول باستخدام SSO",
-    "auth.source_code": "الكود المصدري",
     "backup.confirm_replace_btn": "استبدال جميع البيانات",
     "backup.confirm_replace_message": "سيؤدي هذا إلى استبدال جميع البيانات الموجودة بمحتويات النسخة الاحتياطية. لا يمكن التراجع عن هذا الإجراء.",
     "backup.confirm_replace_title": "استبدال جميع البيانات؟",

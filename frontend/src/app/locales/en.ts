@@ -4026,7 +4026,6 @@ const resource = {
     "auth.server_error": "Unable to connect to server. Please try again.",
     "auth.sign_in": "Sign in",
     "auth.sso_login": "Sign in with SSO",
-    "auth.source_code": "Source code",
     "boq.aace_accuracy": "Accuracy",
     "boq.tab_field_history": "Field history",
     "boq.tab_snapshots": "Snapshots",

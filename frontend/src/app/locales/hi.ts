@@ -10063,7 +10063,6 @@ const resource = {
     "auth.server_error": "सर्वर से कनेक्ट करने में असमर्थ। कृपया पुनः प्रयास करें।",
     "auth.sign_in": "साइन इन करें",
     "auth.sso_login": "SSO से साइन इन करें",
-    "auth.source_code": "स्रोत कोड",
     "boq.aace_accuracy": "सटीकता",
     "boq.aace_accuracy_range": "सटीकता सीमा",
     "boq.aace_class": "AACE वर्ग",
