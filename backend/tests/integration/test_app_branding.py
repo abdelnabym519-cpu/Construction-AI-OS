@@ -27,6 +27,7 @@ import asyncio
 import uuid
 from contextlib import asynccontextmanager
 
+import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
@@ -218,8 +219,38 @@ class TestTheSupportDestinationAndLegalLinkOverHttp:
     reuse its module-scoped client and its admin and viewer fixtures, which stand
     up a whole application and two accounts. Duplicating that for seven assertions
     would cost a shard minutes to prove nothing extra.
+
+    WHICH OF THESE GATE ON PUSH, AND WHY THE OTHERS DO NOT
+
+    ``tests/integration`` is gated on push and pull request by one job and nothing
+    else: the sharded Backend CI runs ``pytest tests/unit`` only, and the full
+    suite workflow is disabled on a fork. That job selects by the
+    ``tenant_isolation`` marker plus a frozen ``-k`` chain it is documented not to
+    extend. So a test here is gated if and only if it earns the marker, which
+    ``backend/pyproject.toml`` defines as identity being the variable under test -
+    who is asking, and what that identity may or may not reach, both polarities,
+    with the allow side earning it by pairing with a denial in the same file.
+
+    Five of the eight earn it and carry it: the two denials (a viewer refused on
+    each field, asserted as a 403 and as a row that did not change) and the three
+    that establish who may read and write the record at all (an anonymous reader
+    seeing the defaults, an admin writing and an anonymous reader seeing it, an
+    admin hiding the link and showing it again - the allow side of the gate the
+    denials exercise).
+
+    Three do not, and are left unmarked rather than marked to order: the refused
+    URL scheme, the merge that keeps an omitted field, and clearing a destination.
+    In each the identity is incidental setup - an admin is merely the actor - and
+    the variable under test is a value. Marking them anyway would spend the
+    marker's meaning to buy a green tick, and the definition says plainly that a
+    test earns it by what it exercises. What they cost is real and is recorded
+    here rather than hidden: they execute in no push lane on this fork. The
+    sanitiser they sit on top of is gated in
+    ``tests/unit/test_the_support_destination_and_legal_link_are_workspace_settings.py``,
+    so the rules themselves are not ungated - only these three routes to them.
     """
 
+    @pytest.mark.tenant_isolation
     async def test_get_is_public_and_reports_no_destination_and_a_visible_link(
         self,
         brand_client: AsyncClient,
@@ -238,6 +269,7 @@ class TestTheSupportDestinationAndLegalLinkOverHttp:
         assert body["support_destination"] is None
         assert body["legal_link_visible"] is True
 
+    @pytest.mark.tenant_isolation
     async def test_an_admin_sets_a_mailbox_and_an_anonymous_reader_sees_it(
         self,
         brand_client: AsyncClient,
@@ -254,6 +286,7 @@ class TestTheSupportDestinationAndLegalLinkOverHttp:
         anon = await brand_client.get("/api/v1/branding/")
         assert anon.json()["support_destination"] == {"kind": "email", "value": "support@builder.example"}
 
+    @pytest.mark.tenant_isolation
     async def test_a_non_admin_cannot_set_the_destination(
         self,
         brand_client: AsyncClient,
@@ -275,6 +308,7 @@ class TestTheSupportDestinationAndLegalLinkOverHttp:
         after = await brand_client.get("/api/v1/branding/")
         assert after.json()["support_destination"] is None
 
+    @pytest.mark.tenant_isolation
     async def test_a_non_admin_cannot_turn_the_legal_link_off(
         self,
         brand_client: AsyncClient,
@@ -310,6 +344,7 @@ class TestTheSupportDestinationAndLegalLinkOverHttp:
             assert put.json()["support_destination"] is None, scheme
             assert (await brand_client.get("/api/v1/branding/")).json()["support_destination"] is None, scheme
 
+    @pytest.mark.tenant_isolation
     async def test_an_admin_can_hide_the_legal_link_and_show_it_again(
         self,
         brand_client: AsyncClient,
