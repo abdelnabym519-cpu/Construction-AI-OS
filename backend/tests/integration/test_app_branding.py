@@ -80,7 +80,11 @@ async def brand_admin(brand_client: AsyncClient) -> dict[str, str]:
         "/api/v1/users/auth/register",
         json={"email": email, "password": password, "full_name": "Brand Admin", "role": "admin"},
     )
-    assert reg.status_code == 201, f"Registration failed: {reg.text}"
+    # 200 or 201, as every gated fixture in tests/integration accepts: which one
+    # comes back depends on the registration mode the server is running in, and a
+    # fixture that insists on one of them fails for a reason that has nothing to
+    # do with branding.
+    assert reg.status_code in (200, 201), f"Registration failed: {reg.status_code} {reg.text}"
 
     from tests.integration._auth_helpers import promote_to_admin
 
@@ -92,15 +96,30 @@ async def brand_admin(brand_client: AsyncClient) -> dict[str, str]:
 
 @pytest_asyncio.fixture(scope="module")
 async def brand_viewer(brand_client: AsyncClient, brand_admin: dict[str, str]) -> dict[str, str]:
+    """A signed-in user who is below admin, which is the identity these tests deny.
+
+    Registered through the public endpoint and deliberately not promoted: that
+    endpoint demotes every new account to ``viewer`` on purpose (BUG-327/386), so
+    it is the same source of viewer identities the rest of the suite uses. It is
+    then activated by a direct write, because under the ``admin-approve`` default
+    a new account can land inactive and login answers with the generic "Invalid
+    email or password" - which reads as a wrong password and hides the real
+    cause. Creating the user through ``POST /api/v1/users/`` as an admin was the
+    previous shape; it depends on that endpoint leaving the account active, and
+    the activation write makes the fixture independent of the decision.
+    """
     unique = uuid.uuid4().hex[:8]
     email = f"brandview-{unique}@test.io"
     password = f"BrandView{unique}9"
     resp = await brand_client.post(
-        "/api/v1/users/",
-        json={"email": email, "password": password, "full_name": "Brand Viewer", "role": "viewer"},
-        headers=brand_admin,
+        "/api/v1/users/auth/register",
+        json={"email": email, "password": password, "full_name": "Brand Viewer"},
     )
-    assert resp.status_code == 201, f"Viewer create failed: {resp.text}"
+    assert resp.status_code in (200, 201), f"Viewer register failed: {resp.status_code} {resp.text}"
+
+    from tests.integration._auth_helpers import activate_user
+
+    await activate_user(email)
     token = await _login(brand_client, email, password)
     assert token, "Viewer login failed"
     return {"Authorization": f"Bearer {token}"}

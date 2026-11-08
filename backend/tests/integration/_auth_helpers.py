@@ -41,3 +41,25 @@ async def promote_to_admin(email: str) -> None:
                 "likely a DB-isolation issue (different DATABASE_URL between "
                 "the HTTP client's app and async_session_factory)."
             )
+
+
+async def activate_user(email: str) -> None:
+    """Set ``is_active = True`` on the named user, without touching its role.
+
+    The companion to :func:`promote_to_admin` for the other half of the same
+    problem. Since v2.5.2 the default registration mode is ``admin-approve``
+    (BUG-RBAC03), so a freshly registered account - and a user an admin creates
+    through ``POST /api/v1/users/`` - can land inactive, and login then returns
+    the same generic "Invalid email or password" as a wrong password. A fixture
+    that needs a *viewer*, which is what ``/auth/register`` demotes every new
+    account to on purpose (BUG-327/386), must not promote it to get it active,
+    or the identity under test stops being a viewer. This flips the one field.
+    """
+    from sqlalchemy import update
+
+    from app.database import async_session_factory
+    from app.modules.users.models import User
+
+    async with async_session_factory() as session:
+        await session.execute(update(User).where(User.email == email.lower()).values(is_active=True))
+        await session.commit()
