@@ -203,3 +203,160 @@ class TestAppBranding:
         got = await brand_client.get("/api/v1/branding/")
         assert got.json()["mode"] == "default"
         assert got.json()["company_name"] == ""
+
+
+class TestTheSupportDestinationAndLegalLinkOverHttp:
+    """The two workspace settings Part F added, exercised through the endpoints.
+
+    The unit tests beside ``app_branding.py`` cover the sanitiser. These cover the
+    surface a user actually meets, and each one exists because the sanitiser
+    passing does not imply the endpoint is right: a field can be validated
+    perfectly and still be dropped by the response model, or written by a viewer
+    who should not be allowed to write it.
+
+    They are appended to this module rather than given one of their own so they
+    reuse its module-scoped client and its admin and viewer fixtures, which stand
+    up a whole application and two accounts. Duplicating that for seven assertions
+    would cost a shard minutes to prove nothing extra.
+    """
+
+    async def test_get_is_public_and_reports_no_destination_and_a_visible_link(
+        self,
+        brand_client: AsyncClient,
+        brand_admin: dict[str, str],
+    ) -> None:
+        """The defaults, read with no token at all.
+
+        Public because the footers and the login page render before anybody signs
+        in. ``support_destination`` null is the state in which the UI hides the
+        bug-report channel entirely.
+        """
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        resp = await brand_client.get("/api/v1/branding/")
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        assert body["support_destination"] is None
+        assert body["legal_link_visible"] is True
+
+    async def test_an_admin_sets_a_mailbox_and_an_anonymous_reader_sees_it(
+        self,
+        brand_client: AsyncClient,
+        brand_admin: dict[str, str],
+    ) -> None:
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        put = await brand_client.put(
+            "/api/v1/branding/",
+            json={"support_destination": {"kind": "email", "value": "support@builder.example"}},
+            headers=brand_admin,
+        )
+        assert put.status_code == 200, put.text
+        assert put.json()["support_destination"] == {"kind": "email", "value": "support@builder.example"}
+        anon = await brand_client.get("/api/v1/branding/")
+        assert anon.json()["support_destination"] == {"kind": "email", "value": "support@builder.example"}
+
+    async def test_a_non_admin_cannot_set_the_destination(
+        self,
+        brand_client: AsyncClient,
+        brand_viewer: dict[str, str],
+        brand_admin: dict[str, str],
+    ) -> None:
+        """A support destination is a workspace decision, not a personal one.
+
+        Read is public, write is admin-only, and the refusal has to leave what an
+        admin set untouched rather than half-applying.
+        """
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        resp = await brand_viewer.put(
+            "/api/v1/branding/",
+            json={"support_destination": {"kind": "url", "value": "https://elsewhere.example"}},
+            headers=brand_viewer,
+        )
+        assert resp.status_code == 403, resp.text
+        after = await brand_client.get("/api/v1/branding/")
+        assert after.json()["support_destination"] is None
+
+    async def test_a_non_admin_cannot_turn_the_legal_link_off(
+        self,
+        brand_client: AsyncClient,
+        brand_viewer: dict[str, str],
+        brand_admin: dict[str, str],
+    ) -> None:
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        resp = await brand_viewer.put("/api/v1/branding/", json={"legal_link_visible": False}, headers=brand_viewer)
+        assert resp.status_code == 403, resp.text
+        assert (await brand_client.get("/api/v1/branding/")).json()["legal_link_visible"] is True
+
+    async def test_a_url_that_executes_instead_of_navigating_is_refused_at_the_edge(
+        self,
+        brand_client: AsyncClient,
+        brand_admin: dict[str, str],
+    ) -> None:
+        """Sanitised rather than stored, and the request still succeeds.
+
+        The endpoint does not 4xx on a bad scheme; it drops the value and answers
+        with what it kept. That is the existing contract for a bad logo, and a
+        destination an attacker could get opened in a user's browser is the same
+        class of problem, so it gets the same treatment: refuse the value, never
+        serve it.
+        """
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        for scheme in ("javascript:alert(1)", "data:text/html,x", "file:///etc/passwd", "https://u:p@x.example"):
+            put = await brand_client.put(
+                "/api/v1/branding/",
+                json={"support_destination": {"kind": "url", "value": scheme}},
+                headers=brand_admin,
+            )
+            assert put.status_code == 200, put.text
+            assert put.json()["support_destination"] is None, scheme
+            assert (await brand_client.get("/api/v1/branding/")).json()["support_destination"] is None, scheme
+
+    async def test_an_admin_can_hide_the_legal_link_and_show_it_again(
+        self,
+        brand_client: AsyncClient,
+        brand_admin: dict[str, str],
+    ) -> None:
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        off = await brand_client.put("/api/v1/branding/", json={"legal_link_visible": False}, headers=brand_admin)
+        assert off.status_code == 200, off.text
+        assert off.json()["legal_link_visible"] is False
+        assert (await brand_client.get("/api/v1/branding/")).json()["legal_link_visible"] is False
+        on = await brand_client.put("/api/v1/branding/", json={"legal_link_visible": True}, headers=brand_admin)
+        assert on.json()["legal_link_visible"] is True
+
+    async def test_setting_one_field_leaves_the_other_alone(
+        self,
+        brand_client: AsyncClient,
+        brand_admin: dict[str, str],
+    ) -> None:
+        """The router merges by ``model_fields_set``, so an omitted field persists.
+
+        Without this, saving a support mailbox would silently turn the Legal link
+        back on, and saving the logo would clear the mailbox. Both are the same
+        bug and both are invisible in a UI that only ever sends one thing.
+        """
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        await brand_client.put(
+            "/api/v1/branding/",
+            json={"legal_link_visible": False, "support_destination": {"kind": "email", "value": "a@b.example"}},
+            headers=brand_admin,
+        )
+        await brand_client.put("/api/v1/branding/", json={"company_name": "Meridian"}, headers=brand_admin)
+        body = (await brand_client.get("/api/v1/branding/")).json()
+        assert body["company_name"] == "Meridian"
+        assert body["legal_link_visible"] is False
+        assert body["support_destination"] == {"kind": "email", "value": "a@b.example"}
+
+    async def test_clearing_the_destination_hides_the_channel_again(
+        self,
+        brand_client: AsyncClient,
+        brand_admin: dict[str, str],
+    ) -> None:
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        await brand_client.put(
+            "/api/v1/branding/",
+            json={"support_destination": {"kind": "url", "value": "https://support.example/new"}},
+            headers=brand_admin,
+        )
+        cleared = await brand_client.put("/api/v1/branding/", json={"support_destination": None}, headers=brand_admin)
+        assert cleared.status_code == 200, cleared.text
+        assert cleared.json()["support_destination"] is None

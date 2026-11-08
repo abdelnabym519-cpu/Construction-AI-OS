@@ -168,3 +168,90 @@ def test_no_hardcoded_product_name_survives_in_the_exporters() -> None:
             code = line.split("#", 1)[0]
             for word in ("OpenConstructionERP", "DataDrivenConstruction"):
                 assert word not in code, f"{rel}:{ln} hardcodes {word!r}: {line.strip()[:100]}"
+
+
+# ---------------------------------------------------------------------------
+# (d) the e-mail case: a RENDERED mail, not just the constant beside it
+# ---------------------------------------------------------------------------
+
+# Wording that must not survive in anything a user receives. Assembled from
+# fragments so this file does not itself become a match for the guard that
+# hunts these words across the tree.
+_UPSTREAM_WORDING = (
+    "open" + " source",
+    "open" + "-source",
+    "open" + "source",
+    "AG" + "PL",
+    "Data" + "DrivenConstruction",
+    "Data Driven " + "Construction",
+    "Open" + "ConstructionERP",
+    "Git" + "Hub",
+    "Tele" + "gram",
+)
+
+
+def _rendered_emails() -> dict[str, tuple[str, str]]:
+    """Render every exported e-mail template and return ``name -> (subject, html)``.
+
+    Called at assertion time, not import time: the templates resolve the display
+    name from settings, so importing them at collection would freeze whatever the
+    first importer happened to see.
+    """
+    from app.core.email import templates
+
+    return {
+        "task_assigned": templates.template_task_assigned(
+            "Pour slab B2", "Ana Ruiz", "Harbour Tower", "https://app.example/tasks/1"
+        ),
+        "invoice_approved": templates.template_invoice_approved(
+            "INV-2026-014", "Ana Ruiz", "Harbour Tower", "https://app.example/invoices/14"
+        ),
+        "safety_alert": templates.template_safety_alert(
+            "Guardrail missing on level 4", "Bo Chen", "Harbour Tower", "https://app.example/safety/9"
+        ),
+        "meeting_invitation": templates.template_meeting_invitation(
+            "Weekly site sync", "2026-04-02 09:00", "Ana Ruiz", "Harbour Tower"
+        ),
+        "password_reset": templates.template_password_reset("Ana Ruiz", "https://app.example/reset?t=1", 60),
+        "shared_wrapper": ("A subject", templates.wrap("A title", "<p>A body</p>", "https://app.example", "Open")),
+    }
+
+
+def test_every_rendered_email_carries_the_display_name() -> None:
+    """The name a user reads in their inbox is the configured one.
+
+    The constant test above proves ``BRAND_NAME`` is one string. That is not
+    enough: a template could render a hard-coded name beside the constant and the
+    constant test would still pass. So render them and look at the bytes.
+    """
+    from app.core.email.templates import BRAND_NAME
+
+    missing = []
+    for name, (subject, html) in _rendered_emails().items():
+        if BRAND_NAME not in html and BRAND_NAME not in subject:
+            missing.append(name)
+    assert not missing, f"rendered without the display name {BRAND_NAME!r}: {missing}"
+
+
+def test_no_rendered_email_carries_upstream_or_open_source_wording() -> None:
+    """Rendered, then scanned - because only the rendered bytes reach a user."""
+    offenders = {}
+    for name, (subject, html) in _rendered_emails().items():
+        found = [word for word in _UPSTREAM_WORDING if word.lower() in (subject + html).lower()]
+        if found:
+            offenders[name] = found
+    assert not offenders, f"rendered e-mails carrying upstream wording: {offenders}"
+
+
+def test_the_email_scan_would_notice_wording_if_it_appeared() -> None:
+    """Negative control: the assertion above is not passing on a tautology.
+
+    Inject the wording into a rendered mail and confirm the same scan reports it.
+    Without this a future template could break the contract and the suite would
+    keep saying the mail is clean, because the scan would be looking at nothing.
+    """
+    subject, html = _rendered_emails()["task_assigned"]
+    injected = html.replace("</body>", "<p>Fork us on Git" + "Hub - open source AG" + "PL</p></body>")
+    assert injected != html, "the rendered mail has no body to inject into, so the control proves nothing"
+    found = [word for word in _UPSTREAM_WORDING if word.lower() in (subject + injected).lower()]
+    assert found, "the wording scan did not notice wording that is plainly present"
