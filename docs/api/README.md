@@ -229,6 +229,89 @@ curl -s "$BASE/api/v1/geo-hub/ogc/collections" \
   -H "X-API-Key: $OCE_API_KEY"
 ```
 
+## Workspace branding, and the two owner settings on it
+
+`/api/v1/branding/` holds one JSON record per deployment: the logos and company
+name that appear in the app and print on exported documents, the workspace
+default appearance, and two settings that decide what the product points its
+users at.
+
+| Method | Auth | What it does |
+| --- | --- | --- |
+| `GET /api/v1/branding/` | none | Returns the record. Public on purpose: the login page, the portal header and the footers all render before anybody has a token. |
+| `PUT /api/v1/branding/` | admin | Merges into the record only the fields named in the request body. |
+| `DELETE /api/v1/branding/` | admin | Resets the record to its defaults. |
+
+The record is a file in the server's data directory rather than a table. It
+carries no tenant data, so it needs no migration and no per-tenant row, and one
+deployment has exactly one brand. The merge is by fields actually sent, so a
+request that changes one setting leaves the logos, the company name and the
+appearance default exactly as they were.
+
+### `support_destination` - where an in-app bug report is sent
+
+```json
+{ "support_destination": { "kind": "url", "value": "https://support.example.com/new-ticket" } }
+```
+
+Default `null`, which means the workspace has not chosen. The bug-report menu in
+the header then leaves the channel out entirely rather than showing a row that
+cannot send anything: a report carries the reporter's own words plus their
+machine, their build and the page they were on, so where that goes is the
+operator's decision, and the product ships without one.
+
+| `kind` | What the app does with it |
+| --- | --- |
+| `url` | Opens `value` as the operator set it, and copies the report to the clipboard first. Whose form that page is and what its fields are called is not the product's to guess, so the payload travels with the user instead of in a query string. |
+| `email` | Opens a `mailto:` for `value` carrying the report as the message body and a subject naming the screen it came from. |
+
+The value is admin-set but served from a public endpoint and opened in a user's
+browser, so it is checked before it is stored, and a value that fails is dropped
+rather than kept: `url` accepts only the `https` and `http` schemes and refuses
+embedded credentials, which keeps a `javascript:`, `data:`, `vbscript:` or
+`file:` destination from ever reaching a user's browser. `email` is checked
+loosely - no whitespace, no scheme, exactly one `@` - because refusing a real
+support address fails silently and costs the operator the channel without
+telling them why. A refused value comes back as `null` on the next `GET`; the
+request itself still succeeds, which is how the record's other fields behave
+when one of them is unusable.
+
+```bash
+curl -X PUT "$BASE/api/v1/branding/" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"support_destination": {"kind": "email", "value": "support@example.com"}}'
+```
+
+### `legal_link_visible` - whether the footers point at the Legal page
+
+```json
+{ "legal_link_visible": false }
+```
+
+Default `true`. Only an exact `false` hides the link: a missing key, a corrupt
+file or a hand-edited `"yes"` all fall back to visible, because the licence
+position is not something a damaged file should get to decide.
+
+What turning it off does, and what it cannot do:
+
+- It removes one small footer link from the login page, the register page and the
+  sidebar. That is the whole effect.
+- `/legal` stays reachable and `/api/source` keeps serving the licence, the
+  attribution notice and the source offer. Neither is behind this setting, and
+  neither can be.
+- The copyright line stays on every screen.
+- The obligation does not move. This software is licensed AGPL-3.0-or-later, and
+  section 13 requires the corresponding source offer to stay available to users
+  who interact with it over a network. Hiding a pointer is not removing an
+  obligation, so an operator turning this off should have cleared the licence
+  position for their deployment first - a commercial licence, or legal review of
+  the AGPL obligations. `docs/legal/COMMERCIAL-LICENSE.md` is the template for
+  the first of those.
+
+The admin card that sets both of these is in Settings, under "Support and legal",
+beside the logos and the letterhead. Non-admins see the same card read-only: what
+the workspace decided is not a secret, only changing it is.
+
 ## Response shapes
 
 Request and response bodies are defined by Pydantic v2 schemas in each module's `schemas.py`. Because every route declares a response model, the fields and their types are validated on the way out and documented in the OpenAPI schema. Money values are serialised as strings to avoid floating-point rounding, and non-finite numbers (`NaN`, `Infinity`) are rejected in request bodies with a `422`.
@@ -250,3 +333,4 @@ That command runs `openapi-typescript http://localhost:8000/api/openapi.json -o 
 
 - `backend/README.md` for installing and running the backend and the dev server.
 - The interactive docs at `/api/docs` for the complete, always-current endpoint list.
+- `docs/legal/COMMERCIAL-LICENSE.md` for the commercial terms an operator clears before hiding the Legal link.
