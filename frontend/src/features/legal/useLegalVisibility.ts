@@ -13,28 +13,21 @@
  *
  * So this is a visibility setting for the link, defaulting to ON, and it is
  * deliberately NOT a way to hide the licence text: /legal keeps working with the
- * setting off, and the copyright line stays on every screen.
+ * setting off, /api/source keeps serving the offer, and the copyright line stays
+ * on every screen. Hiding a pointer does not remove an obligation.
  *
- * Persistence is localStorage only. It is a per-browser presentation choice, not
- * workspace data, so it does not go through /api/v1/branding/ and needs no
- * schema change. Making it a server-backed workspace setting is listed as a
- * follow-up in the Part C report.
+ * The setting is workspace data. It lives on the branding record beside the logo
+ * and the support destination, so an admin turns it off once and it is off for
+ * every user of that deployment - which is what "the operator cleared the licence
+ * position" actually means. It used to be per-browser localStorage, where one
+ * person's choice changed nobody else's screen and an operator could not set it
+ * for their users at all.
+ *
+ * This module keeps its old shape - a hook taking a selector over
+ * `{ legalLinkVisible, setLegalLinkVisible }` - so the three footers that read it
+ * (login, the next login page, and the sidebar) did not have to change.
  */
-import { create } from 'zustand';
-
-const STORAGE_KEY = 'oe_legal_link_visible_v1';
-
-/** Absent or unparseable storage means the default, which is visible. */
-function readStored(): boolean {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw === null ? true : raw === 'true';
-  } catch {
-    // Private browsing and the desktop build can both throw on localStorage.
-    // The default is the safe one: show the link.
-    return true;
-  }
-}
+import { useBrandingStore } from '@/stores/useBrandingStore';
 
 export interface LegalVisibilityState {
   /** Default true. When false the footer link is not rendered. */
@@ -42,14 +35,16 @@ export interface LegalVisibilityState {
   setLegalLinkVisible: (visible: boolean) => void;
 }
 
-export const useLegalVisibility = create<LegalVisibilityState>((set) => ({
-  legalLinkVisible: readStored(),
-  setLegalLinkVisible: (visible) => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, String(visible));
-    } catch {
-      // Keeping the in-memory value is enough; the next load falls back to ON.
-    }
-    set({ legalLinkVisible: visible });
-  },
-}));
+/**
+ * Read - and set - the Legal-link setting from the branding store.
+ *
+ * Subscribes to the two fields separately instead of handing zustand a selector
+ * that builds a fresh `{ legalLinkVisible, setLegalLinkVisible }` object: a new
+ * object every render never satisfies the store's Object.is comparison, and the
+ * three footers would re-render in a loop.
+ */
+export function useLegalVisibility<T>(selector: (state: LegalVisibilityState) => T): T {
+  const legalLinkVisible = useBrandingStore((s) => s.legalLinkVisible);
+  const setLegalLinkVisible = useBrandingStore((s) => s.setLegalLinkVisible);
+  return selector({ legalLinkVisible, setLegalLinkVisible });
+}

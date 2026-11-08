@@ -28,6 +28,20 @@ const MAX_LOGO_BYTES = 2 * 1024 * 1024; // 2 MB cap on base64 payload
 
 export type BrandingMode = 'default' | 'logo' | 'text';
 
+/**
+ * Where the in-app bug report is sent.
+ *
+ * `null` - the default - means the workspace has not chosen, and the channel is
+ * then left out of the menu entirely rather than pointed somewhere by default. A
+ * report carries the user's own words plus their environment, so the destination
+ * is the operator's decision, not the product's.
+ */
+export interface SupportDestination {
+  /** `url` opens a support page; `email` opens the user's mail client. */
+  kind: 'url' | 'email';
+  value: string;
+}
+
 export interface BrandingState {
   mode: BrandingMode;
   /** Base64 data URL of the uploaded logo (only valid when mode='logo'). */
@@ -36,6 +50,20 @@ export interface BrandingState {
   logoPngDataUrl: string | null;
   /** Company display text (only valid when mode='text'). */
   companyName: string;
+  /**
+   * Where the bug-report channel sends the user, or null to hide the channel.
+   *
+   * Server-backed and deliberately NOT mirrored to localStorage: it is a
+   * workspace decision, so a browser cache must not be able to disagree with it
+   * or outlive it. See {@link Persisted}.
+   */
+  supportDestination: SupportDestination | null;
+  /**
+   * Whether the product shows its Legal link. Default true, server-backed, and
+   * also not mirrored locally. Turning it off does not hide /legal or the
+   * copyright line - only the footer link that points at them.
+   */
+  legalLinkVisible: boolean;
   /**
    * Replace the user's logo. Pass `null` to clear (mode falls back
    * to whichever of `text` / `default` is appropriate).
@@ -46,6 +74,10 @@ export interface BrandingState {
    * resets to `default`.
    */
   setCompanyName: (name: string) => void;
+  /** Admin-only in effect: {@link persistToServer} is what makes it stick. */
+  setSupportDestination: (destination: SupportDestination | null) => void;
+  /** Admin-only in effect: {@link persistToServer} is what makes it stick. */
+  setLegalLinkVisible: (visible: boolean) => void;
   /** Clear all customisation and return to the default product brand. */
   reset: () => void;
   /**
@@ -73,6 +105,28 @@ interface ServerBranding {
   company_name?: string;
   /** Workspace default UI appearance (style axes plus `menu`); see useAppearanceStore. */
   appearance?: { menu?: unknown } | null;
+  support_destination?: { kind?: string; value?: string } | null;
+  legal_link_visible?: boolean;
+}
+
+/**
+ * Coerce the two server-only settings out of a branding payload.
+ *
+ * Kept apart from {@link fromServer} on purpose: that one returns a
+ * {@link Persisted}, i.e. exactly the four fields this browser caches, and these
+ * two must never enter it.
+ */
+function serverSettings(r: ServerBranding): {
+  supportDestination: SupportDestination | null;
+  legalLinkVisible: boolean;
+} {
+  const raw = r.support_destination;
+  const value = typeof raw?.value === 'string' ? raw.value.trim() : '';
+  const supportDestination: SupportDestination | null =
+    raw && (raw.kind === 'url' || raw.kind === 'email') && value ? { kind: raw.kind, value } : null;
+  // Only an exact false hides the Legal link. A missing key, a corrupt file or a
+  // hand-edited "yes" all fall to the safe default, which is to show it.
+  return { supportDestination, legalLinkVisible: r.legal_link_visible !== false };
 }
 
 /** Coerce a server payload into a safe {@link Persisted} value. */
@@ -160,6 +214,8 @@ export const useBrandingStore = create<BrandingState>((set, get) => {
 
   return {
     ...initial,
+    supportDestination: null,
+    legalLinkVisible: true,
     setLogo: (dataUrl, pngDataUrl = null) => {
       const current = get();
       if (!dataUrl) {
@@ -203,6 +259,8 @@ export const useBrandingStore = create<BrandingState>((set, get) => {
       save(next);
       set(next);
     },
+    setSupportDestination: (destination) => set({ supportDestination: destination }),
+    setLegalLinkVisible: (visible) => set({ legalLinkVisible: visible }),
     hydrateFromServer: async () => {
       try {
         const r = await apiGet<ServerBranding>('/v1/branding/');
@@ -210,6 +268,19 @@ export const useBrandingStore = create<BrandingState>((set, get) => {
         useAppearanceStore.getState().setWorkspaceMenu(r.appearance?.menu ?? null);
         const next = fromServer(r);
         const current = get();
+        // Applied BEFORE the comparison below, which only looks at the four
+        // mirrored brand fields. Set them afterwards and an operator who changes
+        // nothing but the support destination - or nothing but the Legal link -
+        // is ignored on every load, because the brand fields are unchanged and
+        // this function returns early before reaching them.
+        const settings = serverSettings(r);
+        if (
+          settings.supportDestination?.kind !== current.supportDestination?.kind ||
+          settings.supportDestination?.value !== current.supportDestination?.value ||
+          settings.legalLinkVisible !== current.legalLinkVisible
+        ) {
+          set(settings);
+        }
         if (
           next.mode === current.mode &&
           next.logoDataUrl === current.logoDataUrl &&
@@ -235,6 +306,8 @@ export const useBrandingStore = create<BrandingState>((set, get) => {
           logo_data_url: s.logoDataUrl,
           logo_png_data_url: s.logoPngDataUrl,
           company_name: s.companyName,
+          support_destination: s.supportDestination,
+          legal_link_visible: s.legalLinkVisible,
         });
         return true;
       } catch {

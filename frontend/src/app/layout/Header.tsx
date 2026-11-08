@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation, useMatch } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, ChevronDown, ChevronRight, LogOut, User, Settings, Menu, FolderOpen, CheckCircle2, XCircle, Bug, Loader2, Upload, HelpCircle, GraduationCap, ExternalLink, Github, Sun, Moon, Monitor, Globe } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, LogOut, User, Settings, Menu, FolderOpen, CheckCircle2, XCircle, Bug, Loader2, Upload, HelpCircle, GraduationCap, ExternalLink, Mail, Sun, Moon, Monitor, Globe } from 'lucide-react';
 import clsx from 'clsx';
 import { SUPPORTED_LANGUAGES, getLanguageByCode, changeLanguage } from '../i18n';
 import { sortLanguagesByName } from '@/shared/lib/languageOrder';
@@ -27,6 +27,7 @@ import {
   isLastErrorNetworkOnly, } from '@/shared/lib/errorLogger';
 import { APP_VERSION, APP_BUILD_FINGERPRINT } from '@/shared/lib/version';
 import { useToastStore } from '@/stores/useToastStore';
+import { useBrandingStore, type SupportDestination } from '@/stores/useBrandingStore';
 import { useI18nReady } from '@/shared/lib/useI18nReady';
 import { isTauri, openAppInBrowser, openLink } from '@/shared/lib/desktop';
 
@@ -649,6 +650,7 @@ function errorLogFilename(): string {
 export function BugReportMenu() {
   const { t } = useTranslation();
   const addToast = useToastStore((s) => s.addToast);
+  const supportDestination = useBrandingStore((s) => s.supportDestination);
   const [open, setOpen] = useState(false);
   // Once the user clicks "report anyway" we stop nagging them with the
   // network-only banner for the rest of the popover lifetime.
@@ -701,8 +703,9 @@ export function BugReportMenu() {
   // Open this menu when any component dispatches ``oe:open-bug-report``.
   // The v6 PostgreSQL-migration notice strip points its "Report a problem"
   // action here: the community build ships without SMTP, so routing people
-  // to this menu (whose first channel opens a pre-filled GitHub issue) is
-  // the path that can actually deliver a report, unlike the e-mail form.
+  // to this menu (whose first channel carries the same diagnostic payload to
+  // wherever this workspace sends reports) is the path that can actually
+  // deliver a report, unlike the e-mail form.
   useEffect(() => {
     const openMenu = () => setOpen(true);
     window.addEventListener('oe:open-bug-report', openMenu);
@@ -720,33 +723,43 @@ export function BugReportMenu() {
     });
   };
 
-  const handleGithub = () => {
-    if (descriptionTooShort) return;
-    setOpen(false);
-    setDescription('');
-    const { url, body } = buildBugReportUrl(trimmedDescription);
-    if (url) {
-      openLink(url);
+  const handleSupportChannel = () => {
+    // No destination means no channel, so this is unreachable when unset; the
+    // guard is here because a menu can stay open across a settings change.
+    if (descriptionTooShort || !supportDestination) return;
+    const { url, body } = buildBugReportUrl(trimmedDescription, supportDestination);
+    if (!url) return;
+    if (supportDestination.kind === 'url') {
+      // A support page is somebody else's form and its field names are not ours
+      // to guess, so the report goes to the clipboard as well as to the page:
+      // the text is ready to paste, and nothing the user wrote is lost if the
+      // page turns out to have no way in. Copy first, then leave - the other
+      // order can hand focus to the new tab before the clipboard is writable.
+      void copyToClipboard(body).then((copied) => {
+        openLink(url);
+        if (copied) {
+          setOpen(false);
+          setDescription('');
+          addToast({
+            type: 'info',
+            title: t('app.report_bug', { defaultValue: 'Report a bug (with logs)' }),
+            message: t('app.report_bug_copied', { defaultValue: 'Report copied to clipboard' }),
+          });
+          return;
+        }
+        // A failed copy leaves this dialog open with the user's words still in
+        // it. That is the honest signal that the report did not travel, and
+        // "Download log only" below is still there for the same payload.
+      });
       return;
     }
-    void copyToClipboard(body).then((ok) => {
-      if (ok) {
-        addToast({
-          type: 'info',
-          title: t('app.report_bug_not_configured', { defaultValue: 'GitHub repo not configured' }),
-          message: t('app.report_bug_copied', { defaultValue: 'Report copied to clipboard' }),
-        });
-      } else {
-        addToast({
-          type: 'warning',
-          title: t('app.report_bug_not_configured', { defaultValue: 'GitHub repo not configured' }),
-        });
-      }
-    });
+    setOpen(false);
+    setDescription('');
+    openLink(url);
   };
 
   type Channel = {
-    icon: typeof Github;
+    icon: typeof Mail;
     iconColor: string;
     title: string;
     desc: string;
@@ -761,17 +774,33 @@ export function BugReportMenu() {
   };
 
   const channels: Channel[] = [
-    {
-      icon: Github,
-      iconColor: 'text-content-primary',
-      // Labelled "Report a bug (with logs)" so the primary action people knew
-      // from the Help menu lives here, in the dedicated bug menu. It opens a
-      // GitHub issue pre-filled with the last error and environment.
-      title: t('app.report_bug', { defaultValue: 'Report a bug (with logs)' }),
-      desc: t('bug.channel_github_desc', { defaultValue: 'Pre-filled with the last error and environment. Public.' }),
-      onClick: handleGithub,
-      requiresDescription: true,
-    },
+    // Present only when this workspace chose a destination. An unset destination
+    // is not a disabled row: a channel a user cannot use invites them to write a
+    // report and then throws it away, and there is deliberately no default
+    // destination, because where a bug report goes is the operator's decision.
+    ...(supportDestination
+      ? [
+          {
+            icon: supportDestination.kind === 'email' ? Mail : ExternalLink,
+            iconColor: 'text-content-primary',
+            // Labelled "Report a bug (with logs)" so the primary action people
+            // knew from the Help menu lives here, in the dedicated bug menu.
+            title: t('app.report_bug', { defaultValue: 'Report a bug (with logs)' }),
+            // For mail, the existing translated sentence is still exactly true,
+            // so it is reused rather than replaced by a new string in 43 locales.
+            // A page has no such sentence, so the line names where it goes: a
+            // host is data, not prose, and needs no translation.
+            desc:
+              supportDestination.kind === 'email'
+                ? t('bug.channel_email_desc', {
+                    defaultValue: 'Opens your mail client with the report attached.',
+                  })
+                : hostOf(supportDestination.value),
+            onClick: handleSupportChannel,
+            requiresDescription: true,
+          },
+        ]
+      : []),
     {
       icon: Upload,
       iconColor: 'text-violet-500',
@@ -1156,7 +1185,6 @@ function LanguageSwitcher({
 /* ── User Menu ─────────────────────────────────────────────────────────── */
 
 /** GitHub repo slug for "Report a bug". Empty string = clipboard fallback. */
-const GITHUB_REPO = 'abdelnabym519-cpu/Construction-AI-OS';
 /** Hard ceiling for the GitHub issue body inside a URL. ~8KB is safe across browsers. */
 const MAX_BODY_BYTES = 7800;
 
@@ -1323,7 +1351,18 @@ export function deriveComponentFromRoute(pathname: string): string {
  * payload by accident. The reporter's own words are the exception and stay
  * exactly as typed, in their own language, because they are the report.
  */
-function buildBugReportUrl(description: string): {
+/** The host of a support URL, shown under the channel so a user can see where
+ *  a report leaves for before they leave. Falls back to the value itself, which
+ *  is what an operator typed if it did not parse as a URL. */
+function hostOf(value: string): string {
+  try {
+    return new URL(value).host || value;
+  } catch {
+    return value;
+  }
+}
+
+function buildBugReportUrl(description: string, destination: SupportDestination | null): {
   url: string;
   body: string;
   title: string;
@@ -1385,9 +1424,20 @@ function buildBugReportUrl(description: string): {
   // filed from two installs reads as the same report.
   const title = `[${component}] Bug report from in-app menu`;
   const encodedTitle = encodeURIComponent(title);
-  const url = GITHUB_REPO
-    ? `https://github.com/${GITHUB_REPO}/issues/new?title=${encodedTitle}&body=${encoded}`
-    : '';
+  // The destination decides the shape of the link, and there is no default: a
+  // null destination returns an empty url and the caller leaves the channel out
+  // of the menu rather than sending a user's report to anybody's tracker.
+  let url = '';
+  if (destination?.kind === 'email') {
+    // A mailto: can carry the payload, so the report travels inside the message.
+    // The size guard above still applies: a mail client that refuses an over-long
+    // URL fails quietly, and "Download log only" sits beside this channel for a
+    // report too big to send.
+    url = `mailto:${destination.value}?subject=${encodedTitle}&body=${encoded}`;
+  } else if (destination?.kind === 'url') {
+    // Opened exactly as the operator set it; the caller copies the payload.
+    url = destination.value;
+  }
   return { url, body: safeBody, title };
 }
 

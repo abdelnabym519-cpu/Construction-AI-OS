@@ -69,6 +69,7 @@ import * as templatesApi from './documentTemplates';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useBrandingStore } from '@/stores/useBrandingStore';
 import { ApiError } from '@/shared/lib/api';
+import * as apiLib from '@/shared/lib/api';
 
 const getProfileMock = vi.mocked(profileApi.getCompanyProfile);
 const getOptionsMock = vi.mocked(profileApi.getCompanyProfileOptions);
@@ -144,6 +145,8 @@ describe('CompanyDocumentsSettings', () => {
       logoDataUrl: null,
       logoPngDataUrl: null,
       companyName: '',
+      supportDestination: null,
+      legalLinkVisible: true,
     });
     getProfileMock.mockResolvedValue(BLANK);
     getOptionsMock.mockResolvedValue(OPTIONS);
@@ -420,5 +423,134 @@ describe('CompanyDocumentsSettings', () => {
     const appearance = await screen.findByTestId('doc-appearance-panel');
     expect(appearance.compareDocumentPosition(types) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(within(types).getByText('Request for information')).toBeInTheDocument();
+  });
+
+  const apiPutMock = vi.mocked(apiLib.apiPut);
+
+  /** The card that sets the bug-report destination and the Legal-link visibility. */
+  const card = () => screen.getByTestId('support-and-legal');
+  const destinationValue = () => screen.getByTestId('support-destination-value') as HTMLInputElement;
+  const destinationKind = () => screen.getByTestId('support-destination-kind') as HTMLSelectElement;
+  const legalCheckbox = () => screen.getByTestId('legal-link-visible') as HTMLInputElement;
+
+  /** What the last PUT sent, or null if nothing was sent. */
+  function lastPut(): Record<string, unknown> | null {
+    const calls = apiPutMock.mock.calls;
+    if (!calls.length) return null;
+    return calls[calls.length - 1]![1] as Record<string, unknown>;
+  }
+
+  describe('the support destination and the Legal link', () => {
+    it('sends a support page an admin typed, and shows it as the current destination', async () => {
+      renderPanel();
+      await screen.findByTestId('support-and-legal');
+
+      fireEvent.change(destinationValue(), { target: { value: 'https://support.meridian.example/new-ticket' } });
+      fireEvent.click(screen.getByTestId('support-destination-save'));
+
+      await waitFor(() => expect(apiPutMock).toHaveBeenCalled());
+      expect(lastPut()!.support_destination).toEqual({
+        kind: 'url',
+        value: 'https://support.meridian.example/new-ticket',
+      });
+      // The store is what the bug menu reads, so this is the half that makes the
+      // channel appear for every user of the workspace.
+      expect(useBrandingStore.getState().supportDestination).toEqual({
+        kind: 'url',
+        value: 'https://support.meridian.example/new-ticket',
+      });
+      expect(screen.queryByTestId('support-destination-none')).toBeNull();
+    });
+
+    it('sends a mailbox when the admin picks one', async () => {
+      renderPanel();
+      await screen.findByTestId('support-and-legal');
+
+      fireEvent.change(destinationKind(), { target: { value: 'email' } });
+      fireEvent.change(destinationValue(), { target: { value: 'support@meridian.example' } });
+      fireEvent.click(screen.getByTestId('support-destination-save'));
+
+      await waitFor(() => expect(apiPutMock).toHaveBeenCalled());
+      expect(lastPut()!.support_destination).toEqual({ kind: 'email', value: 'support@meridian.example' });
+    });
+
+    it('clears the destination when the field is emptied, which hides the channel again', async () => {
+      useBrandingStore.setState({
+        supportDestination: { kind: 'url', value: 'https://support.meridian.example/new-ticket' },
+      });
+      renderPanel();
+      await screen.findByTestId('support-and-legal');
+
+      // The field is seeded from the record, so emptying it is how an admin
+      // removes a destination - one button covers set, change and remove.
+      expect(destinationValue().value).toBe('https://support.meridian.example/new-ticket');
+      fireEvent.change(destinationValue(), { target: { value: '' } });
+      fireEvent.click(screen.getByTestId('support-destination-save'));
+
+      await waitFor(() => expect(apiPutMock).toHaveBeenCalled());
+      expect(lastPut()!.support_destination).toBeNull();
+      expect(useBrandingStore.getState().supportDestination).toBeNull();
+      await screen.findByTestId('support-destination-none');
+    });
+
+    it('says what turning the Legal link off does not do, at the moment it is turned off', async () => {
+      renderPanel();
+      await screen.findByTestId('support-and-legal');
+
+      expect(screen.queryByTestId('legal-agpl-notice')).toBeNull();
+
+      fireEvent.click(legalCheckbox());
+
+      await waitFor(() => expect(apiPutMock).toHaveBeenCalled());
+      expect(lastPut()!.legal_link_visible).toBe(false);
+      expect(useBrandingStore.getState().legalLinkVisible).toBe(false);
+      expect(screen.getByTestId('legal-agpl-notice').textContent).toBe(
+        'AGPL-3.0 requires the source offer to stay available to users of a network service; legal review is advised.',
+      );
+    });
+
+    it('keeps pointing at /legal while the footer link is hidden', async () => {
+      useBrandingStore.setState({ legalLinkVisible: false });
+      renderPanel();
+      await screen.findByTestId('support-and-legal');
+
+      // The setting moves a footer pointer. The page and the source offer behind it
+      // are not the operator's to remove, and the card keeps saying where they are.
+      const link = within(card()).getByRole('link', { name: 'Legal' });
+      expect(link.getAttribute('href')).toBe('/legal');
+    });
+
+    it('lets a non-admin read both settings but change neither', async () => {
+      useAuthStore.setState({ userRole: 'editor' });
+      useBrandingStore.setState({
+        supportDestination: { kind: 'email', value: 'support@meridian.example' },
+        legalLinkVisible: false,
+      });
+      renderPanel();
+      await screen.findByTestId('company-read-only');
+
+      expect(destinationValue().disabled).toBe(true);
+      expect(destinationKind().disabled).toBe(true);
+      expect(legalCheckbox().disabled).toBe(true);
+      expect(screen.getByTestId('support-destination-save')).toHaveProperty('disabled', true);
+      // Read-only is not blank: what the workspace decided is still visible.
+      expect(legalCheckbox().checked).toBe(false);
+      expect(screen.getByTestId('legal-agpl-notice')).toBeTruthy();
+      // Deliberately no events fired at these controls. `fireEvent.click`
+      // dispatches a synthetic click that a disabled checkbox never receives from a
+      // real pointer, so an assertion built on it is a claim about the test rather
+      // than about the panel - and it fails in the confusing direction, because the
+      // handler does run and the write it triggers is then "allowed" by a cleared
+      // mock. `disabled` above is the guarantee for a person; the server refusing a
+      // non-admin PUT is what backs it up, and that is proved over HTTP in
+      // backend/tests/integration/test_app_branding.py, not here.
+      apiPutMock.mockClear();
+      await waitFor(() => expect(useBrandingStore.getState().legalLinkVisible).toBe(false));
+      expect(useBrandingStore.getState().supportDestination).toEqual({
+        kind: 'email',
+        value: 'support@meridian.example',
+      });
+      expect(apiPutMock.mock.calls.filter((c) => c[0] === '/v1/branding/')).toEqual([]);
+    });
   });
 });

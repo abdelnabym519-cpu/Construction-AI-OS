@@ -2954,6 +2954,62 @@
     "n": 27,
     "reason": "Seeded when the leak guard was first split into three lists (ci(i18n): rebuild the leak guard as two separate lists plus a general scan). This entry's n is >=24/28, the shape the threshold scan actually flags; filed as ambiguous at guard rollout rather than triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
   },
+  "settings.support.destination_label": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "Bug report destination",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.destination_none": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "Not set - the report channel is hidden from the bug menu.",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.kind_email": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "A mailbox",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.kind_url": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "A support page",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.legal_agpl_notice": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "AGPL-3.0 requires the source offer to stay available to users of a network service; legal review is advised.",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.legal_visible": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "Show the Legal link in the footers",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.subtitle": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "Where an in-app bug report is sent, and whether the footers point at the Legal page. Both apply to every user of this workspace.",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.title": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "Support and legal",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
   "settings.tm_col_actions": {
     "added_by": "adb78c983 (2026-08-02)",
     "differs_in": [
