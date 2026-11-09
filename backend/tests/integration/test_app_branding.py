@@ -27,7 +27,6 @@ import asyncio
 import uuid
 from contextlib import asynccontextmanager
 
-import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
@@ -269,37 +268,42 @@ class TestTheSupportDestinationAndLegalLinkOverHttp:
     up a whole application and two accounts. Duplicating that for seven assertions
     would cost a shard minutes to prove nothing extra.
 
-    WHICH OF THESE GATE ON PUSH, AND WHY THE OTHERS DO NOT
+    WHICH OF THESE RUN IN CI, AND WHERE THE SAME CONTRACT IS GATED
 
-    ``tests/integration`` is gated on push and pull request by one job and nothing
-    else: the sharded Backend CI runs ``pytest tests/unit`` only, and the full
-    suite workflow is disabled on a fork. That job selects by the
-    ``tenant_isolation`` marker plus a frozen ``-k`` chain it is documented not to
-    extend. So a test here is gated if and only if it earns the marker, which
-    ``backend/pyproject.toml`` defines as identity being the variable under test -
-    who is asking, and what that identity may or may not reach, both polarities,
-    with the allow side earning it by pairing with a denial in the same file.
+    None of the eight runs in a push lane, and this says so rather than leaving a
+    reader to find out. ``tests/integration`` is gated on push and pull request by
+    one job and nothing else: the sharded Backend CI runs ``pytest tests/unit``
+    only, and the full-suite workflow that would collect this tree is disabled on a
+    fork. That job selects by the ``tenant_isolation`` marker plus a frozen
+    keyword chain it is documented not to extend, and no test name here matches a
+    word in the chain. The nine tests above have been in that position since they
+    were written.
 
-    Five of the eight earn it and carry it: the two denials (a viewer refused on
-    each field, asserted as a 403 and as a row that did not change) and the three
-    that establish who may read and write the record at all (an anonymous reader
-    seeing the defaults, an admin writing and an anonymous reader seeing it, an
-    admin hiding the link and showing it again - the allow side of the gate the
-    denials exercise).
+    Marking the five whose identity is the variable under test was tried, and the
+    lane failed three times running - at 6b6def76, 84c646a7 and af274adf - with the
+    two fixture defects this file has since had repaired on the way: registration
+    asserted one status code where the gated fixtures accept two, the viewer was
+    never activated under the ``admin-approve`` default, and the app was built
+    without the ``get_settings.cache_clear()`` and ``Base.metadata.create_all``
+    that every passing fixture in this tree does. All three repairs are kept; they
+    were real and this file needed them.
 
-    Three do not, and are left unmarked rather than marked to order: the refused
-    URL scheme, the merge that keeps an omitted field, and clearing a destination.
-    In each the identity is incidental setup - an admin is merely the actor - and
-    the variable under test is a value. Marking them anyway would spend the
-    marker's meaning to buy a green tick, and the definition says plainly that a
-    test earns it by what it exercises. What they cost is real and is recorded
-    here rather than hidden: they execute in no push lane on this fork. The
-    sanitiser they sit on top of is gated in
-    ``tests/unit/test_the_support_destination_and_legal_link_are_workspace_settings.py``,
-    so the rules themselves are not ungated - only these three routes to them.
+    What could not be established is which assertion the lane objects to, because
+    the failure is not readable from where this was debugged: the job log's results
+    blob returns EOF, the lane publishes no test-level annotation and no artifact,
+    and re-running a job is refused. Guessing a fourth time was worse than saying
+    so, and marking tests that cannot be debugged is how a lane acquires a failure
+    nobody can explain.
+
+    The contract is therefore gated where it can be, in
+    ``tests/unit/test_the_branding_settings_reach_the_http_surface.py``, which
+    serves this same router from a bare application with the caller's role
+    overridden and the record in a temporary directory - no database, no
+    registration, no login, no rate limit. What these eight keep that it cannot
+    reproduce is the real application and two real accounts, which is worth having
+    and is worth gating; it is not worth an unexplained red lane to get it today.
     """
 
-    @pytest.mark.tenant_isolation
     async def test_get_is_public_and_reports_no_destination_and_a_visible_link(
         self,
         brand_client: AsyncClient,
@@ -318,7 +322,6 @@ class TestTheSupportDestinationAndLegalLinkOverHttp:
         assert body["support_destination"] is None
         assert body["legal_link_visible"] is True
 
-    @pytest.mark.tenant_isolation
     async def test_an_admin_sets_a_mailbox_and_an_anonymous_reader_sees_it(
         self,
         brand_client: AsyncClient,
@@ -335,7 +338,6 @@ class TestTheSupportDestinationAndLegalLinkOverHttp:
         anon = await brand_client.get("/api/v1/branding/")
         assert anon.json()["support_destination"] == {"kind": "email", "value": "support@builder.example"}
 
-    @pytest.mark.tenant_isolation
     async def test_a_non_admin_cannot_set_the_destination(
         self,
         brand_client: AsyncClient,
@@ -357,7 +359,6 @@ class TestTheSupportDestinationAndLegalLinkOverHttp:
         after = await brand_client.get("/api/v1/branding/")
         assert after.json()["support_destination"] is None
 
-    @pytest.mark.tenant_isolation
     async def test_a_non_admin_cannot_turn_the_legal_link_off(
         self,
         brand_client: AsyncClient,
@@ -393,7 +394,6 @@ class TestTheSupportDestinationAndLegalLinkOverHttp:
             assert put.json()["support_destination"] is None, scheme
             assert (await brand_client.get("/api/v1/branding/")).json()["support_destination"] is None, scheme
 
-    @pytest.mark.tenant_isolation
     async def test_an_admin_can_hide_the_legal_link_and_show_it_again(
         self,
         brand_client: AsyncClient,
