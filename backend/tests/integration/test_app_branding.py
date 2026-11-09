@@ -40,11 +40,41 @@ _PNG_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1H
 
 @pytest_asyncio.fixture(scope="module")
 async def brand_client():
+    """An application instance and a client bound to it, for the whole module.
+
+    Two steps here are load-bearing rather than ceremonial, and both are copied
+    from the fixtures that already pass in the lane that gates this tree - see
+    ``app_instance`` in
+    ``test_a_curve_on_another_projects_assignment_cannot_be_read_or_replaced.py``.
+
+    ``get_settings.cache_clear()`` runs before ``create_app()`` because the
+    settings object is cached on first use, and a cached copy resolved before the
+    database URL is settled makes the app bind the wrong one. That is not a
+    hypothetical in this repository: it was a real startup regression, fixed by
+    clearing the cache at boot, and every fixture that builds its own app has to
+    do the same or it silently talks to a different database than the helpers
+    that write straight to it.
+
+    ``Base.metadata.create_all`` runs inside the lifespan, once the app has
+    bound, so the schema this instance will read and write exists. It is
+    idempotent against an already-migrated database, and without it the register
+    call below can fail against a database that has no ``users`` table while the
+    promotion helper, on its own engine, finds nothing to update.
+    """
+    from app.config import get_settings
+
+    get_settings.cache_clear()
+
     app = create_app()
 
     @asynccontextmanager
     async def lifespan_ctx():
         async with app.router.lifespan_context(app):
+            from app.database import Base, engine
+            from app.modules.users import models as _user_models  # noqa: F401
+
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
             yield
 
     async with lifespan_ctx():
