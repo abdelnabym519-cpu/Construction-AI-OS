@@ -65,25 +65,31 @@ function offenders(value: string): string[] {
 
 /** The text of every <title> element, in document order. */
 function titles(html: string): string[] {
-  return [...html.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title\s*>/gi)].map((m) => m[1].trim());
+  const out: string[] = [];
+  for (const found of html.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title\s*>/gi)) {
+    const value = found[1];
+    if (value !== undefined && value.trim()) out.push(value.trim());
+  }
+  return out;
 }
 
 /** Every meta tag's content, keyed by the name or property it is served under. */
 function metaValues(html: string): Array<{ key: string; value: string }> {
   const out: Array<{ key: string; value: string }> = [];
-  for (const tag of html.matchAll(/<meta\b[^>]*>/gi)) {
-    const name = tag[0].match(/\b(?:name|property)\s*=\s*"([^"]+)"/i);
-    const content = tag[0].match(/\bcontent\s*=\s*"([^"]*)"/i);
-    if (name && content) out.push({ key: name[1], value: content[1] });
+  for (const found of html.matchAll(/<meta\b[^>]*>/gi)) {
+    const tag = found[0] ?? '';
+    const key = tag.match(/\b(?:name|property)\s*=\s*"([^"]+)"/i)?.[1];
+    const value = tag.match(/\bcontent\s*=\s*"([^"]*)"/i)?.[1];
+    if (key !== undefined && value !== undefined) out.push({ key, value });
   }
   return out;
 }
 
 /** The schema.org block, parsed - so a value is judged as data, not as markup. */
 function jsonLd(html: string): Record<string, unknown> {
-  const block = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/i);
-  expect(block, 'index.html carries no JSON-LD block at all').toBeTruthy();
-  return JSON.parse(block![1]) as Record<string, unknown>;
+  const raw = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/i)?.[1];
+  if (raw === undefined) throw new Error('index.html carries no JSON-LD block at all');
+  return JSON.parse(raw) as Record<string, unknown>;
 }
 
 /** Every string in the JSON-LD block, with the property name it sits under. */
@@ -105,8 +111,9 @@ describe('the browser chrome in frontend/index.html', () => {
     const found = titles(HTML);
     // Counted, not assumed: one <title>, and it is the whole tab.
     expect(found).toHaveLength(1);
-    expect(found[0]).toBe(APP_NAME);
-    expect(offenders(found[0])).toEqual([]);
+    const tab = found[0] ?? '';
+    expect(tab).toBe(APP_NAME);
+    expect(offenders(tab)).toEqual([]);
   });
 
   it('carries no claim about origins, licence or price in any meta value', () => {
