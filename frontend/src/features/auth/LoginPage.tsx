@@ -76,6 +76,15 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const setTokens = useAuthStore((s) => s.setTokens);
+  // Who may white-label this workspace. The editor the pencil below opens writes the
+  // branding record, and writing it is PUT /api/v1/branding/ behind
+  // RequireRole("admin"), so the control is offered exactly where that write would be
+  // accepted and nowhere else. Both fields are read on purpose: `userRole` is the
+  // server-confirmed role, and the store's own comment warns against treating a role
+  // decoded from a token as authoritative, while `isAuthenticated` is what says a
+  // session exists to hold it. A tab mid-bootstrap or mid-handover has neither
+  // settled, and /login is precisely the screen such a tab is sitting on.
+  const canCustomiseBrand = useAuthStore((s) => s.isAuthenticated && s.userRole === 'admin');
   // White-label brand (same localStorage store the in-app sidebar editor
   // writes to). When a tenant has set a logo / company name we show it
   // on the login card instead of the default product wordmark.
@@ -516,18 +525,25 @@ export function LoginPage() {
                   </span>
                 </div>
               )}
-              {/* White-label trigger - same editor as the in-app sidebar
-                  brand control, available pre-auth so a tenant can put
-                  their own logo on the sign-in screen. */}
-              <button
-                type="button"
-                onClick={() => setBrandOpen(true)}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-border-light bg-surface-elevated/60 text-content-tertiary backdrop-blur-sm transition-colors hover:border-oe-blue/40 hover:bg-oe-blue/5 hover:text-oe-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oe-blue/40"
-                aria-label={t('login.brand_edit', { defaultValue: 'Customize logo' })}
-                title={t('login.brand_edit', { defaultValue: 'Customize logo' })}
-              >
-                <Pencil size={13} strokeWidth={2.25} />
-              </button>
+              {/* White-label trigger - the same editor the in-app sidebar brand
+                  control opens, offered only to a signed-in admin. It used to be
+                  offered to everybody who could reach /login, which is everybody:
+                  an anonymous visitor was handed a logo form whose save the server
+                  refuses with a 403, on the one screen where a first impression of
+                  the product is formed, looking at somebody else's workspace.
+                  Admins keep the editor here and in the sidebar, where canPersist
+                  already turns on this same role, so nothing they could do is lost. */}
+              {canCustomiseBrand && (
+                <button
+                  type="button"
+                  onClick={() => setBrandOpen(true)}
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-border-light bg-surface-elevated/60 text-content-tertiary backdrop-blur-sm transition-colors hover:border-oe-blue/40 hover:bg-oe-blue/5 hover:text-oe-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oe-blue/40"
+                  aria-label={t('login.brand_edit', { defaultValue: 'Customize logo' })}
+                  title={t('login.brand_edit', { defaultValue: 'Customize logo' })}
+                >
+                  <Pencil size={13} strokeWidth={2.25} />
+                </button>
+              )}
             </div>
             <p className="mt-2 text-sm text-content-tertiary">
               {t('login.workspace_tagline', { defaultValue: 'Professional construction project workspace' })}
@@ -687,7 +703,11 @@ export function LoginPage() {
       </div>
 
       {/* ── White-label branding editor (pre-auth) ── */}
-      {brandOpen && <BrandingEditorModal onClose={() => setBrandOpen(false)} />}
+      {/* Gated on the same condition as the trigger, not only on the local open
+          flag: the store refreshes `userRole` from /users/me/, so an admin demoted
+          while this page is mounted stops being one, and the write form goes with
+          the permission instead of staying open for a save the server now refuses. */}
+      {canCustomiseBrand && brandOpen && <BrandingEditorModal onClose={() => setBrandOpen(false)} />}
 
     </div>
   );
