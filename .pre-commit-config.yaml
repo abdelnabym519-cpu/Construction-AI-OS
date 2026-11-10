@@ -486,12 +486,20 @@ repos:
       # runs the same script in repo hygiene. It inherited a per-file debt
       # baseline when it landed, and those counts may only shrink - see the
       # module docstring for what is exempt and why.
+      #
+      # The path list is what makes the hook fire, and it has to name the
+      # browser-level surfaces as well: the script scans them all on every run
+      # (pass_filenames: false), but a commit touching only frontend/index.html
+      # used to match nothing here, so the one file whose <title> is the tab a
+      # visitor reads was the one file this hook never ran for. Same for the PWA
+      # manifest literal in vite.config.ts, the served legal pages and the
+      # installer descriptions in the desktop shell.
       - id: no-promotional-strings-check
         name: Gate promotional and upstream-attribution strings
         entry: python scripts/check_no_promotional_strings.py
         language: system
         pass_filenames: false
-        files: ^(frontend/src/.*\.tsx?|backend/app/.*\.py|scripts/promotional_(allowlist|debt_baseline|debt_baseline_backend)\.json)$
+        files: ^(frontend/src/.*\.tsx?|frontend/index\.html|frontend/vite\.config\.ts|frontend/package\.json|frontend/public/.*\.(html|js|json|webmanifest)|desktop/src-tauri/(tauri\.conf\.json|Cargo\.toml)|backend/app/.*\.py|scripts/promotional_(allowlist|debt_baseline|debt_baseline_backend)\.json)$
 
       # The orphan guard above asks whether a key is reachable at all, and
       # says in its own comments that it deliberately does not ask whether a

@@ -306,6 +306,173 @@ def backend_files() -> list[Path]:
     return [x for x in out if not (x in seen or seen.add(x))]
 
 
+# The browser-level surfaces: what a tab, an install prompt or an installer says
+# about this product before any of the code above has run.
+#
+# The two scans above read locale bundles, the .ts/.tsx under frontend/src, and the
+# backend files whose strings leave the process. Neither reads the documents a
+# browser or a package manager presents first, and those are the ones a visitor
+# reads earliest: the tab title, the description a search result or a chat preview
+# shows, the name and description in the PWA install prompt, and the text an
+# installer writes into Add/Remove Programs, Info.plist and the .desktop entry.
+#
+# An owner's screenshot of the rebranded sign-in page showed the tab still reading
+# "Construction AI OS - Open-Source Construction Cost Estimation Platform" after
+# every string the product renders had been cleaned. frontend/index.html is not
+# under frontend/src, so no scan reached it, and the same was true of the PWA
+# manifest literal in frontend/vite.config.ts and of the two bundle descriptions in
+# desktop/src-tauri/tauri.conf.json. These paths close that.
+#
+# What is deliberately NOT here: frontend/public/legal/ and the .txt licence texts
+# under frontend/public/assets/vendor/fonts/licenses/, which are the legal floor and
+# third-party licence notices their own licences require be kept verbatim, and
+# frontend/public/README.md, which is a developer note the server never hands out.
+BROWSER_SURFACES = (
+    "frontend/index.html",
+    "frontend/vite.config.ts",  # the PWA manifest is a literal here, not a file
+    "frontend/package.json",
+    "frontend/public/**/*.html",
+    "frontend/public/**/*.js",
+    "frontend/public/**/*.json",
+    "frontend/public/**/*.webmanifest",
+    "desktop/src-tauri/tauri.conf.json",
+    "desktop/src-tauri/Cargo.toml",
+)
+
+HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
+HTML_TITLE = re.compile(r"<title\b[^>]*>(.*?)</title\s*>", re.S | re.I)
+HTML_META_TAG = re.compile(r"<meta\b[^>]*>", re.S | re.I)
+HTML_SCRIPT = re.compile(r"<(script|style)\b[^>]*>.*?</\1\s*>", re.S | re.I)
+HTML_TEXT_RUN = re.compile(r">([^<>]{2,600})<", re.S)
+HTML_ATTR_VALUE = re.compile(r"\b(href|alt|aria-label|placeholder)\s*=\s*[\"']([^\"']{2,600})[\"']", re.I)
+JSON_PAIR = re.compile(r'"([A-Za-z_@][\w.@:-]*)"\s*:\s*"((?:[^"\\]|\\.){1,600})"')
+TOML_PAIR = re.compile(r"^\s*([A-Za-z_][\w-]*)\s*=\s*(.+?)\s*$")
+
+
+def _line_of(text: str, pos: int) -> int:
+    """The 1-based line a match offset falls on."""
+    return text.count("\n", 0, pos) + 1
+
+
+def _blank(match: re.Match[str]) -> str:
+    """Whitespace the same shape as the match, newlines kept where they were.
+
+    Blank rather than deleted: every extractor here reports a line number, and
+    closing the gap would move the lines underneath the text still to be read, so
+    the guard would send whoever reads it to the wrong place.
+    """
+    return re.sub(r"[^\n]", " ", match.group(0))
+
+
+def html_strings(text: str) -> list[tuple[int, str, str]]:
+    """The values an HTML document puts in front of a reader or a crawler.
+
+    Comments are dropped before anything is read, and dropped rather than scanned.
+    A comment is not rendered, and the one in frontend/index.html is the attribution
+    notice AGPL-3.0 section 5 asks a modified version to keep: reading it as copy
+    would either flag a notice the licence requires, or need an allowlist entry wide
+    enough to hide a real claim smuggled into a comment later.
+
+    Keys are the document's own - ``title``, ``meta:og:title``, ``uPrivacy`` - not
+    line numbers, for the reason the locale scan prefers an i18n key: an entry keyed
+    to a line drifts the first time anything above it is edited. The splash screen
+    makes that concrete, carrying one privacy sentence in 29 languages, which a
+    single keyed entry covers and 29 line entries would not.
+    """
+    out: list[tuple[int, str, str]] = []
+    work = HTML_COMMENT.sub(_blank, text)
+
+    for m in HTML_TITLE.finditer(work):
+        if m.group(1).strip():
+            out.append((_line_of(work, m.start()), "title", m.group(1).strip()))
+    work = HTML_TITLE.sub(_blank, work)
+
+    # Meta tags are read as tags, not as attribute soup, so the key names the tag a
+    # value came from: og:title and twitter:title are different claims even when the
+    # words in them are the same.
+    for m in HTML_META_TAG.finditer(work):
+        tag = m.group(0)
+        name = re.search(r"\b(?:name|property)\s*=\s*[\"']([^\"']+)[\"']", tag, re.I)
+        content = re.search(r"\bcontent\s*=\s*[\"']([^\"']*)[\"']", tag, re.I)
+        if name and content and content.group(1).strip():
+            out.append((_line_of(work, m.start()), f"meta:{name.group(1)}", content.group(1).strip()))
+    work = HTML_META_TAG.sub(_blank, work)
+
+    # Quoted "key": "value" pairs, which is the JSON-LD block in index.html and the
+    # 29-language table the desktop splash screen is built from. Read before the
+    # script bodies are blanked, because that is where both of them live.
+    for m in JSON_PAIR.finditer(work):
+        out.append((_line_of(work, m.start()), m.group(1), m.group(2)))
+    work = JSON_PAIR.sub(_blank, work)
+
+    # What is left of a script or a style body is code, not copy: the appearance boot
+    # script in index.html is JavaScript, and reporting a variable name as a sentence
+    # a user reads would be the guard crying wolf.
+    work = HTML_SCRIPT.sub(_blank, work)
+
+    # Text between tags, including a run that spans lines - which is how the licence
+    # paragraphs in terms.html are written, and what a line-based read misses.
+    for m in HTML_TEXT_RUN.finditer(work):
+        if m.group(1).strip():
+            out.append((_line_of(work, m.start()), "text", m.group(1).strip()))
+    for m in HTML_ATTR_VALUE.finditer(work):
+        if m.group(2).strip():
+            out.append((_line_of(work, m.start()), f"attr:{m.group(1).lower()}", m.group(2).strip()))
+    return out
+
+
+def json_strings(text: str) -> list[tuple[int, str, str]]:
+    """``"key": "value"`` pairs of a JSON manifest, keyed by the property name.
+
+    Read as pairs rather than parsed, so a manifest that does not parse still gets
+    scanned: a broken file is a reason to look at it, not a reason to skip it.
+    """
+    return [(_line_of(text, m.start()), m.group(1), m.group(2)) for m in JSON_PAIR.finditer(text)]
+
+
+def toml_strings(text: str) -> list[tuple[int, str, str]]:
+    """``key = value`` lines of a Cargo manifest, skipping comments and headers."""
+    out: list[tuple[int, str, str]] = []
+    for ln, line in enumerate(text.splitlines(), 1):
+        stripped = line.strip()
+        if not stripped or stripped.startswith(("#", "[")):
+            continue
+        m = TOML_PAIR.match(line)
+        if not m:
+            continue
+        value = m.group(2).strip().strip("\"'")
+        if value:
+            out.append((ln, m.group(1), value))
+    return out
+
+
+def browser_files() -> list[Path]:
+    """Every existing file the browser-surface patterns resolve to, exemptions applied."""
+    out: list[Path] = []
+    for pat in BROWSER_SURFACES:
+        for p in ROOT.glob(pat):
+            if not p.is_file():
+                continue
+            rel = p.relative_to(ROOT).as_posix()
+            if any(rel.startswith(x) for x in EXEMPT_PATHS) or p.name in EXEMPT_NAMES:
+                continue
+            out.append(p)
+    return sorted(set(out))
+
+
+def browser_triples(path: Path, text: str) -> list[tuple[int, str, str]]:
+    """The (line, key, value) triples to judge, by the kind of file this is."""
+    if path.suffix == ".html":
+        return html_strings(text)
+    if path.suffix in {".json", ".webmanifest"}:
+        return json_strings(text)
+    if path.suffix == ".toml":
+        return toml_strings(text)
+    # A .ts or .js surface: the same literal-and-text read the component scan uses,
+    # which excludes comments and reports the line a literal sits on.
+    return [(ln, f"line {ln}", value) for ln, value in component_strings(text)]
+
+
 def main() -> int:
     allow: dict[str, str] = {}
     if ALLOWLIST.exists():
@@ -379,6 +546,21 @@ def main() -> int:
             if any(f"'{k}'" in src or f'"{k}"' in src for k in allow):
                 continue
             record(rel, f"line {ln}", lit, found)
+
+    # The browser-level surfaces, judged with the same allowlist and the same empty
+    # baseline as everything else. A surface newly brought under the guard is never
+    # baselined into existence: every string in it is either clean, fixed, or carried
+    # in scripts/promotional_allowlist.json with a written reason that says whether it
+    # is the legal floor or a functional statement. Both debt baselines stay at zero,
+    # which backend/tests/unit/test_no_promotional_strings_reach_a_user.py reads
+    # directly rather than trusting.
+    for p in browser_files():
+        rel = p.relative_to(ROOT).as_posix()
+        text = p.read_text(encoding="utf-8", errors="replace")
+        for _ln, key, value in browser_triples(p, text):
+            found = hits(value)
+            if found:
+                record(rel, key, value, found)
 
     backend_violations: dict[str, list[str]] = {}
     for p in backend_files():
@@ -492,7 +674,8 @@ def main() -> int:
     total = sum(len(v) for v in violations.values())
     backend_total = sum(len(v) for v in backend_violations.values())
     print(
-        f"no promotional strings OK: {len(violations)} frontend file(s) carrying {total} baselined "
+        f"no promotional strings OK: {len(violations)} frontend and browser-surface file(s) carrying "
+        f"{total} baselined "
         f"violation(s), {len(backend_violations)} backend file(s) carrying {backend_total}, "
         f"{len(allow)} allowlisted key(s), 0 new"
     )

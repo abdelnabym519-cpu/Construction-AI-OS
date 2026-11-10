@@ -241,7 +241,7 @@ export default defineConfig({
         name: 'Construction AI OS',
         short_name: 'CAIOS',
         description:
-          'Open-source construction cost estimation, BIM takeoff, BOQ, tendering and field operations.',
+          'Construction cost estimation, BIM takeoff, BOQ, tendering and field operations.',
         theme_color: '#0284c7',
         background_color: '#f7fbff',
         display: 'standalone',

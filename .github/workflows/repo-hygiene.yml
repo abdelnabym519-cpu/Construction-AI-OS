@@ -1070,11 +1070,18 @@ jobs:
       # Nothing the product renders may advertise that it is open source, or
       # where it came from, or a community to join somewhere else. This is the
       # ratchet on that: it fails on any new promotional or upstream-attribution
-      # string in a locale value or a component literal. It inherited a large
-      # debt baseline when it landed, recorded per file in
-      # scripts/promotional_debt_baseline.json, and those counts can only go
-      # down - the script prints a note naming any file that is clean now so the
-      # entry can be lowered in the same diff. Exemptions are the legal floor,
+      # string in a locale value, a component literal, or one of the browser-level
+      # surfaces - the tab title and the meta/og/twitter/JSON-LD values in
+      # frontend/index.html, the PWA manifest literal in frontend/vite.config.ts,
+      # the served terms and privacy pages, and the descriptions the desktop
+      # installer writes into Add/Remove Programs. It inherited a large debt
+      # baseline when it landed, recorded per file in
+      # scripts/promotional_debt_baseline.json; both baselines are empty now and
+      # backend/tests/unit/test_no_promotional_strings_reach_a_user.py reads them
+      # to keep them that way, so a new surface is fixed or allowlisted with a
+      # written reason rather than baselined into existence. The script still
+      # prints a note naming any file that is clean now so an entry can be lowered
+      # in the same diff. Exemptions are the legal floor,
       # the copyright headers, generated files, and functional strings that
       # carry a written reason in scripts/promotional_allowlist.json; the module
       # docstring says which is which and why.
