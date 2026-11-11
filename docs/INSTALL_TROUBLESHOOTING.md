@@ -192,7 +192,7 @@ Or right-click the app in Applications and choose **Open**. On recent macOS go t
 **Do:** pick one of these.
 
 - You run the installation yourself and want accounts to work as soon as they are created: start the server with the environment variable `OE_REGISTRATION_MODE` set to `open`. In Windows PowerShell run `$env:OE_REGISTRATION_MODE="open"` on the line before the one that starts it; in a Linux or macOS shell, export it the same way first. Under Docker, add `OE_REGISTRATION_MODE=open` to the `.env` file in the folder with `docker-compose.yml`, which is the file Compose reads. A `.env` file inside your data folder is not read: the one the program looks for sits next to the installed package, which for a pip install is inside your Python environment, so setting the variable in the environment you start from is the way that works everywhere.
-- You are the administrator and want to activate one account: sign in as an administrator, then open **Settings > Team** and switch the account on.
+- You are the administrator and want to activate one account: sign in as an administrator, open **Users** in the sidebar (the **User Management** page) and press **Activate** on that row. The team panel under Settings shows who is waiting but does not carry the switch; it links here.
 - No administrator can sign in either: use the recovery commands below. They work offline, against the data folder, with no server running and no mail delivered.
 
 **You see:** you cannot sign in and you no longer know the password, and there is no mail server to send a reset link.
@@ -207,7 +207,7 @@ It asks for the new password twice and echoes nothing while you type. It works o
 
 The same command is available without PATH set up, as `python -m openconstructionerp reset-password you@example.com`.
 
-**You see:** the last administrator left, or was deactivated, and nobody can reach **Settings > Team**.
+**You see:** the last administrator left, or was deactivated, and nobody can reach **User Management**.
 **It means:** the installation has no active administrator, so there is nobody who can activate or promote anybody.
 **Do:** restore one from a terminal:
 

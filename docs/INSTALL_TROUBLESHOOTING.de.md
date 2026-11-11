@@ -187,6 +187,42 @@ Oder klicken Sie die App in "Programme" mit der rechten Maustaste an und wählen
 **Das heißt:** Das veröffentlichte Image ist nur für x86-64 gebaut.
 **Was tun:** Bauen Sie aus dem Quellcode mit `make quickstart`, oder nutzen Sie pip.
 
+## Anmelden bei einer Installation, die Sie selbst betreiben
+
+**Sie sehen:** "Invalid email or password" bei einem Konto, das Sie gerade angelegt haben, und beim erneuten Anlegen steht dort "Email already registered".
+**Das heißt:** Das Konto existiert und wartet darauf, dass eine Administratorin oder ein Administrator es freischaltet. Installationen nutzen standardmäßig `OE_REGISTRATION_MODE=admin-approve`; dabei wird jedes Konto außer dem allerersten auf einer leeren Datenbank als inaktiv gespeichert. Das erste Konto auf einer wirklich leeren Datenbank wird automatisch aktiviert und wird zum Administrator; wenn nicht, lag schon etwas in der Datenbank: Demo-Daten, ein Konto aus einem früheren Lauf oder ein Datenordner, den der Server weiter liest.
+**Was tun:** Wählen Sie einen dieser drei Wege.
+
+- Sie betreiben die Installation selbst und möchten, dass Konten sofort nach dem Anlegen funktionieren: Starten Sie den Server mit der Umgebungsvariablen `OE_REGISTRATION_MODE` auf `open`. In Windows PowerShell schreiben Sie `$env:OE_REGISTRATION_MODE="open"` in die Zeile direkt vor der, die ihn startet; in einer Linux- oder macOS-Shell exportieren Sie sie zuerst auf dieselbe Weise. Unter Docker tragen Sie `OE_REGISTRATION_MODE=open` in die Datei `.env` im Ordner mit `docker-compose.yml` ein, denn das ist die Datei, die Compose liest. Eine Datei `.env` in Ihrem Datenordner wird nicht gelesen: Die Datei, nach der das Programm sucht, liegt neben dem installierten Paket, bei einer pip-Installation also in Ihrer Python-Umgebung. Die Variable in der Umgebung zu setzen, aus der Sie starten, ist deshalb der Weg, der überall funktioniert.
+- Sie sind die Administratorin oder der Administrator und möchten ein Konto freischalten: Melden Sie sich als Administrator an, öffnen Sie in der Seitenleiste **Benutzer** (die Seite **Benutzerverwaltung**) und drücken Sie in dieser Zeile **Aktivieren**. Das Team-Panel in den Einstellungen zeigt, wer wartet, trägt den Schalter aber nicht; es verlinkt hierher.
+- Es kann sich auch niemand als Administrator anmelden: Nutzen Sie die Wiederherstellungsbefehle unten. Sie funktionieren offline, direkt am Datenordner, ohne laufenden Server und ohne versandte E-Mail.
+
+**Sie sehen:** Sie kommen nicht hinein, kennen das Passwort nicht mehr, und es gibt keinen Mailserver, der einen Link zum Zurücksetzen schicken könnte.
+**Das heißt:** Mit der Installation ist nichts falsch; das Passwort ist schlicht nicht wiederherstellbar, weil nur sein Hash gespeichert ist.
+**Was tun:** Setzen Sie ein neues in einem Terminal, in derselben Umgebung, aus der Sie den Server starten:
+
+```
+openconstructionerp reset-password you@example.com
+```
+
+Der Befehl fragt das neue Passwort zweimal ab und zeigt beim Tippen nichts an. Er funktioniert bei gestopptem und bei laufendem Server, und er aktiviert das Konto, falls es inaktiv war. Sie erhalten also nicht ein korrektes Passwort und eine Anmeldung, die trotzdem ablehnt. Mit `--data-dir <Ordner>` geben Sie einen anderen Ort als den Standardordner an. Falls ein Skript das übernehmen muss, gibt es `--password <Passwort>`; ein so übergebenes Passwort ist jedoch in der Prozessliste und im Verlauf der Shell sichtbar, deshalb ist die Abfrage der bessere Standard.
+
+Denselben Befehl gibt es ohne eingerichteten PATH als `python -m openconstructionerp reset-password you@example.com`.
+
+**Sie sehen:** Der letzte Administrator hat das Projekt verlassen oder wurde deaktiviert, und niemand erreicht die **Benutzerverwaltung**.
+**Das heißt:** Die Installation hat keinen aktiven Administrator, also kann niemand jemanden freischalten oder befördern.
+**Was tun:** Stellen Sie einen von einem Terminal aus wieder her:
+
+```
+openconstructionerp promote-admin you@example.com
+```
+
+Der Befehl macht dieses Konto zum Administrator und aktiviert es; eine Adresse, die es nicht gibt, lehnt er ab, statt sie anzulegen. Nutzen Sie danach `reset-password`, wenn Sie außerdem ein neues Passwort brauchen.
+
+**Sie sehen:** "Password must be 72 bytes or fewer when encoded as UTF-8" beim Anlegen eines Kontos oder beim Setzen eines neuen Passworts.
+**Das heißt:** Das Passwort ist länger, als der Hash fassen kann, in dem es gespeichert wird. Buchstaben außerhalb von ASCII (mit Akzent, kyrillisch, arabisch, chinesisch) belegen zwei oder drei Bytes, deshalb liegt ein Passwort aus 30 solchen Zeichen über der Grenze, obwohl es kurz aussieht.
+**Was tun:** Kürzen Sie es. Es wurde nichts gespeichert, Konto und Passwort sind also unverändert. Leerzeichen innerhalb des Passworts sind in Ordnung; Leerzeichen an den beiden Enden gehören hier nicht zum Passwort und werden entfernt, bevor es geprüft und bevor es gespeichert wird. Ein Passwort, das mit einem Leerzeichen am Ende eingefügt wurde, meldet sich deshalb trotzdem an.
+
 ## Deinstallieren und Ihre Daten
 
 Die Deinstallation entfernt das Programm und behält Ihre Projekte. Sie liegen im Ordner `.openestimate` in Ihrem Benutzerordner (dazu der oben genannte `ProgramData`-Ordner, wenn Ihr Benutzername nicht-lateinische Buchstaben enthält). Eine Neuinstallation fängt deshalb nicht von vorn an. Für einen echten Neuanfang deinstallieren Sie und löschen `.openestimate` selbst, nachdem Sie es an einen sicheren Ort kopiert haben.
