@@ -14,7 +14,7 @@ import { sortLanguagesByName } from '@/shared/lib/languageOrder';
 import { readRememberChoice, useAuthStore } from '@/stores/useAuthStore';
 import { LegalFooter } from '@/features/legal/LegalFooter';
 import { AuthBackground } from './AuthBackground';
-import { meetsPasswordPolicy } from './passwordPolicy';
+import { meetsPasswordPolicy, passwordStrength } from './passwordPolicy';
 
 export function RegisterPage() {
   const { t, i18n } = useTranslation();
@@ -47,6 +47,9 @@ export function RegisterPage() {
   // The server's rules (length, a letter in any script, a digit), shared with
   // the reset page so the two forms cannot drift from each other.
   const passwordStrong = meetsPasswordPolicy(password);
+  // The word beside the bars answers the same question the submit button asks,
+  // so the form can never read "Medium" next to a button that stays disabled.
+  const strength = passwordStrength(password);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -376,13 +379,27 @@ export function RegisterPage() {
                   </button>
                 </div>
                 {password && (
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <div className={`h-1 flex-1 rounded-full transition-colors duration-normal ${password.length >= 8 ? 'bg-semantic-success' : 'bg-border'}`} />
-                    <div className={`h-1 flex-1 rounded-full transition-colors duration-normal ${password.length >= 12 ? 'bg-semantic-success' : 'bg-border'}`} />
-                    <div className={`h-1 flex-1 rounded-full transition-colors duration-normal ${/[A-Z]/.test(password) && /[0-9]/.test(password) ? 'bg-semantic-success' : 'bg-border'}`} />
-                    <span className="text-2xs text-content-tertiary ml-1">
-                      {password.length < 8 ? t('auth.password_strength_weak', 'Weak') : password.length < 12 ? t('auth.password_strength_medium', 'Medium') : t('auth.password_strength_strong', 'Strong')}
-                    </span>
+                  <div className="mt-0.5">
+                    <div className="flex items-center gap-2">
+                      <div className={`h-1 flex-1 rounded-full transition-colors duration-normal ${password.length >= 8 ? 'bg-semantic-success' : 'bg-border'}`} />
+                      <div className={`h-1 flex-1 rounded-full transition-colors duration-normal ${password.length >= 12 ? 'bg-semantic-success' : 'bg-border'}`} />
+                      <div className={`h-1 flex-1 rounded-full transition-colors duration-normal ${/[A-Z]/.test(password) && /[0-9]/.test(password) ? 'bg-semantic-success' : 'bg-border'}`} />
+                      <span className="text-2xs text-content-tertiary ml-1">
+                        {strength === 'weak' ? t('auth.password_strength_weak', 'Weak') : strength === 'medium' ? t('auth.password_strength_medium', 'Medium') : t('auth.password_strength_strong', 'Strong')}
+                      </span>
+                    </div>
+                    {/* The rule the server enforces, stated while the button is
+                        still disabled. handleSubmit sets the same sentence, but
+                        a disabled button never reaches it, so a reader who typed
+                        a password with no letter in it was told nothing: the
+                        label read "Medium" and the form simply would not send. */}
+                    {!passwordStrong && (
+                      <p className="text-2xs text-semantic-error mt-1" data-testid="register-password-reason">
+                        {t('auth.password_requirements', {
+                          defaultValue: 'Password must be at least 8 characters with at least one letter and one digit',
+                        })}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

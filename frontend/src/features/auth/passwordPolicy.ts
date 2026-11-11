@@ -14,6 +14,8 @@
  */
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 128;
+/** Length at which an acceptable password is called strong rather than medium. */
+export const PASSWORD_STRONG_LENGTH = 12;
 
 export function meetsPasswordPolicy(password: string): boolean {
   const value = password.trim();
@@ -26,4 +28,22 @@ export function meetsPasswordPolicy(password: string): boolean {
     /\p{L}/u.test(value) &&
     /\p{Nd}/u.test(value)
   );
+}
+
+export type PasswordStrength = 'weak' | 'medium' | 'strong';
+
+/**
+ * The word the sign-up form shows beside its three bars.
+ *
+ * It answers the same question the submit button asks, which the length-only
+ * ladder it replaces did not: a password the server refuses is "weak" here
+ * whatever its length, so the form can never read "Medium" next to a button
+ * that stays disabled. The length ladder is what separates medium from strong
+ * once the policy is met, exactly as before.
+ */
+export function passwordStrength(password: string): PasswordStrength {
+  if (!meetsPasswordPolicy(password)) {
+    return 'weak';
+  }
+  return Array.from(password.trim()).length < PASSWORD_STRONG_LENGTH ? 'medium' : 'strong';
 }
