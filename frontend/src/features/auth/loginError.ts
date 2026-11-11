@@ -15,7 +15,28 @@
  */
 
 /** What kind of failure a sign-in response describes. */
-export type LoginFailureKind = 'credentials' | 'unavailable';
+export type LoginFailureKind = 'credentials' | 'unavailable' | 'pending';
+
+/** The half a status code alone can settle: `'pending'` needs the body. */
+export type StatusOnlyFailureKind = Exclude<LoginFailureKind, 'pending'>;
+
+/**
+ * What the sign-in endpoint answers when the password was right and the account
+ * is not usable yet.
+ *
+ * A stable code, not a sentence, and it is matched by value here so the two can
+ * never drift apart silently: the backend keeps its copy in
+ * `backend/app/modules/users/service.py` as `ACCOUNT_PENDING_ACTIVATION`, and
+ * `backend/tests/unit/test_clean_install_first_signin.py` asserts the response
+ * carries exactly this string. A sentence could not travel: the product ships 45
+ * languages, and an English string from the server would reach every one of them
+ * untranslated, which is the leak the locale guards exist to stop.
+ *
+ * The server only ever sends it after the password verified, so it tells the
+ * caller nothing they had not already proved they own.
+ */
+export const PENDING_ACTIVATION_DETAIL = 'account_pending_activation';
+
 
 /**
  * Classify a failed sign-in response by its status code.
@@ -30,7 +51,7 @@ export type LoginFailureKind = 'credentials' | 'unavailable';
  * Everything else - 401, 403, 422 - is the server having read the request and
  * declined it, which is what the credentials wording is for.
  */
-export function loginFailureKind(status: number): LoginFailureKind {
+export function loginFailureKind(status: number): StatusOnlyFailureKind {
   return status >= 500 ? 'unavailable' : 'credentials';
 }
 
@@ -56,10 +77,19 @@ export function loginFailureKind(status: number): LoginFailureKind {
  * the one action that helps, which is waiting, instead of at a password nothing
  * read.
  *
- * This cannot make a real refusal disappear. A wrong password, an unknown
- * account and a deactivated one are one and the same 401 with one and the same
- * `detail`, so all three still arrive here with a message and all three still
- * read as credentials, indistinguishable from each other.
+ * This cannot make a real refusal disappear. A wrong password and an unknown
+ * account are one and the same 401 with one and the same `detail`, so both still
+ * arrive here with a message and both still read as credentials,
+ * indistinguishable from each other - which is the point of them.
+ *
+ * One refusal is split out, and only because it can be split safely. An account
+ * that is waiting for an administrator used to answer with that same generic 401,
+ * which sent the person retyping a password that had already been checked and was
+ * right: a loop with no exit, on an install whose `registration_mode` default
+ * stores every account but the first one dormant. It is now a 403 carrying
+ * `PENDING_ACTIVATION_DETAIL`, and the server sends that only once the password
+ * verified, so nobody learns anything about an account they cannot already sign
+ * in to. Everything else keeps its old answer.
  *
  * @param status - The HTTP status of the response that was not ok.
  * @param detail - The message extracted from the body, or `null` when the body
@@ -68,5 +98,6 @@ export function loginFailureKind(status: number): LoginFailureKind {
  */
 export function loginFailureKindFromResponse(status: number, detail: string | null): LoginFailureKind {
   if (loginFailureKind(status) === 'unavailable') return 'unavailable';
+  if (detail === PENDING_ACTIVATION_DETAIL) return 'pending';
   return detail ? 'credentials' : 'unavailable';
 }

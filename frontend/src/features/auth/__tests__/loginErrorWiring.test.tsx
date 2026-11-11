@@ -131,6 +131,45 @@ describe('LoginPageNext error wiring', () => {
     expect(screen.queryByText('auth.server_unavailable')).toBeNull();
   });
 
+  it('tells a dormant account it is waiting, and not that its password is wrong', async () => {
+    // The password here verified - that is the only condition under which the
+    // server sends this code - so the credentials wording would be a claim about
+    // the one thing that was checked and was right, and it would send the person
+    // retyping it forever. `registration_mode` defaults to `admin-approve`, so
+    // every account but the first one on an install reaches this branch.
+    await renderWith(() =>
+      Promise.resolve({
+        ok: false,
+        status: 403,
+        json: async () => ({ detail: 'account_pending_activation' }),
+      }),
+    );
+    submitLogin();
+
+    await waitFor(() => expect(screen.getByText('auth.registration_pending_activation')).toBeTruthy());
+    // Neither the generic wording nor the machine code itself may reach the
+    // screen: the code exists to be translated, not to be read.
+    expect(screen.queryByText('auth.invalid_credentials')).toBeNull();
+    expect(screen.queryByText('account_pending_activation')).toBeNull();
+  });
+
+  it('still shows a real refusal on a dormant account as a credentials answer', async () => {
+    // The control for the case above. A wrong password is refused the same way
+    // whether or not the account it names is waiting, so the pending wording
+    // cannot be used to find out which addresses have accounts.
+    await renderWith(() =>
+      Promise.resolve({
+        ok: false,
+        status: 401,
+        json: async () => ({ detail: 'Invalid email or password' }),
+      }),
+    );
+    submitLogin();
+
+    await waitFor(() => expect(screen.getByText('Invalid email or password')).toBeTruthy());
+    expect(screen.queryByText('auth.registration_pending_activation')).toBeNull();
+  });
+
   it('keeps the connection wording when nothing answered at all', async () => {
     // ECONNREFUSED: `fetch` rejects, so this is the one path that never reaches
     // the classifier, and it has to stay distinct from both of the above.

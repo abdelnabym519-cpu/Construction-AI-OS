@@ -124,11 +124,27 @@ export function LoginPageNext() {
         // credentials wording would be a claim we cannot support.
         const data = await res.json().catch(() => null);
         const parsed = extractErrorMessageFromBody(data);
-        if (loginFailureKindFromResponse(res.status, parsed) === 'unavailable') {
+        const kind = loginFailureKindFromResponse(res.status, parsed);
+        if (kind === 'unavailable') {
           setError(
             t('auth.server_unavailable', {
               defaultValue:
                 'The server did not answer, so your details were never checked. Try again in a moment.',
+            }),
+          );
+          return;
+        }
+        if (kind === 'pending') {
+          // The password was right and the account is not active yet, which the
+          // server only says once it has verified the password. Telling this
+          // person their password was wrong - the generic wording below - sent
+          // them retyping the one thing that was not the problem, on an install
+          // whose default stores every account but the first one dormant. The
+          // code is matched in loginError.ts and translated here, so the sentence
+          // arrives in the reader's own language.
+          setError(
+            t('auth.registration_pending_activation', {
+              defaultValue: 'Account created. An administrator needs to activate it before you can log in.',
             }),
           );
           return;
