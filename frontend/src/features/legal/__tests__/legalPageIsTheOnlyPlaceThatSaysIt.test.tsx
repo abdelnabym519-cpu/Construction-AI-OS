@@ -175,9 +175,14 @@ describe('the sign-in screens say nothing about their origins', () => {
   });
 
   it('no longer links to the upstream repository from the login pages or the sidebar', () => {
+    // RegisterPage joined this list when its footer badge went: it was the one
+    // screen rendering a mark of the upstream repository beside a licence name,
+    // and it was not covered here because the badge was bare JSX text across two
+    // lines rather than a literal any of these assertions read.
     for (const rel of [
       'frontend/src/features/auth/LoginPage.tsx',
       'frontend/src/features/auth/LoginPageNext.tsx',
+      'frontend/src/features/auth/RegisterPage.tsx',
       'frontend/src/app/layout/Sidebar.tsx',
     ]) {
       const text = read(`${repoRoot}/${rel}`);

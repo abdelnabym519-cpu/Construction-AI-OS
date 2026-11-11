@@ -8,6 +8,7 @@ import { Button, Input, Logo, CountryFlag } from '@/shared/ui';
 import { SUPPORTED_LANGUAGES, getLanguageByCode } from '@/app/i18n';
 import { sortLanguagesByName } from '@/shared/lib/languageOrder';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { LegalFooter } from '@/features/legal/LegalFooter';
 import { AuthBackground } from './AuthBackground';
 import { meetsPasswordPolicy } from './passwordPolicy';
 
@@ -320,6 +321,11 @@ export function ResetPasswordPage() {
               </form>
             </>
           )}
+
+          {/* These two screens had no footer, so a user who arrived from the
+              reset e-mail had no way to reach the licence from here. Same
+              component as everywhere else outside the app shell. */}
+          <LegalFooter className="mt-5 flex items-center justify-center gap-1.5 text-2xs text-content-quaternary" />
         </div>
       </div>
     </div>

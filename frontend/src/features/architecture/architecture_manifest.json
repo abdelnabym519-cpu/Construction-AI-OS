@@ -276835,10 +276835,10 @@
     },
     {
       "name": "legal",
-      "ts_files": 3,
+      "ts_files": 5,
       "css_files": 0,
-      "test_files": 1,
-      "total_files": 3
+      "test_files": 2,
+      "total_files": 5
     },
     {
       "name": "legal-entities",
@@ -279093,7 +279093,7 @@
     "total_schemas": 4120,
     "total_python_files": 2812,
     "frontend_features": 208,
-    "frontend_ts_files": 3574,
+    "frontend_ts_files": 3576,
     "frontend_backend_mapped": 188
   },
   "frontend_backend_mapping": {

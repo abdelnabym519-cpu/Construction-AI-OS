@@ -20,8 +20,7 @@ import {
   type FormEvent,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
-import { useLegalVisibility } from '@/features/legal/useLegalVisibility';
-import { APP_NAME } from '@/shared/lib/brandName';
+import { LegalFooter } from '@/features/legal/LegalFooter';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import {
@@ -58,7 +57,6 @@ const TONE_STYLES: Record<ModuleTile['tone'], { bg: string; fg: string; ring: st
 };
 
 export function LoginPageNext() {
-  const legalLinkVisible = useLegalVisibility((s) => s.legalLinkVisible);
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -492,19 +490,13 @@ export function LoginPageNext() {
             <span>{t('login.workspace_status_first', 'Empty workspace - sign in to set up your first project')}</span>
           </div>
 
-          {/* Left-bottom: the copyright line, and the one plain link out of the
-              product that the licence needs. It is labelled "Legal" and goes to
-              /legal, which carries the licence, the NOTICE attribution and the
-              source offer - the only place in the UI that does. */}
-          <div className="relative mt-auto pt-10 text-[11px] text-content-tertiary/80 dark:text-white/40">
-            © 2026 {APP_NAME}
-            {legalLinkVisible && (
-              <>
-                {' · '}
-                <Link to="/legal">{t('legal.link', { defaultValue: 'Legal' })}</Link>
-              </>
-            )}
-          </div>
+          {/* Left-bottom: the running build version, and the one plain link out
+              of the product that the licence needs. It goes to /legal, which
+              carries the licence, the NOTICE attribution and the source offer -
+              the only place in the UI that does. This screen used to print a
+              copyright line instead of the version; the shared footer is what the
+              sign-in page and the sidebar already showed. */}
+          <LegalFooter className="relative mt-auto flex items-center gap-1.5 pt-10 text-[11px] text-content-tertiary/80 dark:text-white/40" />
         </div>
 
         {/* ── RIGHT: clean white form pane ─────────────────────────────── */}

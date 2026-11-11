@@ -1210,7 +1210,7 @@ function ImportDialog({
                                 rel="noopener noreferrer"
                                 className="underline font-medium hover:text-semantic-error"
                               >
-                                GitHub
+                                GitHub releases
                               </a>{' '}
                               and place .exe files in{' '}
                               <code className="bg-semantic-error/10 px-1 rounded">

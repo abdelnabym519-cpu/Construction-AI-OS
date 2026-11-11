@@ -16,6 +16,18 @@ What is scanned, and why only that:
     and the comments that explain why a promotional surface was removed have to
     be able to name it. Same for test files, which assert absence and so must be
     allowed to quote the thing that is absent.
+  * assembled strings - the copy that only exists once a file is read as a whole
+    rather than a line at a time: JSX text spanning lines, two literals joined by
+    `+`, and template literals read as the static text they produce with their
+    `${...}` holes dropped. This is the shape the register page hid behind: a
+    badge whose words were bare JSX text between `</svg>` and `<Link>`, on two
+    lines, so no quoted literal ever existed for the line-based read to find.
+    Every pattern is a bounded regex; none is a state machine, because one of
+    those once swallowed a 6,000-line file and mis-reported every later line.
+  * icon signatures - marks that carry a claim without carrying a word, matched
+    on their svg path data. The same badge was an octocat beside the text, so a
+    guard that only reads words waves the mark through the day somebody deletes
+    the words and keeps the picture.
 
 What is exempt, and why:
 
@@ -180,6 +192,110 @@ def component_strings(text: str) -> list[tuple[int, str]]:
             if m.group(1).strip():
                 out.append((ln, m.group(1).strip()))
     return out
+
+
+BLOCK_COMMENT = re.compile(r"/\*.*?\*/", re.S)
+LINE_COMMENT = re.compile(r"(?<!:)//[^\n]*")
+# JSX text that starts on one line and ends on another: `>` at the end of a line,
+# the words on the next, `</span>` after them. Bounded on purpose - no braces, no
+# angle brackets, no `=` and no `;` inside, so a run of code between an arrow
+# function and a comparison (`items.map((i) => i < 10)`) cannot read as copy - and
+# capped at four lines, because a JSX text node that long is a paragraph nobody
+# ships in one piece and a match that long is more likely to be code.
+JSX_TEXT_SPANNING = re.compile(r">([^<>{}=;\n]{0,200}\n[^<>{}=;]{2,400}?)<", re.S)
+# Two literals joined by `+` on one line: 'open' + ' source'. Each half is innocent
+# on its own, which is why the literal-by-literal read above cannot see it.
+LITERALS_JOINED = re.compile(
+    r"(?P<q1>['\"])(?P<v1>[^'\"\n]{1,200})(?P=q1)\s*\+\s*"
+    r"(?P<q2>['\"])(?P<v2>[^'\"\n]{1,200})(?P=q2)"
+)
+# A template literal opened on one line and closed on a later one. Read as the text
+# it will actually produce: the ${...} holes dropped, the static words kept.
+TEMPLATE_SPANNING = re.compile(r"`([^`]{2,600}?)`", re.S)
+TEMPLATE_HOLE = re.compile(r"\$\{[^{}]*\}")
+# Marks that carry a claim without carrying a word. A GitHub badge is an octocat in
+# a <svg> path next to text that may be perfectly innocent, so a guard that only
+# reads words waves it through - which is what happened on the register page, where
+# the mark and "Open Source · AGPL-3.0" were one badge. Matched on the start of the
+# path data, which is the same in every copy of the mark.
+ICON_SIGNATURES = {
+    "GitHub mark (octocat svg path)": "M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387",
+}
+
+
+def strip_comments(text: str) -> str:
+    """Blank the comments, keeping every newline and every character count.
+
+    Blank rather than removed, so the line numbers the spanning patterns report are
+    the line numbers a reader will find. ``://`` is left alone: a URL inside a string
+    literal is not a comment, and blanking from it would eat the rest of the line.
+    A ``//`` inside a string literal *is* treated as a comment, and that is accepted:
+    the literal-by-literal read below still sees the whole string, so a claim hidden
+    there is reported by the pass that reads literals rather than missed.
+    """
+    return LINE_COMMENT.sub(_blank, BLOCK_COMMENT.sub(_blank, text))
+
+
+def assembled_strings(text: str) -> list[tuple[int, str]]:
+    """Copy that only exists once the source is read as a whole, not line by line.
+
+    The line-based read above is deliberate and its docstring defends it: a character
+    state machine once swallowed a 6,000-line file and reported every later hit at
+    the same line. What it cannot see is the three shapes below, and one of them -
+    JSX text split across lines - is how a "Open Source · AGPL-3.0" badge sat on the
+    register page, in a tree this guard reported clean, until an owner's screenshot
+    found it. So these are regexes over the whole text, each bounded by a character
+    class or a line cap, none of them a state machine.
+
+    Covered: a JSX text node whose opening tag, words and closing tag are on
+    different lines; two literals joined by ``+``, on one line or across two; and a
+    template literal spanning lines, read as the static text it produces with its
+    ``${...}`` holes dropped. Not covered, and stated rather than left to be trusted:
+    a phrase assembled from three or more pieces, one built by a helper function, or
+    one arriving from a variable - a guard that reads text cannot follow data.
+    """
+    out: list[tuple[int, str]] = []
+    work = strip_comments(text)
+    lines = work.splitlines()
+
+    for m in JSX_TEXT_SPANNING.finditer(work):
+        value = m.group(1).strip()
+        # Letters required: a run of punctuation and whitespace between two tags is
+        # layout, not copy, and it is where false positives come from.
+        if value and any(ch.isalpha() for ch in value) and value.count("\n") <= 3:
+            out.append((_line_of(work, m.start()), value.replace("\n", " ")))
+
+    for m in LITERALS_JOINED.finditer(work):
+        joined = f"{m.group('v1')}{m.group('v2')}"
+        if joined.strip():
+            out.append((_line_of(work, m.start()), joined))
+
+    for m in TEMPLATE_SPANNING.finditer(work):
+        body = m.group(1)
+        if "\n" not in body:
+            continue  # a one-line template is already read by STRING_RE
+        static = TEMPLATE_HOLE.sub(" ", body).strip()
+        if static and any(ch.isalpha() for ch in static):
+            out.append((_line_of(work, m.start()), " ".join(static.split())))
+
+    # A chain broken over a line end: a literal, then `+` alone at the end of the
+    # line, then the next literal on the line below.
+    for i, line in enumerate(lines[:-1]):
+        if not line.rstrip().endswith("+"):
+            continue
+        head = list(STRING_RE.finditer(line))
+        tail = STRING_RE.search(lines[i + 1])
+        if head and tail:
+            first = next((g for g in head[-1].groups() if g is not None), "")
+            second = next((g for g in tail.groups() if g is not None), "")
+            if first and second:
+                out.append((i + 1, f"{first}{second}"))
+    return out
+
+
+def icon_signatures(text: str) -> list[str]:
+    """Which recognisable marks a file carries, by path data rather than by word."""
+    return [name for name, path in ICON_SIGNATURES.items() if path in text]
 
 
 BACKEND = ROOT / "backend" / "app"
@@ -529,9 +645,22 @@ def main() -> int:
         if any(rel.startswith(x) for x in EXEMPT_PATHS) or p.name in EXEMPT_NAMES:
             continue
         text = p.read_text(encoding="utf-8", errors="replace")
+        # Before the word prefilter below, because a mark carries its claim without
+        # carrying a word: a file holding only the octocat path would otherwise be
+        # skipped without being read.
+        for name in icon_signatures(text):
+            record(rel, "icon signature", name, ["GitHub mark"])
         if not any(w.lower() in text.lower() for w in FORBIDDEN) and not FREE_MARKETING.search(text):
             continue
         lines = text.splitlines()
+        for ln, lit in assembled_strings(text):
+            found = hits(lit)
+            if not found or ln <= HEADER_LINES:
+                continue
+            src = lines[ln - 1] if ln - 1 < len(lines) else ""
+            if any(f"'{k}'" in src or f'"{k}"' in src for k in allow):
+                continue
+            record(rel, f"line {ln} (assembled)", lit, found)
         for ln, lit in component_strings(text):
             found = hits(lit)
             if not found or ln <= HEADER_LINES:
@@ -557,10 +686,17 @@ def main() -> int:
     for p in browser_files():
         rel = p.relative_to(ROOT).as_posix()
         text = p.read_text(encoding="utf-8", errors="replace")
+        for name in icon_signatures(text):
+            record(rel, "icon signature", name, ["GitHub mark"])
         for _ln, key, value in browser_triples(p, text):
             found = hits(value)
             if found:
                 record(rel, key, value, found)
+        if p.suffix in {".ts", ".tsx", ".js", ".jsx"}:
+            for ln, value in assembled_strings(text):
+                found = hits(value)
+                if found and ln > HEADER_LINES:
+                    record(rel, f"line {ln} (assembled)", value, found)
 
     backend_violations: dict[str, list[str]] = {}
     for p in backend_files():

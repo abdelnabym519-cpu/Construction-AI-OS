@@ -238,7 +238,13 @@ export function DemoBanner() {
                 className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-content-secondary hover:text-content-primary border border-border-light rounded-lg hover:bg-surface-secondary transition-colors"
               >
                 <ExternalLink size={13} />
-                GitHub
+                {/* Names what the button opens, not the host that serves it. The
+                    host is the link's own href; the label used to repeat it, which
+                    put this product's upstream repository name in a footer. This
+                    banner only renders on the public hosted demo - every
+                    self-hosted install gets demo_mode false and returns null above
+                    - so no deployment of the product shows it. */}
+                Source
               </a>
               <a
                 href="https://pypi.org/project/openconstructionerp/"

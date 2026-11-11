@@ -85,6 +85,7 @@ import {
   type PortalKycCode,
   type PortalOverviewResponse,
 } from './api';
+import { LegalFooter } from '@/features/legal/LegalFooter';
 import { fmtFixed, formatDateValue } from '@/shared/lib/formatters';
 
 // English fallbacks for the computed `buyer_portal.documents.cat.*` keys. The default used to be
@@ -1902,16 +1903,12 @@ function ShellWrapper({
       {children}
 
       <footer className="w-full border-t border-border-light mt-10">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 text-2xs text-content-tertiary flex items-center justify-end gap-3 flex-wrap">
-          <a
-            href="https://www.gnu.org/licenses/agpl-3.0.html"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:underline"
-          >
-            AGPL-3.0
-          </a>
-        </div>
+        {/* This portal is read by people outside the organisation, so it gets the
+            same footer as the sign-in screens: the build version and one link to
+            /legal, which is a public route and states the licence properly. The
+            bare link to the licence text it used to carry said the same thing
+            with none of the context, and named the licence in a footer. */}
+        <LegalFooter className="max-w-3xl mx-auto px-4 sm:px-6 py-4 text-2xs text-content-tertiary flex items-center justify-end gap-1.5 flex-wrap" />
       </footer>
     </div>
   );
