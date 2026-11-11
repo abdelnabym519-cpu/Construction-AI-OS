@@ -2107,6 +2107,105 @@ async def _promote_user_to_admin(session: AsyncSession, email: str) -> str:
     return f"{user.email} is now an active admin."
 
 
+async def _reset_user_password(session: AsyncSession, email: str, new_password: str) -> str:
+    """Set the password of the account at ``email`` and return a status line.
+
+    The recovery path for the one dead end an operator cannot click out of: an
+    account whose password nobody knows any more. ``promote-admin`` answers "I
+    have no administrator left"; this answers "I cannot sign in as the
+    administrator I have". Both work offline against the data directory, with no
+    server running and no e-mail delivered, because the situation they exist for
+    is usually the one where the server will not start or the mailbox is gone.
+
+    The new password goes through the same policy the HTTP surface applies
+    (:func:`_validate_strong_password`), so this command cannot write a hash the
+    sign-in form would have refused - and in particular cannot write one bcrypt
+    would raise on, which is the failure the policy's byte limit exists to stop.
+
+    An account found dormant is activated, and the line printed says so. Leaving
+    it dormant would hand the operator a second dead end: a password that is now
+    correct and a sign-in that still refuses, with ``registration_mode``'s
+    default of ``admin-approve`` being the reason and nothing on screen to say
+    it. Whoever can read the data directory can already do this in SQL, which is
+    what the register warning in ``users/service.py`` tells them to do.
+
+    Raises:
+        LookupError: No usable account exists at that address (missing or
+            already erased), so there is nothing to reset.
+        ValueError: The new password does not meet the policy.
+    """
+    from sqlalchemy import func, select
+
+    from app.modules.users.models import User
+    from app.modules.users.schemas import _validate_strong_password
+    from app.modules.users.service import hash_password
+
+    password = _validate_strong_password(new_password)
+    user = (
+        await session.execute(select(User).where(func.lower(User.email) == email.strip().lower()))
+    ).scalar_one_or_none()
+    if user is None or user.deleted_at is not None:
+        raise LookupError(f"No user with e-mail {email!r}.")
+    was_inactive = not user.is_active
+    user.hashed_password = hash_password(password)
+    # A password nobody can be asked to re-verify is the point of this command,
+    # so a dormant account is activated rather than left unusable. See above.
+    user.is_active = True
+    await session.flush()
+    if was_inactive:
+        return f"{user.email} has a new password and is now active."
+    return f"{user.email} has a new password."
+
+
+def cmd_reset_password(args: argparse.Namespace) -> None:
+    """Reset a user's password from the command line (operator recovery)."""
+    if not (args.email or "").strip():
+        print(_red("Give the e-mail of the account to reset: openconstructionerp reset-password <email>"))
+        sys.exit(2)
+    data_dir = _data_dir_from_args(args)
+    _setup_env(data_dir, DEFAULT_HOST, DEFAULT_PORT)
+
+    import asyncio
+    import getpass
+
+    # A password on the command line lands in the shell's history, in the process
+    # list another user on the machine can read, and on a screen somebody walks
+    # past. ``--password`` exists for a script that has nowhere else to put it
+    # and says so in its own help; the prompt is the default and echoes nothing.
+    supplied = getattr(args, "password", None)
+    if supplied:
+        password = supplied
+    else:
+        try:
+            password = getpass.getpass("New password: ")
+            again = getpass.getpass("Repeat it: ")
+        except (EOFError, KeyboardInterrupt):
+            print(_red("No password entered; nothing was changed."))
+            sys.exit(2)
+        if password != again:
+            print(_red("The two entries did not match; nothing was changed."))
+            sys.exit(2)
+
+    async def _run() -> str:
+        from app.database import async_session_factory
+
+        _register_all_module_models()
+        async with async_session_factory() as session:
+            message = await _reset_user_password(session, args.email, password)
+            await session.commit()
+            return message
+
+    try:
+        message = asyncio.run(_run())
+    except LookupError as exc:
+        print(_red(str(exc)))
+        sys.exit(1)
+    except ValueError as exc:
+        print(_red(f"That password was refused: {exc}"))
+        sys.exit(2)
+    print(_green(message))
+
+
 def cmd_promote_admin(args: argparse.Namespace) -> None:
     """Promote an existing user to an active admin (operator recovery)."""
     if not (args.email or "").strip():
@@ -2956,6 +3055,22 @@ def _build_parser() -> argparse.ArgumentParser:
     promote_p.add_argument("email", nargs="?", help="E-mail of the existing account to promote")
     _add_data_dir_arg(promote_p)
 
+    reset_pw_p = subparsers.add_parser(
+        "reset-password",
+        help="Set a user's password from the command line (recovery when nobody can sign in)",
+    )
+    # Optional at parse time for the same reason promote-admin's is, so
+    # ``reset-password --data-dir X`` parses like every other data-dir command.
+    reset_pw_p.add_argument("email", nargs="?", help="E-mail of the account to reset")
+    reset_pw_p.add_argument(
+        "--password",
+        help=(
+            "The new password, for a script with no terminal to prompt on. Prefer the prompt: "
+            "a password given here is visible in the process list and in the shell's history."
+        ),
+    )
+    _add_data_dir_arg(reset_pw_p)
+
     # demo-cleanup - remove demo rows the old boot seeding wrote into real projects
     demo_cleanup_p = subparsers.add_parser(
         "demo-cleanup",
@@ -3104,6 +3219,8 @@ def main() -> None:
         cmd_seed(args)
     elif args.command == "promote-admin":
         cmd_promote_admin(args)
+    elif args.command == "reset-password":
+        cmd_reset_password(args)
     elif args.command == "demo-cleanup":
         cmd_demo_cleanup(args)
     elif args.command == "demo-cost-control":

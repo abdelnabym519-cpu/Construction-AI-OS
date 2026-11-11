@@ -185,6 +185,42 @@ Or right-click the app in Applications and choose **Open**. On recent macOS go t
 **It means:** the published image is built for x86-64 only.
 **Do:** build from source with `make quickstart`, or use pip.
 
+## Signing in to an installation you run yourself
+
+**You see:** "Invalid email or password" on an account you just created, and creating it again says "Email already registered".
+**It means:** the account exists and is waiting for an administrator to activate it. Installations default to `OE_REGISTRATION_MODE=admin-approve`, which stores every account but the very first one on an empty database as inactive. The first account on a genuinely empty database is activated automatically and becomes the administrator; if one is not, something was already in the database - a demo seed, an account from an earlier run, or a data folder the server is still reading.
+**Do:** pick one of these.
+
+- Run your own installation and want accounts to work as soon as they are created: set `OE_REGISTRATION_MODE=open` in the `.env` file in your data folder (`.openestimate` in your home folder unless you chose another) and start again.
+- You are the administrator and want to activate one account: sign in as an administrator, then open **Settings > Team** and switch the account on.
+- No administrator can sign in either: use the recovery commands below. They work offline, against the data folder, with no server running and no mail delivered.
+
+**You see:** you cannot sign in and you no longer know the password, and there is no mail server to send a reset link.
+**It means:** nothing is wrong with the installation; the password is simply not recoverable, because only its hash is stored.
+**Do:** set a new one from a terminal, in the same environment you start the server from:
+
+```
+openconstructionerp reset-password you@example.com
+```
+
+It asks for the new password twice and echoes nothing while you type. It works on a stopped or a running server, and it activates the account if it was inactive, so you are not handed a correct password and a sign-in that still refuses. Add `--data-dir <folder>` if your data lives somewhere other than the default. If a script has to do it, `--password <password>` exists, but a password given that way is visible in the process list and in the shell's history, so the prompt is the better default.
+
+The same command is available without PATH set up, as `python -m openconstructionerp reset-password you@example.com`.
+
+**You see:** the last administrator left, or was deactivated, and nobody can reach **Settings > Team**.
+**It means:** the installation has no active administrator, so there is nobody who can activate or promote anybody.
+**Do:** restore one from a terminal:
+
+```
+openconstructionerp promote-admin you@example.com
+```
+
+It makes that account an administrator and activates it, and it refuses an address that does not exist rather than creating one. Use `reset-password` afterwards if you also need a new password.
+
+**You see:** "Password must be 72 bytes or fewer when encoded as UTF-8" while creating an account or setting a new password.
+**It means:** the password is longer than the hash it is stored in can hold. Letters outside ASCII - accented, Cyrillic, Arabic, Chinese - take two or three bytes each, so a password of 30 such characters is over the limit even though it looks short.
+**Do:** shorten it. Nothing was stored, so the account or the password is unchanged. Internal spaces are fine; spaces at the two ends are not part of a password here, and are removed before it is checked and before it is stored, so a password pasted with a space at the end still signs in.
+
 ## Uninstalling and your data
 
 Uninstalling removes the program and keeps your projects. They live in the `.openestimate` folder in your home folder (plus the `ProgramData` folder above, if your user name has non-Latin letters). Reinstalling therefore does not start you over. To start from scratch, uninstall and then delete `.openestimate` yourself, after you have copied it somewhere safe.

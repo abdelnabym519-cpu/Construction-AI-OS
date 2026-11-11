@@ -861,6 +861,18 @@ jobs:
     # cannot quietly degrade into what the shards do, and it fails if health
     # answers without the boot having initialised a cluster.
     #
+    # Health is the floor, not the finish. The probe then does what an installer
+    # does next, over HTTP against that same clean directory: register the first
+    # account and sign in to it, twice - once with the password as registered and
+    # once with its surrounding whitespace stripped - then read the tenant claim
+    # out of the token and use the token against /me/. Any non-2xx fails the job.
+    # That half exists because of a report from a Windows install: a fresh data
+    # directory, an account created through the sign-up page, and every sign-in
+    # after it answered "Invalid email or password" - while /api/health answered
+    # 200 and all twenty of the jobs above were green. The unit suite cannot see
+    # it either way, because a fixture that needs an account promotes one
+    # straight past the state the installer is stuck in.
+    #
     # The defect it was written for: the CLI reads Settings while it builds its
     # argument parser (the help strings carry the display name), get_settings()
     # is @lru_cache'd, and app/database.py builds its engine from that cache at
@@ -907,10 +919,12 @@ jobs:
         id: install
         run: pip install -e .
 
-      - name: Start it through the CLI and probe /api/health
+      - name: Start it through the CLI, probe /api/health, register and sign in
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         # No service container, no DATABASE_URL, no fixture. The CLI's own STAGE
         # lines and any traceback are inherited straight into this log, and on
-        # failure the probe names the embedded cluster's PostgreSQL log too.
+        # failure the probe names the embedded cluster's PostgreSQL log too, plus
+        # the first request in the register/sign-in round trip that was not
+        # answered with a 2xx and the body it did answer with.
         shell: bash
         run: python ../scripts/ci/cli_cold_start_probe.py --port 8765 --timeout 900

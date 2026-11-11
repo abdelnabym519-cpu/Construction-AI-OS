@@ -18,6 +18,22 @@ real command - ``python -m app.cli serve`` - against an empty data directory
 with demo data off, exactly the first run of a new install, and waits for
 ``/api/health`` (unauthenticated by design) to answer 200.
 
+Health answering is not the same as the product working, so the probe goes on to
+do the two things an installer does next, over HTTP against that same clean data
+directory: create the first account through the public registration endpoint and
+sign in to it. Both must answer 2xx or the job fails. A server that comes up and
+then refuses its own operator is the failure this was extended for - it reported
+"Invalid email or password" to a person who had just registered and typed that
+password correctly, on an install with nothing in it, and every lane we had was
+green because health answered and the unit suite never asks a clean install for
+its first account. The sign-in is repeated with the password as registered and
+with surrounding whitespace stripped, because the two ends of a credential have
+to agree on what the password is and a defect in that agreement is invisible to
+both halves on their own. The token that comes back is decoded - not verified,
+which would need the signing key - to assert it names a tenant, and then used
+against ``/me/``, so a token that cannot open anything fails here rather than in
+somebody's browser.
+
 Stdlib only, so it runs on the three runner images without installing anything
 beyond the backend itself. The child's stdout and stderr are inherited, so the
 CLI's own STAGE lines and any traceback land in the job log verbatim.
@@ -102,6 +118,134 @@ def _probe_health(port: int) -> tuple[int, str]:
         return exc.code, exc.read().decode("utf-8", "replace")
     except (urllib.error.URLError, OSError, TimeoutError):
         return 0, ""
+
+
+#: The first account on a cold-started install. The password is padded on both
+#: ends on purpose: registration stores what the policy validator normalises and
+#: sign-in verifies what its own schema normalises, so if those two ever stop
+#: agreeing the padded form registers and the stripped form cannot sign in -
+#: which is exactly the dead end this half of the probe exists to catch.
+COLD_START_EMAIL = "cold-start-owner@example.com"
+COLD_START_PASSWORD = " Cold-Start!2026 "
+COLD_START_PASSWORD_STRIPPED = COLD_START_PASSWORD.strip()
+
+
+def _post_json(port: int, path: str, payload: dict[str, str]) -> tuple[int, str]:
+    """POST a JSON body to the CLI on loopback. Returns (status, body)."""
+    request = urllib.request.Request(  # noqa: S310 - fixed loopback URL
+        f"http://127.0.0.1:{port}{path}",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json", "Accept": "application/json"},
+        method="POST",
+    )
+    return _send(request)
+
+
+def _get_json(port: int, path: str, token: str | None = None) -> tuple[int, str]:
+    """GET a path from the CLI on loopback, optionally authenticated."""
+    headers = {"Accept": "application/json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return _send(urllib.request.Request(f"http://127.0.0.1:{port}{path}", headers=headers))  # noqa: S310
+
+
+def _send(request: urllib.request.Request) -> tuple[int, str]:
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:  # noqa: S310 - fixed loopback URL
+            return response.status, response.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as exc:  # a status is an answer, just not a good one
+        return exc.code, exc.read().decode("utf-8", "replace")
+    except (urllib.error.URLError, OSError, TimeoutError) as exc:
+        return 0, f"{type(exc).__name__}: {exc}"
+
+
+def _jwt_claims(token: str) -> dict[str, object]:
+    """Read a JWT's payload without verifying it.
+
+    Verification needs the signing key, which this probe has no business holding:
+    it is asserting what the server put in the token, not whether the signature is
+    sound, and the server that minted it just accepted the password. Base64url
+    decodes with the padding restored, since ``base64`` wants a multiple of four.
+    """
+    import base64
+
+    parts = token.split(".")
+    if len(parts) < 2:
+        return {}
+    payload = parts[1] + "=" * (-len(parts[1]) % 4)
+    try:
+        return json.loads(base64.urlsafe_b64decode(payload.encode("ascii")))
+    except (ValueError, UnicodeDecodeError):
+        return {}
+
+
+def _register_and_sign_in(port: int) -> str | None:
+    """Create the first account on this install and sign in to it.
+
+    Returns None when every step answered as an installer would expect, otherwise
+    the reason the lane failed. Each step names the request that failed and what
+    it answered, because the point of this half of the probe is that the *first*
+    failing request is the one worth reading.
+    """
+    status, body = _post_json(
+        port,
+        "/api/v1/users/auth/register/",
+        {
+            "email": COLD_START_EMAIL,
+            "password": COLD_START_PASSWORD,
+            "full_name": "Cold Start Owner",
+            "company": "Cold Start Probe",
+            "job_title": "Owner",
+            "how_found_us": "cli-cold-start-probe",
+        },
+    )
+    if status != 201:
+        return f"POST /api/v1/users/auth/register/ answered {status}: {body[:400]}"
+    try:
+        created = json.loads(body)
+    except json.JSONDecodeError:
+        return f"registration answered 201 with a body that is not JSON: {body[:400]}"
+
+    # The first account on an install with nothing in it is the bootstrap
+    # administrator. Dormant here would mean the operator of a fresh install has
+    # no way in at all, which is the report this lane was extended for.
+    if created.get("is_active") is not True:
+        return f"the first account on a clean install was created inactive: {body[:400]}"
+    if created.get("role") != "admin":
+        return f"the first account on a clean install was created as {created.get('role')!r}, not 'admin'"
+
+    tokens: dict[str, object] | None = None
+    for label, password in (
+        ("as registered", COLD_START_PASSWORD),
+        ("with the surrounding whitespace stripped", COLD_START_PASSWORD_STRIPPED),
+    ):
+        status, body = _post_json(port, "/api/v1/users/auth/login/", {"email": COLD_START_EMAIL, "password": password})
+        if status != 200:
+            return f"POST /api/v1/users/auth/login/ ({label}) answered {status}: {body[:400]}"
+        try:
+            issued = json.loads(body)
+        except json.JSONDecodeError:
+            return f"login ({label}) answered 200 with a body that is not JSON: {body[:400]}"
+        if not issued.get("access_token") or not issued.get("refresh_token"):
+            return f"login ({label}) returned no token pair: {body[:400]}"
+        tokens = issued
+
+    claims = _jwt_claims(str(tokens["access_token"]))  # type: ignore[index]
+    if not claims.get("tenant_id"):
+        return f"the access token carries no tenant_id claim: {sorted(claims)}"
+    if claims.get("sub") != created.get("id"):
+        return f"the access token names {claims.get('sub')!r}, not the account that was created"
+
+    status, body = _get_json(port, "/api/v1/users/me/", str(tokens["access_token"]))  # type: ignore[index]
+    if status != 200:
+        return f"GET /api/v1/users/me/ with the token login issued answered {status}: {body[:400]}"
+
+    print(
+        f"registered {COLD_START_EMAIL} (role={created.get('role')}, active={created.get('is_active')}), "
+        f"signed in twice, tenant_id={claims.get('tenant_id')}, /me/ answered {status}",
+        flush=True,
+    )
+    return None
 
 
 def main() -> int:
@@ -200,6 +344,13 @@ def main() -> int:
                 if not pg_version.exists():
                     return _fail(f"health answered but {pg_version} was never written", child, data_dir)
                 print(f"embedded cluster initialised: {pg_version.read_text(encoding='utf-8').strip()}", flush=True)
+
+                # Health answered, the cluster is the one this boot made, and now
+                # the two requests an installer makes next. A failure here is a
+                # product that comes up and refuses its own operator.
+                failure = _register_and_sign_in(args.port)
+                if failure is not None:
+                    return _fail(failure, child, data_dir)
                 return 0
 
             now = time.monotonic()
