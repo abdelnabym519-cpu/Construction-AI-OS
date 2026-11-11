@@ -77,9 +77,22 @@ logger = logging.getLogger(__name__)
 
 
 def hash_password(password: str) -> str:
-    """Hash a plaintext password using bcrypt."""
+    """Hash a plaintext password using bcrypt.
+
+    ``password`` is normalised first, exactly as :func:`verify_password` normalises
+    what it is handed, so the two cannot disagree about what the password is. Both
+    ends of a credential go through one of these two functions and nowhere else,
+    which is what makes the agreement hold for callers that never touch a request
+    schema: the demo seeder reading ``DEMO_USER_PASSWORD`` out of a ``.env`` file,
+    where a trailing newline is easy to leave and invisible, the CLI's
+    ``reset-password``, and the throwaway passwords minted for the desktop owner
+    and for accounts created through SSO.
+
+    A hash in the database is therefore always the hash of a normalised password,
+    and no stored credential can depend on whitespace nobody can see or retype.
+    """
     salt = bcrypt.gensalt(rounds=12)
-    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+    return bcrypt.hashpw(normalise_password(password).encode("utf-8"), salt).decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
@@ -93,9 +106,9 @@ def verify_password(plain: str, hashed: str) -> bool:
 
     Doing it here rather than only in the request schemas is what makes the
     agreement hold for callers that never go through one: the CLI's
-    ``reset-password``, a seeder, a test helper. ``hash_password`` is deliberately
-    left literal - it hashes the bytes it is handed - so a hash in the database is
-    always exactly the hash of the normalised password that produced it.
+    ``reset-password``, a seeder, a test helper. :func:`hash_password` normalises
+    the same way, so a hash in the database is always the hash of a normalised
+    password and no stored credential can depend on whitespace nobody can retype.
     """
     return bcrypt.checkpw(normalise_password(plain).encode("utf-8"), hashed.encode("utf-8"))
 

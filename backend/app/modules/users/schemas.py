@@ -66,7 +66,9 @@ _COMMON_PASSWORDS: frozenset[str] = frozenset(
 #: out an account that had been working.
 #:
 #: The rule is stated once here and applied by every password the server stores
-#: (``_validate_strong_password``) and every one it compares
+#: (``_validate_strong_password``, and ``users.service.hash_password`` for the
+#: callers that never reach a schema - a seeder reading an environment variable,
+#: the CLI's ``reset-password``) and every one it compares
 #: (``users.service.verify_password``), so a schema added later cannot drift out
 #: of step with the sign-in form the way these three did.
 PASSWORD_SURROUNDING_WHITESPACE = " \t\n\r\v\f"

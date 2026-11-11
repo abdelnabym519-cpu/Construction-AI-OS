@@ -59,7 +59,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.core.tenant_scope import TENANT_CLAIM
 from app.dependencies import decode_access_token, get_session
 from app.modules.users.models import User
@@ -86,17 +86,25 @@ GENERIC_REFUSAL = "Invalid email or password"
 # do. Deferred, the refusal tests fail on the answer they were given.
 
 
+#: The mode an installation ships in, read off the field rather than off the
+#: environment: ``backend/tests/conftest.py`` sets ``REGISTRATION_MODE=open`` for
+#: the whole suite, so ``get_settings().registration_mode`` is never the default
+#: here and a test that assumed it would silently exercise a mode no installer
+#: gets. That is why the dormant-account dead end was invisible to twenty green
+#: jobs - not one test in the suite ran the shipped default.
+SHIPPED_REGISTRATION_MODE = "admin-approve"
+
+
+def _set_mode(mode: str) -> None:
+    """Run the rest of this test in ``mode``, which the fixture below restores."""
+    get_settings().registration_mode = mode  # type: ignore[attr-defined]
+
+
 @pytest.fixture(autouse=True)
 def _restore_registration_mode():
-    """The settings object is a shared singleton; put the mode back afterwards.
-
-    Every test here runs against the shipped default, ``admin-approve``, because
-    that is the mode the report was filed from and the one that makes the
-    bootstrap the only route to an active account. Tests that need another mode
-    set it and this restores it.
-    """
+    """The settings object is a shared singleton; put the mode back afterwards."""
     settings = get_settings()
-    saved = getattr(settings, "registration_mode", "admin-approve")
+    saved = getattr(settings, "registration_mode", SHIPPED_REGISTRATION_MODE)
     yield
     settings.registration_mode = saved  # type: ignore[attr-defined]
 
@@ -172,6 +180,11 @@ async def test_the_first_account_on_a_clean_install_signs_in(clean_install):
     a token that names a tenant.
     """
     client, factory = clean_install
+    # The shipped default, not the ``open`` the suite runs in: the bootstrap is
+    # what makes a fresh install usable in a mode that otherwise waits for an
+    # administrator who does not exist yet.
+    _set_mode(SHIPPED_REGISTRATION_MODE)
+    assert Settings.model_fields["registration_mode"].default == SHIPPED_REGISTRATION_MODE
 
     body = await _register(client)
     assert body["is_active"] is True, "the first account on a clean install must be usable"
@@ -240,7 +253,10 @@ async def test_an_address_typed_in_mixed_case_with_spaces_signs_in(clean_install
     client, _factory = clean_install
 
     body = await _register(client, email="  Abdoo@Example.COM  ")
-    assert body["email"] == "Abdoo@example.com"
+    # ``EmailStr`` strips the spaces and lowercases the domain; ``register``
+    # lowercases the local part too before it stores the row, so what comes back
+    # is the address in the form every later lookup will use.
+    assert body["email"] == "abdoo@example.com"
 
     for typed in ("Abdoo@Example.COM", "abdoo@example.com", "  abdoo@example.com "):
         response = await _login(client, typed, "Qm7x!pl2wz")
@@ -427,6 +443,7 @@ async def test_a_dormant_account_is_told_it_is_dormant(clean_install):
     from app.modules.users.service import ACCOUNT_PENDING_ACTIVATION
 
     client, factory = clean_install
+    _set_mode(SHIPPED_REGISTRATION_MODE)
 
     await _register(client, email="first@example.com")
     body = await _register(client, email="second@example.com")
@@ -456,6 +473,7 @@ async def test_the_dormant_account_answer_does_not_reveal_anything_to_a_stranger
     from app.modules.users.service import ACCOUNT_PENDING_ACTIVATION
 
     client, _factory = clean_install
+    _set_mode(SHIPPED_REGISTRATION_MODE)
 
     await _register(client, email="first@example.com")
     await _register(client, email="second@example.com")
@@ -486,7 +504,7 @@ async def test_an_open_install_signs_every_registrant_straight_in(clean_install)
     registrant is active too and signs in immediately, with a viewer's token.
     """
     client, _factory = clean_install
-    get_settings().registration_mode = "open"  # type: ignore[attr-defined]
+    _set_mode("open")
 
     await _register(client, email="first@example.com")
     body = await _register(client, email="second@example.com")
