@@ -67,6 +67,7 @@ from app.modules.users.schemas import (
     TokenResponse,
     UserCreate,
     UserPreferencesUpdate,
+    normalise_password,
 )
 
 logger = logging.getLogger(__name__)
@@ -82,8 +83,59 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    """Verify a plaintext password against a bcrypt hash."""
-    return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+    """Verify a plaintext password against a bcrypt hash.
+
+    ``plain`` is normalised first, the same way every password this server stores
+    is normalised before it is hashed (``schemas.normalise_password``, applied by
+    ``_validate_strong_password``). Both ends of a credential have to agree on what
+    the password is or the answer is always False - see the comment on that
+    constant for the registration/sign-in asymmetry this closes.
+
+    Doing it here rather than only in the request schemas is what makes the
+    agreement hold for callers that never go through one: the CLI's
+    ``reset-password``, a seeder, a test helper. ``hash_password`` is deliberately
+    left literal - it hashes the bytes it is handed - so a hash in the database is
+    always exactly the hash of the normalised password that produced it.
+    """
+    return bcrypt.checkpw(normalise_password(plain).encode("utf-8"), hashed.encode("utf-8"))
+
+
+#: What ``login`` answers when the password was right and the account is not
+#: usable yet. A stable machine token, not a sentence: the product ships 45
+#: languages and a server-side English string would reach every one of them
+#: untranslated, so the frontend maps this token onto its own translated key
+#: (``auth.registration_pending_activation``). It is only ever sent after
+#: ``verify_password`` succeeded, which is what makes it safe - see ``login``.
+ACCOUNT_PENDING_ACTIVATION = "account_pending_activation"
+
+
+def _password_matches(plain: str, hashed: str | None) -> bool:
+    """Whether ``plain`` is the password ``hashed`` was made from. Never raises.
+
+    ``verify_password`` hands the plaintext straight to bcrypt, and bcrypt refuses
+    one longer than 72 bytes with a ``ValueError`` rather than truncating it - the
+    behaviour ``test_hash_rejects_password_over_72_bytes`` pins. ``LoginRequest``
+    deliberately validates nothing about a password's shape, because refusing one
+    for being too long before it is checked would publish the password policy to
+    anybody who can reach the sign-in form. So the refusal lands here, in the only
+    place that knows it is about a credential rather than about a policy: a
+    password bcrypt cannot hash cannot be the password on file, which is a wrong
+    password and is answered like one.
+
+    Before this, the ``ValueError`` travelled out of the route as a 500, and the
+    sign-in screen said the server did not answer - true, but it had, and the
+    account holder was left retrying a form that could never succeed.
+    """
+    if not hashed:
+        return False
+    try:
+        return verify_password(plain, hashed)
+    except ValueError:
+        logger.warning(
+            "Rejected a password too long for bcrypt to check (over 72 bytes encoded); "
+            "answered as a credential failure rather than a server error"
+        )
+        return False
 
 
 def _is_usable_password_hash(hashed: str | None) -> bool:
@@ -736,8 +788,9 @@ class UserService:
             role = default_role
             # In gated modes the new account is dormant until an admin
             # flips it active. ``open`` keeps prior behaviour. ``login``
-            # already returns the same 401 for inactive accounts as for
-            # bad credentials, so no enumeration leak is added.
+            # answers a dormant account with ``ACCOUNT_PENDING_ACTIVATION``,
+            # but only once the password has verified, so the account's
+            # existence stays unknown to anybody who cannot sign in as it.
             is_active = mode == "open"
 
         # Build registration metadata from form fields + auto-collected data
@@ -890,24 +943,44 @@ class UserService:
         if user is None:
             # Dummy bcrypt check to prevent timing side-channel (user enumeration)
             # Without this, non-existent user returns ~0.2s, existing user ~0.5s (bcrypt)
-            verify_password(data.password, "$2b$12$LJ3m4ys3Lz0Y0u9DuMmDCeDhR5x.V5fHn/G8s8GD3EO2M4QRWQ.IO")
+            #
+            # Through ``_password_matches`` rather than ``verify_password`` so the
+            # two branches answer alike for a password bcrypt refuses outright.
+            # Calling it directly made an over-long password raise out of this
+            # branch as a 500 while the branch below caught the same ValueError
+            # and answered 401 - which is an enumeration oracle, and a louder one
+            # than the timing this line exists to flatten: one request would have
+            # told a stranger whether an address has an account.
+            _password_matches(data.password, "$2b$12$LJ3m4ys3Lz0Y0u9DuMmDCeDhR5x.V5fHn/G8s8GD3EO2M4QRWQ.IO")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password",
             )
 
-        if not verify_password(data.password, user.hashed_password):
+        if not _password_matches(data.password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password",
             )
 
         if not user.is_active:
-            # Return same generic error as invalid credentials to avoid
-            # revealing whether an account exists or its activation status
+            # The password was right, so this answer is not an enumeration
+            # oracle: the caller has already proved they own the account, and
+            # the only thing they learn is why the account they own will not
+            # open. Telling them their password was wrong instead - the generic
+            # 401 this replaces - sent them retrying a credential that was never
+            # the problem. ``registration_mode`` defaults to ``admin-approve``,
+            # so every registration after the first one on an install lands
+            # dormant and used to end here, silently: the same dead end
+            # ``tests/integration/_auth_helpers.py`` had to work around for the
+            # fixtures, with no ``promote_to_admin`` available to a person.
+            #
+            # A wrong password and an unknown e-mail stay one indistinguishable
+            # 401, and the dummy hash above keeps their timings alike.
+            logger.info("Refused sign-in for %s: the password was correct and the account is not active", user.email)
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid email or password",
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=ACCOUNT_PENDING_ACTIVATION,
             )
 
         # Eagerly read the fields the token and event below need, before the

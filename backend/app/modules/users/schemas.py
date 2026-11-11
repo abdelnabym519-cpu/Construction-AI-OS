@@ -50,6 +50,39 @@ _COMMON_PASSWORDS: frozenset[str] = frozenset(
 )
 
 
+#: Surrounding whitespace is not part of a password on this server.
+#:
+#: Both ends of a credential have to agree on what the password is, and until
+#: this constant existed they did not: ``LoginRequest``, ``AdminUserCreate`` and
+#: ``ResetPasswordRequest`` carried ``str_strip_whitespace=True``, while
+#: ``UserCreate`` (public registration), ``ChangePasswordRequest`` and
+#: ``DeleteAccountRequest`` carried no ``model_config`` at all. Registration
+#: therefore hashed exactly what the field held - a trailing space, a newline
+#: left by a paste, a leading space from an autofilled form - and sign-in
+#: verified the stripped form against it. ``bcrypt.checkpw`` answered False
+#: forever, and the screen said "Invalid email or password": the one claim in
+#: the whole exchange that was untrue, since the password was right. Changing a
+#: password was worse, because ``new_password`` was stored unstripped and locked
+#: out an account that had been working.
+#:
+#: The rule is stated once here and applied by every password the server stores
+#: (``_validate_strong_password``) and every one it compares
+#: (``users.service.verify_password``), so a schema added later cannot drift out
+#: of step with the sign-in form the way these three did.
+PASSWORD_SURROUNDING_WHITESPACE = " \t\n\r\v\f"
+
+
+def normalise_password(value: str) -> str:
+    """The form of a password this server stores and compares.
+
+    Strips surrounding whitespace, which is what ``str_strip_whitespace`` did for
+    the three schemas that had it. Internal spaces are kept: they are a legitimate
+    part of a passphrase, and only the ones at the ends are invisible on a form
+    and impossible to see when retyping them.
+    """
+    return value.strip(PASSWORD_SURROUNDING_WHITESPACE)
+
+
 def _validate_strong_password(value: str) -> str:
     """Reject weak passwords. Used by `UserCreate`, `ChangePasswordRequest`,
     and `ResetPasswordRequest` so the policy is consistent everywhere.
@@ -59,9 +92,34 @@ def _validate_strong_password(value: str) -> str:
       - 8+ chars
       - Must contain at least one letter and at least one digit
       - Must not be in the common-passwords blacklist (case-insensitive)
+      - Must fit bcrypt: 72 bytes or fewer once encoded as UTF-8
+
+    The value returned is :func:`normalise_password`'d, so what the policy
+    judges is what gets stored - and what sign-in, which normalises too, will be
+    able to reproduce. Judging the raw string instead is how a password whose
+    length came from a trailing space passed ``Field(min_length=8)`` and then
+    locked its own account.
+
+    The byte limit is the one that reads as a nuisance and is not. ``Field``
+    above allows 128 characters, bcrypt accepts 72 *bytes*, and bcrypt refuses
+    anything longer with a ``ValueError`` instead of truncating it - the
+    behaviour ``test_hash_rejects_password_over_72_bytes`` pins. Without a rule
+    here the two limits met inside the request: a 24-character password in a
+    script that is not ASCII (three bytes per character) encoded to over 72
+    bytes, ``hash_password`` raised, and the registration answered 500. Refusing
+    it at the boundary says what the limit is and leaves the stored hashes
+    unambiguous - every one of them was made from the whole password, so a
+    sign-in can never depend on which bytes an older bcrypt happened to keep.
     """
+    value = normalise_password(value)
     if len(value) < 8:
         raise ValueError("Password must be at least 8 characters")
+    if len(value.encode("utf-8")) > 72:
+        raise ValueError(
+            "Password must be 72 bytes or fewer when encoded as UTF-8 "
+            "(the limit of the bcrypt hash it is stored as); "
+            "characters outside ASCII count for more than one byte"
+        )
     if not any(ch.isalpha() for ch in value):
         raise ValueError("Password must contain at least one letter")
     if not any(ch.isdigit() for ch in value):
