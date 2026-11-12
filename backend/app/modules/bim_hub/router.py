@@ -140,6 +140,17 @@ from app.modules.bim_hub.service import BIMHubService, next_model_version
 
 logger = logging.getLogger(__name__)
 
+
+def _support_contact() -> str:
+    """Operator support address named in remediation texts (configurable)."""
+    try:
+        from app.config import get_settings
+
+        return get_settings().support_email or "support@example.com"
+    except Exception:  # noqa: BLE001 - settings import is best-effort
+        return "support@example.com"
+
+
 router = APIRouter(tags=["bim_hub"])
 
 
@@ -3417,7 +3428,7 @@ async def get_model_geometry(
                     "source itself may be unsupported (2D-only DWG, IFC "
                     "schedule with no geometry, corrupted RVT) - try "
                     "exporting from your CAD tool again, or contact "
-                    "info@datadrivenconstruction.io and quote the "
+                    f"{_support_contact()} and quote the "
                     "Request ID shown below."
                 ),
                 "message": (f"Geometry file is not a valid {ext} payload: {reason_serve}"),
@@ -3552,7 +3563,7 @@ async def get_model_geometry(
                     "Open the model in the BIM tab and click Retry to run the "
                     "conversion again. If it keeps failing the source file may "
                     "be corrupt or unsupported - re-export it from your CAD "
-                    "tool, or contact info@datadrivenconstruction.io and "
+                    f"tool, or contact {_support_contact()} and "
                     "quote the Request ID below."
                 ),
             },
@@ -3638,7 +3649,7 @@ async def get_model_geometry(
                     "been deleted from storage. Re-upload the source CAD/BIM "
                     "file to regenerate it. If the file was not deleted "
                     "manually this is a server-side data problem - contact "
-                    "info@datadrivenconstruction.io and quote the Request ID "
+                    f"{_support_contact()} and quote the Request ID "
                     "below."
                 ),
             },
@@ -3672,7 +3683,7 @@ async def get_model_geometry(
                 "it may be a non-3D row, a demo entry, or an import that "
                 "produced no geometry. Re-upload the source CAD/BIM file to "
                 "generate geometry. If the same source repeatedly produces no "
-                "geometry, contact info@datadrivenconstruction.io and quote "
+                f"geometry, contact {_support_contact()} and quote "
                 "the Request ID below."
             ),
         },

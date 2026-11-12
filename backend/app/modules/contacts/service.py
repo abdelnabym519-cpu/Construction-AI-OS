@@ -107,6 +107,7 @@ class ContactService:
         self,
         data: ContactCreate,
         user_id: str | None = None,
+        tenant_id: str | None = None,
     ) -> Contact:
         """Create a new contact.
 
@@ -149,10 +150,19 @@ class ContactService:
             currency_code=data.currency_code,
             name_translations=data.name_translations,
             notes=data.notes,
-            # ``tenant_id`` is the access gate. For single-tenant installs
-            # it equals the creator's user id so new contacts stay
-            # siloed per user. ``created_by`` stays as the audit field.
-            tenant_id=user_id,
+            # ``tenant_id`` is the access gate and ``created_by`` is the audit
+            # field, and since ADR 005 they are different values: the gate is the
+            # caller's organization, the audit field is the caller. Storing the
+            # creator's id here is what made the readiness blocker
+            # ``tenant_is_user`` permanent, because the next contact written would
+            # put a person back into a tenant column however carefully the
+            # existing rows had been migrated.
+            #
+            # A caller that names no tenant gets NULL rather than a guess. NULL is
+            # honest: ``rls_readiness_report`` counts it as ``null_tenant_rows``
+            # and refuses strict mode until somebody resolves it, whereas a
+            # person's id would look resolved and be wrong.
+            tenant_id=tenant_id,
             created_by=user_id,
             metadata_=data.metadata,
         )

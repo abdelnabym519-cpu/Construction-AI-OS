@@ -40,6 +40,15 @@
 
 const resource = {
   "translation": {
+    "legal.link": "Legal",
+    "legal.page_title": "Legal",
+    "legal.notice_heading": "Attribution notice",
+    "legal.source_heading": "Source code offer",
+    "legal.source_body": "The complete corresponding source code for the version of this application you are using is available from the location below, as required by section 13 of the GNU Affero General Public License.",
+    "legal.machine_readable": "Machine-readable disclosure",
+    "legal.licence_heading": "Licence",
+    "legal.licence_reference": "The full licence text ships with this distribution as the LICENSE file.",
+    "legal.unavailable": "Some of this information could not be loaded.",
     "nav.catalog": "Resource Catalogue",
     "nav.resource_catalog": "Resource Catalogue",
     "nav.supplier_catalogs": "Supplier Catalogues",
@@ -85,12 +94,9 @@ const resource = {
     "schedule.no_parent": "Top level (no parent)",
     "schedule.parent_section": "Parent section",
     "about.dev_model_title": "Development and Contribution Model",
-    "about.dev_model_p1": "OpenConstructionERP has been under continuous development for more than six years and has benefited from contributions, feedback, testing, and domain expertise from many different people.",
-    "about.dev_model_p2": "To maintain a consistent architecture and reduce security, dependency, and integration risks, the project follows a centralised integration model. Most production code is ultimately reviewed, consolidated, tested, and published through a single maintainer account. As a result, the GitHub contributor history does not necessarily reflect the actual number of people who have contributed to the project.",
+    "about.dev_model_p1": "Construction AI OS has been under continuous development for more than six years and has benefited from contributions, feedback, testing, and domain expertise from many different people.",
     "about.dev_model_p3": "Rather than allowing the codebase to evolve into a collection of loosely connected components, changes are integrated into one coherent development line and undergo review and testing before being merged into the main project. A single publishing account represents a controlled integration and release process designed to preserve stability, security, and architectural consistency.",
-    "about.team_name": "DataDrivenConstruction",
     "about.team_role": "Automation, data and open standards for construction",
-    "about.team_linkedin": "DataDrivenConstruction on LinkedIn",
 
     "subcontractors.cert_type.license": "Licence",
     "notifications.permits.condition_assigned.title": "A permit condition was assigned to you",

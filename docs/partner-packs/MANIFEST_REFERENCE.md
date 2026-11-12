@@ -252,9 +252,9 @@ for the list of rule sets the core currently implements.
 |---|---|
 | Type | `str \| None` |
 | Default | `None` (resolves to the AGPL co-brand string) |
-| Purpose | Override the co-brand line shown next to the partner logo. When `None`, defaults to `"Powered by OpenConstructionERP · In partnership with {partner_name}"`. |
-| Constraint | Any override MUST still credit OpenConstructionERP in the string. Removing the credit violates AGPL §5(d). |
-| Example | `"Solution by Acme — built on OpenConstructionERP"` |
+| Purpose | Override the co-brand line shown next to the partner logo. When `None`, defaults to `"Powered by Construction AI OS · In partnership with {partner_name}"`. |
+| Constraint | Any override MUST still credit Construction AI OS in the string. Removing the credit violates AGPL §5(d). |
+| Example | `"Solution by Acme — built on Construction AI OS"` |
 
 ---
 
@@ -291,7 +291,7 @@ for the list of rule sets the core currently implements.
 ### `effective_powered_by` (property)
 
 Returns `branding.powered_by_text` if set, else the default
-`"Powered by OpenConstructionERP · In partnership with {partner_name}"`.
+`"Powered by Construction AI OS · In partnership with {partner_name}"`.
 This is what the frontend displays in the co-brand chip.
 
 ### `to_public_dict()`

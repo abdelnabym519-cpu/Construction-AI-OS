@@ -15,7 +15,7 @@
  * So the guard has to sit on this side of the hand-off, which is why these
  * tests drive the menu rather than `buildBugReportUrl`. Two directions:
  *
- *  - the channels that transmit a written report are disabled, with the
+ *  - the channel that transmits a written report is disabled, with the
  *    reason visible in the control itself, while the description is short;
  *  - once it is long enough, what actually leaves carries the reporter's
  *    words and no placeholder.
@@ -33,7 +33,7 @@
  * `defaultValue` with `{{var}}` interpolated, so assertions read in English.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -47,6 +47,7 @@ vi.mock('@/shared/lib/desktop', async (importOriginal) => {
 });
 
 import { BugReportMenu, MIN_DESCRIPTION_LENGTH } from './Header';
+import { useBrandingStore } from '@/stores/useBrandingStore';
 
 /** A description a real reporter would write, comfortably over the minimum. */
 const REAL_DESCRIPTION =
@@ -71,8 +72,7 @@ function openMenu() {
 // pass or fail for a reason that has nothing to do with empty reports.
 const channel = (label: string) =>
   screen.getByText(label).closest('button') as HTMLButtonElement;
-const githubChannel = () => channel('Report a bug (with logs)');
-const emailChannel = () => channel('Email the team');
+const reportChannel = () => channel('Report a bug (with logs)');
 const downloadChannel = () => channel('Download log only');
 const descriptionField = () => screen.getByLabelText(/What happened/) as HTMLTextAreaElement;
 
@@ -82,22 +82,31 @@ function type(text: string) {
 
 beforeEach(() => {
   openLink.mockClear();
+  // These tests are about an empty report being refused, not about where a
+  // report goes, so they seed the one destination that keeps the channel in the
+  // menu. With none set the channel is not rendered at all - which is correct
+  // behaviour, and would make every assertion below pass or fail for a reason
+  // that has nothing to do with the description guard.
+  useBrandingStore.setState({ supportDestination: { kind: 'email', value: 'support@builder.example' } });
+});
+
+afterEach(() => {
+  useBrandingStore.setState({ supportDestination: null });
 });
 
 describe('BugReportMenu - a report with no description cannot be sent', () => {
   it('disables the reporting channels and says why in the control itself', () => {
     openMenu();
 
-    expect(githubChannel().disabled).toBe(true);
-    expect(emailChannel().disabled).toBe(true);
+    expect(reportChannel().disabled).toBe(true);
     // The reason travels with the control, not in a toast that would only
     // appear after a click the button no longer accepts.
-    expect(githubChannel().textContent).toContain('Describe what happened above');
+    expect(reportChannel().textContent).toContain('Describe what happened above');
 
     // The defect itself: before the guard, this click handed GitHub a body
     // whose Description was the literal `<!-- describe what you were doing -->`
     // and the reporter met our submit button already holding nothing to say.
-    fireEvent.click(githubChannel());
+    fireEvent.click(reportChannel());
     expect(openLink).not.toHaveBeenCalled();
   });
 
@@ -108,21 +117,21 @@ describe('BugReportMenu - a report with no description cannot be sent', () => {
     expect(screen.getByText(new RegExp(`at least ${MIN_DESCRIPTION_LENGTH} characters`))).toBeTruthy();
 
     type('x'.repeat(MIN_DESCRIPTION_LENGTH - 1));
-    expect(githubChannel().disabled).toBe(true);
+    expect(reportChannel().disabled).toBe(true);
 
     // Whitespace is not a description either.
     type(`   ${'x'.repeat(MIN_DESCRIPTION_LENGTH - 1)}   `);
-    expect(githubChannel().disabled).toBe(true);
+    expect(reportChannel().disabled).toBe(true);
 
     type('x'.repeat(MIN_DESCRIPTION_LENGTH));
-    expect(githubChannel().disabled).toBe(false);
+    expect(reportChannel().disabled).toBe(false);
   });
 
   it('sends the reporter words instead of a placeholder once the field is filled', () => {
     openMenu();
     type(REAL_DESCRIPTION);
 
-    fireEvent.click(githubChannel());
+    fireEvent.click(reportChannel());
 
     expect(openLink).toHaveBeenCalledTimes(1);
     const url = new URL(openLink.mock.calls[0]![0] as string);

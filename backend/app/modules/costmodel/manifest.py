@@ -11,7 +11,7 @@ manifest = ModuleManifest(
     description=(
         "5D cost management - S-curves, cash flow projections, earned value analysis (EVM), and budget tracking"
     ),
-    author="OpenConstructionERP Core Team",
+    author="Construction AI OS Core Team",
     category="core",
     depends=["oe_projects", "oe_boq"],
     auto_install=True,

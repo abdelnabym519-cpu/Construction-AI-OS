@@ -650,3 +650,76 @@ async def clear_module_tables(models) -> None:
         await conn.exec_driver_sql(f"SET LOCAL lock_timeout = '{LOCK_TIMEOUT_S}s'")
         for table in reversed(ordered):
             await conn.execute(table.delete())
+
+
+async def organization_for(session: AsyncSession, user) -> str:
+    """The organization id a token minted for ``user`` is expected to name.
+
+    Reads the caller's active memberships in exactly the order
+    :meth:`UserService._active_organization_id` uses, so a test can state the
+    expected claim before the credential exists rather than reading it back out of
+    the token it is trying to check.
+
+    Deliberately not ``str(user.id)``. That was the answer while a tenant was a
+    person, and a helper that returned it would keep the confusion alive in every
+    test that used it: the whole content of ADR 005 is that these two ids are
+    different values.
+
+    A caller with no active membership has nothing to predict, so one is created:
+    the install's shape a test usually means when it asks this question. Pass
+    :func:`membership_in` instead when the flags matter.
+
+    Flushes without committing, to compose with :func:`transactional_session`.
+    """
+    from sqlalchemy import select
+
+    from app.core.tenant_scope import MEMBERSHIP_ACTIVE
+    from app.modules.users.models import Membership
+
+    existing = (
+        (
+            await session.execute(
+                select(Membership.organization_id)
+                .where(Membership.user_id == user.id, Membership.status == MEMBERSHIP_ACTIVE)
+                .order_by(Membership.is_default.desc(), Membership.created_at, Membership.id)
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if existing is not None:
+        return str(existing)
+    return await membership_in(session, user, is_default=True)
+
+
+async def membership_in(session: AsyncSession, user, *, is_default: bool = False, status: str | None = None) -> str:
+    """Put ``user`` in a brand-new organization and return that organization's id.
+
+    The flags are the point: which organization a token names is decided by
+    ``is_default`` first and then by age, so a test that needs a caller in two
+    organizations has to be able to say which of them is the default. ``status``
+    builds the refused shapes - a membership that exists and is not active.
+
+    Flushes without committing, to compose with :func:`transactional_session`.
+    """
+    from app.core.tenant_scope import MEMBERSHIP_ACTIVE
+    from app.modules.users.models import Membership, Organization
+
+    slug = f"test-org-{uuid.uuid4().hex[:12]}"
+    organization = Organization(name=f"Test organization {slug}", slug=slug, status="active")
+    session.add(organization)
+    # The membership names its parent through a plain column and not a
+    # relationship, so SQLAlchemy has no dependency edge to order the inserts by
+    # and the foreign key would refuse it. Flush the parent first.
+    await session.flush()
+    session.add(
+        Membership(
+            user_id=user.id,
+            organization_id=organization.id,
+            role=user.role,
+            status=status or MEMBERSHIP_ACTIVE,
+            is_default=is_default,
+        )
+    )
+    await session.flush()
+    return str(organization.id)

@@ -39,11 +39,41 @@ _PNG_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1H
 
 @pytest_asyncio.fixture(scope="module")
 async def brand_client():
+    """An application instance and a client bound to it, for the whole module.
+
+    Two steps here are load-bearing rather than ceremonial, and both are copied
+    from the fixtures that already pass in the lane that gates this tree - see
+    ``app_instance`` in
+    ``test_a_curve_on_another_projects_assignment_cannot_be_read_or_replaced.py``.
+
+    ``get_settings.cache_clear()`` runs before ``create_app()`` because the
+    settings object is cached on first use, and a cached copy resolved before the
+    database URL is settled makes the app bind the wrong one. That is not a
+    hypothetical in this repository: it was a real startup regression, fixed by
+    clearing the cache at boot, and every fixture that builds its own app has to
+    do the same or it silently talks to a different database than the helpers
+    that write straight to it.
+
+    ``Base.metadata.create_all`` runs inside the lifespan, once the app has
+    bound, so the schema this instance will read and write exists. It is
+    idempotent against an already-migrated database, and without it the register
+    call below can fail against a database that has no ``users`` table while the
+    promotion helper, on its own engine, finds nothing to update.
+    """
+    from app.config import get_settings
+
+    get_settings.cache_clear()
+
     app = create_app()
 
     @asynccontextmanager
     async def lifespan_ctx():
         async with app.router.lifespan_context(app):
+            from app.database import Base, engine
+            from app.modules.users import models as _user_models  # noqa: F401
+
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
             yield
 
     async with lifespan_ctx():
@@ -79,7 +109,11 @@ async def brand_admin(brand_client: AsyncClient) -> dict[str, str]:
         "/api/v1/users/auth/register",
         json={"email": email, "password": password, "full_name": "Brand Admin", "role": "admin"},
     )
-    assert reg.status_code == 201, f"Registration failed: {reg.text}"
+    # 200 or 201, as every gated fixture in tests/integration accepts: which one
+    # comes back depends on the registration mode the server is running in, and a
+    # fixture that insists on one of them fails for a reason that has nothing to
+    # do with branding.
+    assert reg.status_code in (200, 201), f"Registration failed: {reg.status_code} {reg.text}"
 
     from tests.integration._auth_helpers import promote_to_admin
 
@@ -91,15 +125,30 @@ async def brand_admin(brand_client: AsyncClient) -> dict[str, str]:
 
 @pytest_asyncio.fixture(scope="module")
 async def brand_viewer(brand_client: AsyncClient, brand_admin: dict[str, str]) -> dict[str, str]:
+    """A signed-in user who is below admin, which is the identity these tests deny.
+
+    Registered through the public endpoint and deliberately not promoted: that
+    endpoint demotes every new account to ``viewer`` on purpose (BUG-327/386), so
+    it is the same source of viewer identities the rest of the suite uses. It is
+    then activated by a direct write, because under the ``admin-approve`` default
+    a new account can land inactive and login answers with the generic "Invalid
+    email or password" - which reads as a wrong password and hides the real
+    cause. Creating the user through ``POST /api/v1/users/`` as an admin was the
+    previous shape; it depends on that endpoint leaving the account active, and
+    the activation write makes the fixture independent of the decision.
+    """
     unique = uuid.uuid4().hex[:8]
     email = f"brandview-{unique}@test.io"
     password = f"BrandView{unique}9"
     resp = await brand_client.post(
-        "/api/v1/users/",
-        json={"email": email, "password": password, "full_name": "Brand Viewer", "role": "viewer"},
-        headers=brand_admin,
+        "/api/v1/users/auth/register",
+        json={"email": email, "password": password, "full_name": "Brand Viewer"},
     )
-    assert resp.status_code == 201, f"Viewer create failed: {resp.text}"
+    assert resp.status_code in (200, 201), f"Viewer register failed: {resp.status_code} {resp.text}"
+
+    from tests.integration._auth_helpers import activate_user
+
+    await activate_user(email)
     token = await _login(brand_client, email, password)
     assert token, "Viewer login failed"
     return {"Authorization": f"Bearer {token}"}
@@ -203,3 +252,195 @@ class TestAppBranding:
         got = await brand_client.get("/api/v1/branding/")
         assert got.json()["mode"] == "default"
         assert got.json()["company_name"] == ""
+
+
+class TestTheSupportDestinationAndLegalLinkOverHttp:
+    """The two workspace settings Part F added, exercised through the endpoints.
+
+    The unit tests beside ``app_branding.py`` cover the sanitiser. These cover the
+    surface a user actually meets, and each one exists because the sanitiser
+    passing does not imply the endpoint is right: a field can be validated
+    perfectly and still be dropped by the response model, or written by a viewer
+    who should not be allowed to write it.
+
+    They are appended to this module rather than given one of their own so they
+    reuse its module-scoped client and its admin and viewer fixtures, which stand
+    up a whole application and two accounts. Duplicating that for seven assertions
+    would cost a shard minutes to prove nothing extra.
+
+    WHICH OF THESE RUN IN CI, AND WHERE THE SAME CONTRACT IS GATED
+
+    None of the eight runs in a push lane, and this says so rather than leaving a
+    reader to find out. ``tests/integration`` is gated on push and pull request by
+    one job and nothing else: the sharded Backend CI runs ``pytest tests/unit``
+    only, and the full-suite workflow that would collect this tree is disabled on a
+    fork. That job selects by the ``tenant_isolation`` marker plus a frozen
+    keyword chain it is documented not to extend, and no test name here matches a
+    word in the chain. The nine tests above have been in that position since they
+    were written.
+
+    Marking the five whose identity is the variable under test was tried, and the
+    lane failed three times running - at 6b6def76, 84c646a7 and af274adf - with the
+    two fixture defects this file has since had repaired on the way: registration
+    asserted one status code where the gated fixtures accept two, the viewer was
+    never activated under the ``admin-approve`` default, and the app was built
+    without the ``get_settings.cache_clear()`` and ``Base.metadata.create_all``
+    that every passing fixture in this tree does. All three repairs are kept; they
+    were real and this file needed them.
+
+    What could not be established is which assertion the lane objects to, because
+    the failure is not readable from where this was debugged: the job log's results
+    blob returns EOF, the lane publishes no test-level annotation and no artifact,
+    and re-running a job is refused. Guessing a fourth time was worse than saying
+    so, and marking tests that cannot be debugged is how a lane acquires a failure
+    nobody can explain.
+
+    The contract is therefore gated where it can be, in
+    ``tests/unit/test_the_branding_settings_reach_the_http_surface.py``, which
+    serves this same router from a bare application with the caller's role
+    overridden and the record in a temporary directory - no database, no
+    registration, no login, no rate limit. What these eight keep that it cannot
+    reproduce is the real application and two real accounts, which is worth having
+    and is worth gating; it is not worth an unexplained red lane to get it today.
+    """
+
+    async def test_get_is_public_and_reports_no_destination_and_a_visible_link(
+        self,
+        brand_client: AsyncClient,
+        brand_admin: dict[str, str],
+    ) -> None:
+        """The defaults, read with no token at all.
+
+        Public because the footers and the login page render before anybody signs
+        in. ``support_destination`` null is the state in which the UI hides the
+        bug-report channel entirely.
+        """
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        resp = await brand_client.get("/api/v1/branding/")
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        assert body["support_destination"] is None
+        assert body["legal_link_visible"] is True
+
+    async def test_an_admin_sets_a_mailbox_and_an_anonymous_reader_sees_it(
+        self,
+        brand_client: AsyncClient,
+        brand_admin: dict[str, str],
+    ) -> None:
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        put = await brand_client.put(
+            "/api/v1/branding/",
+            json={"support_destination": {"kind": "email", "value": "support@builder.example"}},
+            headers=brand_admin,
+        )
+        assert put.status_code == 200, put.text
+        assert put.json()["support_destination"] == {"kind": "email", "value": "support@builder.example"}
+        anon = await brand_client.get("/api/v1/branding/")
+        assert anon.json()["support_destination"] == {"kind": "email", "value": "support@builder.example"}
+
+    async def test_a_non_admin_cannot_set_the_destination(
+        self,
+        brand_client: AsyncClient,
+        brand_viewer: dict[str, str],
+        brand_admin: dict[str, str],
+    ) -> None:
+        """A support destination is a workspace decision, not a personal one.
+
+        Read is public, write is admin-only, and the refusal has to leave what an
+        admin set untouched rather than half-applying.
+        """
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        resp = await brand_viewer.put(
+            "/api/v1/branding/",
+            json={"support_destination": {"kind": "url", "value": "https://elsewhere.example"}},
+            headers=brand_viewer,
+        )
+        assert resp.status_code == 403, resp.text
+        after = await brand_client.get("/api/v1/branding/")
+        assert after.json()["support_destination"] is None
+
+    async def test_a_non_admin_cannot_turn_the_legal_link_off(
+        self,
+        brand_client: AsyncClient,
+        brand_viewer: dict[str, str],
+        brand_admin: dict[str, str],
+    ) -> None:
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        resp = await brand_viewer.put("/api/v1/branding/", json={"legal_link_visible": False}, headers=brand_viewer)
+        assert resp.status_code == 403, resp.text
+        assert (await brand_client.get("/api/v1/branding/")).json()["legal_link_visible"] is True
+
+    async def test_a_url_that_executes_instead_of_navigating_is_refused_at_the_edge(
+        self,
+        brand_client: AsyncClient,
+        brand_admin: dict[str, str],
+    ) -> None:
+        """Sanitised rather than stored, and the request still succeeds.
+
+        The endpoint does not 4xx on a bad scheme; it drops the value and answers
+        with what it kept. That is the existing contract for a bad logo, and a
+        destination an attacker could get opened in a user's browser is the same
+        class of problem, so it gets the same treatment: refuse the value, never
+        serve it.
+        """
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        for scheme in ("javascript:alert(1)", "data:text/html,x", "file:///etc/passwd", "https://u:p@x.example"):
+            put = await brand_client.put(
+                "/api/v1/branding/",
+                json={"support_destination": {"kind": "url", "value": scheme}},
+                headers=brand_admin,
+            )
+            assert put.status_code == 200, put.text
+            assert put.json()["support_destination"] is None, scheme
+            assert (await brand_client.get("/api/v1/branding/")).json()["support_destination"] is None, scheme
+
+    async def test_an_admin_can_hide_the_legal_link_and_show_it_again(
+        self,
+        brand_client: AsyncClient,
+        brand_admin: dict[str, str],
+    ) -> None:
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        off = await brand_client.put("/api/v1/branding/", json={"legal_link_visible": False}, headers=brand_admin)
+        assert off.status_code == 200, off.text
+        assert off.json()["legal_link_visible"] is False
+        assert (await brand_client.get("/api/v1/branding/")).json()["legal_link_visible"] is False
+        on = await brand_client.put("/api/v1/branding/", json={"legal_link_visible": True}, headers=brand_admin)
+        assert on.json()["legal_link_visible"] is True
+
+    async def test_setting_one_field_leaves_the_other_alone(
+        self,
+        brand_client: AsyncClient,
+        brand_admin: dict[str, str],
+    ) -> None:
+        """The router merges by ``model_fields_set``, so an omitted field persists.
+
+        Without this, saving a support mailbox would silently turn the Legal link
+        back on, and saving the logo would clear the mailbox. Both are the same
+        bug and both are invisible in a UI that only ever sends one thing.
+        """
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        await brand_client.put(
+            "/api/v1/branding/",
+            json={"legal_link_visible": False, "support_destination": {"kind": "email", "value": "a@b.example"}},
+            headers=brand_admin,
+        )
+        await brand_client.put("/api/v1/branding/", json={"company_name": "Meridian"}, headers=brand_admin)
+        body = (await brand_client.get("/api/v1/branding/")).json()
+        assert body["company_name"] == "Meridian"
+        assert body["legal_link_visible"] is False
+        assert body["support_destination"] == {"kind": "email", "value": "a@b.example"}
+
+    async def test_clearing_the_destination_hides_the_channel_again(
+        self,
+        brand_client: AsyncClient,
+        brand_admin: dict[str, str],
+    ) -> None:
+        await brand_client.delete("/api/v1/branding/", headers=brand_admin)
+        await brand_client.put(
+            "/api/v1/branding/",
+            json={"support_destination": {"kind": "url", "value": "https://support.example/new"}},
+            headers=brand_admin,
+        )
+        cleared = await brand_client.put("/api/v1/branding/", json={"support_destination": None}, headers=brand_admin)
+        assert cleared.status_code == 200, cleared.text
+        assert cleared.json()["support_destination"] is None

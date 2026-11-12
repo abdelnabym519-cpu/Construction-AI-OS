@@ -1,6 +1,6 @@
-# GAEB DA XML in OpenConstructionERP
+# GAEB DA XML in Construction AI OS
 
-OpenConstructionERP reads and writes GAEB DA XML 3.3 natively. This page
+Construction AI OS reads and writes GAEB DA XML 3.3 natively. This page
 records what our implementation is built from, so that anyone who needs to
 know can find out without asking us.
 
@@ -140,4 +140,4 @@ the whole standard, validate it against the schema set GAEB publishes.
 - BVBS imprint, which carries the copyright and use terms quoted above:
   <https://www.bvbs.de/impressum/>
 
-Questions about this page: info@datadrivenconstruction.io
+Questions about this page: open an issue at https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues

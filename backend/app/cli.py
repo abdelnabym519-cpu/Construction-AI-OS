@@ -1,6 +1,6 @@
 # DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 # Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
-"""OpenConstructionERP CLI - run the platform from the command line.
+"""Construction AI OS CLI - run the platform from the command line.
 
 The happy path for a new user is two commands:
 
@@ -184,13 +184,10 @@ DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8080
 MIN_PYTHON = (3, 12)
 
-DOCS_URL = "https://openconstructionerp.com/docs"
-# Install and startup messages with what each means and what to do, kept
-# in step with docs/INSTALL_TROUBLESHOOTING.md.
-TROUBLESHOOTING_URL = "https://openconstructionerp.com/install-help"
-ISSUES_URL = "https://github.com/datadrivenconstruction/OpenConstructionERP/issues"
-COMMUNITY_URL = "https://t.me/datadrivenconstruction"
-GITHUB_URL = "https://github.com/datadrivenconstruction/OpenConstructionERP"
+# Support links for this product. The repository below is where this
+# install's source code and issue tracker live (AGPL-3.0-or-later).
+REPO_URL = "https://github.com/abdelnabym519-cpu/Construction-AI-OS"
+ISSUES_URL = f"{REPO_URL}/issues"
 
 logger = logging.getLogger("openestimate.cli")
 
@@ -308,16 +305,33 @@ def _bar() -> str:
 
 
 # ── Banner ────────────────────────────────────────────────────────────────
-# "OpenConstructionERP" rendered in the figlet "small" font (82 cols × 5
-# rows). The previous "Standard" font wrapped the 19-character name onto
-# multiple visual rows on a typical 80-col terminal, which looked crooked;
-# the "small" font fits the full name on one row with the trailing "ERP"
-# inline. Generated once with pyfiglet and pasted in - no runtime dep.
-_BANNER_ART = r"""  ___                 ___             _               _   _          ___ ___ ___
- / _ \ _ __  ___ _ _ / __|___ _ _  __| |_ _ _ _  _ __| |_(_)___ _ _ | __| _ \ _ \
-| (_) | '_ \/ -_) ' \ (__/ _ \ ' \(_-<  _| '_| || / _|  _| / _ \ ' \| _||   /  _/
- \___/| .__/\___|_||_\___\___/_||_/__/\__|_|  \_,_\__|\__|_\___/_||_|___|_|_\_|
-      |_|"""
+# The product name rendered in the figlet "small" font (73 cols × 4 rows),
+# which fits the full name on one visual row on a typical 80-col terminal.
+# Generated once with pyfiglet and pasted in - no runtime dep.
+_BANNER_ART = r"""  ___             _               _   _              _   ___    ___  ___
+ / __|___ _ _  __| |_ _ _ _  _ __| |_(_)___ _ _     /_\ |_ _|  / _ \/ __|
+| (__/ _ \ ' \(_-<  _| '_| || / _|  _| / _ \ ' \   / _ \ | |  | (_) \__ \
+ \___\___/_||_/__/\__|_|  \_,_\__|\__|_\___/_||_| /_/ \_\___|  \___/|___/"""
+
+
+def _app_name() -> str:
+    """Display name for every CLI surface.
+
+    One source: the ``app_name`` setting (app/config.py), the same constant
+    the PDF branding and the frontend read. Imported lazily and guarded
+    because this module keeps its top-level imports to the standard library
+    so the CLI starts fast, and a broken environment must still get a banner
+    rather than a traceback.
+    """
+    try:
+        from app.config import get_settings
+
+        name = str(get_settings().app_name or "").strip()
+        if name:
+            return name
+    except Exception:  # noqa: BLE001 - degrade to the literal default
+        logger.debug("Could not read app_name for the CLI banner", exc_info=True)
+    return "Construction AI OS"
 
 
 def print_startup_banner(
@@ -347,7 +361,7 @@ def print_startup_banner(
     print()
     print(_amber(_BANNER_ART))
     print()
-    print(f"  {bar}  {_bold('OpenConstructionERP is starting')}  {_dim('v' + version)}")
+    print(f"  {bar}  {_bold(_app_name() + ' is starting')}  {_dim('v' + version)}")
     print(f"  {bar}")
     print(f"  {bar}  {_bold('Open in your browser')}")
     print(f"  {bar}     {_amber(url)}")
@@ -356,8 +370,14 @@ def print_startup_banner(
     else:
         print(f"  {bar}     {_dim('frontend not bundled, API only at ' + url + '/api/docs')}")
     print(f"  {bar}")
-    print(f"  {bar}  {_bold('Log in with the demo account')}")
-    print(f"  {bar}     demo@openconstructionerp.com  {_dim('/')}  DemoPass1234!")
+    from app.core.demo_seed import seed_demo_enabled
+
+    if seed_demo_enabled():
+        print(f"  {bar}  {_bold('Log in with the demo account')}")
+        print(f"  {bar}     demo@openconstructionerp.com  {_dim('/')}  {_dim('demo mode accepts any password')}")
+    else:
+        print(f"  {bar}  {_bold('Log in')}")
+        print(f"  {bar}     {_dim('register the first account - it becomes the admin')}")
     print(f"  {bar}")
     print(f"  {bar}  {_dim('Stop'.ljust(11))} Ctrl+C")
     print(f"  {bar}  {_dim('Start again'.ljust(11))} {_amber('openconstructionerp')}")
@@ -365,7 +385,6 @@ def print_startup_banner(
         f"  {bar}  {_dim('or, anywhere'.ljust(11))} {_amber('python -m openconstructionerp')}  {_dim('(works without PATH)')}"
     )
     print(f"  {bar}  {_dim('Data folder'.ljust(11))} {data_dir}")
-    print(f"  {bar}  {_dim('Need help'.ljust(11))} {DOCS_URL}")
     print()
 
 
@@ -391,6 +410,30 @@ def _setup_env(data_dir: Path, host: str, port: int) -> None:
 
     if embedded_pg.is_requested():
         if embedded_pg.boot(data_dir):
+            # boot() has just written DATABASE_URL and DATABASE_SYNC_URL into
+            # this process, and get_settings() is @lru_cache'd while Settings
+            # reads the environment once, when it is constructed. This CLI has
+            # already read settings before any command ran: main() builds the
+            # argument parser first, and the parser's help and description
+            # strings carry the display name through _app_name(). The bare
+            # first-run greeting reads the same name again. That cached
+            # Settings still holds the empty database_url it was built with,
+            # and app/database.py builds its engine from get_settings() while
+            # it is being imported - so the first import of app.main died with
+            # "DATABASE_URL must be a PostgreSQL URL" while the cluster was up
+            # and the environment was correct.
+            #
+            # Dropping the cache here is what makes the ordering contract in
+            # app/core/embedded_pg.py hold again ("boot() MUST run ... before
+            # get_settings() is cached"): after a successful boot the next
+            # Settings is built from the environment boot just wrote. The guard
+            # in app/database.py is untouched - a genuinely missing or
+            # non-PostgreSQL URL still fails loudly, and now it fails for the
+            # operator's configuration instead of for our boot order.
+            from app.config import get_settings
+
+            get_settings.cache_clear()
+
             # The embedded cluster is up; the schema bring-up (create_all +
             # alembic) runs next, during app startup. Mark it so the desktop
             # launcher can show a "preparing database" step.
@@ -429,10 +472,9 @@ def _setup_env(data_dir: Path, host: str, port: int) -> None:
                     + str(embedded_pg.resolve_pgdata(data_dir) / "log")
                     + " (and "
                     + str(Path.home() / ".openestimate" / "desktop-launcher.log")
-                    + "). If it keeps happening, send those logs to info@datadrivenconstruction.io."
+                    + ". If it keeps happening, send those logs to whoever maintains this install."
                 )
             )
-            print(_dim(f"  Installation help: {TROUBLESHOOTING_URL}"))
             raise SystemExit(1)
 
     os.environ.setdefault("VECTOR_BACKEND", "lancedb")
@@ -793,7 +835,7 @@ def check_env_overrides() -> Check:
             "DATABASE_URL",
             "warn",
             f"unsupported scheme: {db.split(':', 1)[0]}",
-            "OpenConstructionERP runs only on PostgreSQL. Use postgresql+asyncpg://... "
+            f"{_app_name()} runs only on PostgreSQL. Use postgresql+asyncpg://... "
             "or leave DATABASE_URL unset to use the embedded PostgreSQL.",
         )
     if db.startswith("postgresql"):
@@ -1282,8 +1324,8 @@ def _run_fatal_preflight(data_dir: Path, host: str, port: int) -> None:
         _red(
             _bold(
                 _u(
-                    "Cannot start OpenConstructionERP — pre-flight checks failed:",
-                    "Cannot start OpenConstructionERP - pre-flight checks failed:",
+                    f"Cannot start {_app_name()} — pre-flight checks failed:",
+                    f"Cannot start {_app_name()} - pre-flight checks failed:",
                 )
             )
         )
@@ -1293,12 +1335,11 @@ def _run_fatal_preflight(data_dir: Path, host: str, port: int) -> None:
         c.print()
     print()
     print(_dim("Run 'openconstructionerp doctor' for full diagnostics."))
-    print(_dim(f"Troubleshooting: {TROUBLESHOOTING_URL}"))
     sys.exit(1)
 
 
 def cmd_serve(args: argparse.Namespace) -> None:
-    """Start the OpenConstructionERP server."""
+    """Start the server."""
     data_dir = _data_dir_from_args(args)
 
     # First, before anything native is imported: a crash inside torch, Arrow or
@@ -1351,7 +1392,6 @@ def cmd_serve(args: argparse.Namespace) -> None:
         version = settings.app_version
     except Exception as exc:
         print(_red(f"Failed to load settings: {exc}"))
-        print(_dim(f"Troubleshooting: {TROUBLESHOOTING_URL}"))
         sys.exit(1)
 
     # Print the banner BEFORE uvicorn starts so the user sees it immediately
@@ -1472,7 +1512,6 @@ def cmd_serve(args: argparse.Namespace) -> None:
                     f"  {arrow} Port {args.port} is already in use. Try: openconstructionerp serve --port {args.port + 1}"
                 )
             )
-        print(_dim(f"  {arrow} Installation help: {TROUBLESHOOTING_URL}"))
         sys.exit(1)
     except Exception as exc:  # noqa: BLE001
         _emit_server_fail(exc)
@@ -1480,7 +1519,6 @@ def cmd_serve(args: argparse.Namespace) -> None:
         print()
         print(_red(_bold("Unexpected startup error:")) + f" {type(exc).__name__}: {exc}")
         print(_dim(f"  {arrow} Run 'openconstructionerp doctor' to diagnose."))
-        print(_dim(f"  {arrow} Installation help: {TROUBLESHOOTING_URL}"))
         print(_dim(f"  {arrow} Report this at: {ISSUES_URL}"))
         sys.exit(1)
 
@@ -1716,7 +1754,7 @@ def cmd_doctor(args: argparse.Namespace) -> None:
     data_dir = _data_dir_from_args(args)
 
     print()
-    print(_bold(_u("OpenConstructionERP \u2014 doctor", "OpenConstructionERP - doctor")))
+    print(_bold(_u(f"{_app_name()} \u2014 doctor", f"{_app_name()} - doctor")))
     print(_dim(f"Checking install at {data_dir}"))
     print()
 
@@ -1732,7 +1770,6 @@ def cmd_doctor(args: argparse.Namespace) -> None:
         print(_red(_bold(f"  {len(errors)} error(s)")) + _dim(f", {len(warns)} warning(s)"))
         print()
         print(_dim("Fix the errors above, then run 'openconstructionerp serve'."))
-        print(_dim(f"Docs: {TROUBLESHOOTING_URL}"))
         sys.exit(1)
     elif warns:
         print(
@@ -1751,7 +1788,7 @@ def cmd_version(_args: argparse.Namespace) -> None:
     """Print version information."""
     version = _resolve_version()
 
-    print(f"OpenConstructionERP v{version}")
+    print(f"{_app_name()} v{version}")
     print(f"Python {sys.version.split()[0]} ({sys.platform})")
     # This is the line people paste when something is wrong with an install, so
     # each label has to name what it actually shows. "Site-packages" used to be
@@ -1763,7 +1800,6 @@ def cmd_version(_args: argparse.Namespace) -> None:
     print(f"Installed at: {Path(__file__).resolve().parent.parent}")
     print(f"Interpreter: {sys.executable}")
     print(f"Data directory: {DEFAULT_DATA_DIR}")
-    print(f"Docs: {DOCS_URL}")
 
 
 def cmd_upgrade(args: argparse.Namespace) -> None:
@@ -1785,7 +1821,7 @@ def cmd_upgrade(args: argparse.Namespace) -> None:
     from app.core.self_upgrade import RELEASES_URL, is_frozen_build
 
     print()
-    print(_bold(_u("OpenConstructionERP \u2014 upgrade", "OpenConstructionERP - upgrade")))
+    print(_bold(_u(f"{_app_name()} \u2014 upgrade", f"{_app_name()} - upgrade")))
 
     # In the PyInstaller desktop build ``sys.executable`` is the frozen binary,
     # not an interpreter, so the tokens below would come straight back into this
@@ -1907,7 +1943,7 @@ def print_welcome(*, next_command_hint: bool = True) -> None:
 
     Shown on the first bare ``openconstructionerp`` invocation and when
     the user runs ``openconstructionerp welcome`` explicitly. Tells them
-    the single command that starts everything, the demo login, and where
+    the single command that starts everything, the first login, and where
     to ask questions when something goes wrong.
 
     ``next_command_hint`` distinguishes the two contexts. When True the
@@ -1921,30 +1957,24 @@ def print_welcome(*, next_command_hint: bool = True) -> None:
     print()
     print(_amber(_BANNER_ART))
     print()
-    print(f"  {_bold('OpenConstructionERP')} {_dim('v' + version)}")
-    print(f"  {_dim('Open-source construction cost estimation platform')}")
+    print(f"  {_bold(_app_name())} {_dim('v' + version)}")
     print()
     if next_command_hint:
         print(f"  {bar}  {_bold('To start, run one command')}")
         print(f"  {bar}     {_amber('openconstructionerp')}")
-        print(f"  {bar}  {_dim('It sets up the database, loads the demo and opens your browser.')}")
+        print(f"  {bar}  {_dim('It sets up the database, asks whether to load demo data, and opens your browser.')}")
         print(f"  {bar}")
         print(f"  {bar}  {_dim('Command not found? This always works, no PATH needed:')}")
         print(f"  {bar}     {_amber('python -m openconstructionerp')}")
     else:
         print(f"  {bar}  {_bold('Setting things up for you')}")
-        print(f"  {bar}  {_dim('Creating the database and loading the demo. The server starts in a moment.')}")
+        print(f"  {bar}  {_dim('Creating the database. The server starts in a moment.')}")
     print(f"  {bar}")
     print(f"  {bar}  {_bold('Then log in')}")
     print(f"  {bar}     {_amber(url)}")
-    print(f"  {bar}     demo@openconstructionerp.com  {_dim('/')}  DemoPass1234!")
+    print(f"  {bar}     {_dim('the first account you register becomes the admin')}")
     print()
     print(f"  {_dim('Advanced:')}  openconstructionerp serve {_dim('|')} init-db {_dim('|')} doctor {_dim('|')} --help")
-    print()
-    print(f"  {_bold('Help and community')}")
-    print(f"    {_dim('Docs'.ljust(10))} {DOCS_URL}")
-    print(f"    {_dim('GitHub'.ljust(10))} {GITHUB_URL}")
-    print(f"    {_dim('Community'.ljust(10))} {COMMUNITY_URL} {_dim('(Telegram)')}")
     print()
     if next_command_hint:
         print(
@@ -1988,15 +2018,16 @@ def _prompt_open_browser(url: str, default_open: bool = True) -> bool:
 def _prompt_seed_demo() -> bool | None:
     """Ask on first run whether to load the demo projects.
 
-    Returns ``True`` / ``False`` for an explicit answer (default Yes on a
-    bare Enter), or ``None`` when there is no interactive terminal (CI,
-    piped input, service start) - callers keep the current default
-    behaviour in that case and do not persist anything.
+    Returns ``True`` / ``False`` for an explicit answer (default No on a
+    bare Enter - demo data is opt-in), or ``None`` when there is no
+    interactive terminal (CI, piped input, service start) - callers keep
+    the current default behaviour in that case and do not persist
+    anything.
     """
     if not sys.stdin.isatty() or not sys.stdout.isatty() or os.environ.get("CI"):
         return None
 
-    prompt = f"  {_bold('Load demo projects')} {_dim('to explore the app?')} {_dim('[Y/n]')} "
+    prompt = f"  {_bold('Load demo projects')} {_dim('to explore the app?')} {_dim('[y/N]')} "
     try:
         answer = input(prompt).strip().lower()
     except (EOFError, KeyboardInterrupt):
@@ -2004,8 +2035,8 @@ def _prompt_seed_demo() -> bool | None:
         return None
 
     if answer == "":
-        return True
-    return not (answer.startswith("n") or answer in ("нет", "н"))
+        return False
+    return answer.startswith("y") or answer in ("да", "д")
 
 
 def cmd_seed(args: argparse.Namespace) -> None:
@@ -2074,6 +2105,105 @@ async def _promote_user_to_admin(session: AsyncSession, email: str) -> str:
     user.is_active = True
     await session.flush()
     return f"{user.email} is now an active admin."
+
+
+async def _reset_user_password(session: AsyncSession, email: str, new_password: str) -> str:
+    """Set the password of the account at ``email`` and return a status line.
+
+    The recovery path for the one dead end an operator cannot click out of: an
+    account whose password nobody knows any more. ``promote-admin`` answers "I
+    have no administrator left"; this answers "I cannot sign in as the
+    administrator I have". Both work offline against the data directory, with no
+    server running and no e-mail delivered, because the situation they exist for
+    is usually the one where the server will not start or the mailbox is gone.
+
+    The new password goes through the same policy the HTTP surface applies
+    (:func:`_validate_strong_password`), so this command cannot write a hash the
+    sign-in form would have refused - and in particular cannot write one bcrypt
+    would raise on, which is the failure the policy's byte limit exists to stop.
+
+    An account found dormant is activated, and the line printed says so. Leaving
+    it dormant would hand the operator a second dead end: a password that is now
+    correct and a sign-in that still refuses, with ``registration_mode``'s
+    default of ``admin-approve`` being the reason and nothing on screen to say
+    it. Whoever can read the data directory can already do this in SQL, which is
+    what the register warning in ``users/service.py`` tells them to do.
+
+    Raises:
+        LookupError: No usable account exists at that address (missing or
+            already erased), so there is nothing to reset.
+        ValueError: The new password does not meet the policy.
+    """
+    from sqlalchemy import func, select
+
+    from app.modules.users.models import User
+    from app.modules.users.schemas import _validate_strong_password
+    from app.modules.users.service import hash_password
+
+    password = _validate_strong_password(new_password)
+    user = (
+        await session.execute(select(User).where(func.lower(User.email) == email.strip().lower()))
+    ).scalar_one_or_none()
+    if user is None or user.deleted_at is not None:
+        raise LookupError(f"No user with e-mail {email!r}.")
+    was_inactive = not user.is_active
+    user.hashed_password = hash_password(password)
+    # A password nobody can be asked to re-verify is the point of this command,
+    # so a dormant account is activated rather than left unusable. See above.
+    user.is_active = True
+    await session.flush()
+    if was_inactive:
+        return f"{user.email} has a new password and is now active."
+    return f"{user.email} has a new password."
+
+
+def cmd_reset_password(args: argparse.Namespace) -> None:
+    """Reset a user's password from the command line (operator recovery)."""
+    if not (args.email or "").strip():
+        print(_red("Give the e-mail of the account to reset: openconstructionerp reset-password <email>"))
+        sys.exit(2)
+    data_dir = _data_dir_from_args(args)
+    _setup_env(data_dir, DEFAULT_HOST, DEFAULT_PORT)
+
+    import asyncio
+    import getpass
+
+    # A password on the command line lands in the shell's history, in the process
+    # list another user on the machine can read, and on a screen somebody walks
+    # past. ``--password`` exists for a script that has nowhere else to put it
+    # and says so in its own help; the prompt is the default and echoes nothing.
+    supplied = getattr(args, "password", None)
+    if supplied:
+        password = supplied
+    else:
+        try:
+            password = getpass.getpass("New password: ")
+            again = getpass.getpass("Repeat it: ")
+        except (EOFError, KeyboardInterrupt):
+            print(_red("No password entered; nothing was changed."))
+            sys.exit(2)
+        if password != again:
+            print(_red("The two entries did not match; nothing was changed."))
+            sys.exit(2)
+
+    async def _run() -> str:
+        from app.database import async_session_factory
+
+        _register_all_module_models()
+        async with async_session_factory() as session:
+            message = await _reset_user_password(session, args.email, password)
+            await session.commit()
+            return message
+
+    try:
+        message = asyncio.run(_run())
+    except LookupError as exc:
+        print(_red(str(exc)))
+        sys.exit(1)
+    except ValueError as exc:
+        print(_red(f"That password was refused: {exc}"))
+        sys.exit(2)
+    print(_green(message))
 
 
 def cmd_promote_admin(args: argparse.Namespace) -> None:
@@ -2623,7 +2753,7 @@ steps:
     title_i18n:
       en: "Welcome"
     body_i18n:
-      en: "This OpenConstructionERP install is pre-configured by {partner}. Replace these placeholder steps with your own onboarding flow."
+      en: "This install is pre-configured by {partner}. Replace these placeholder steps with your own onboarding flow."
 
   - id: done
     kind: summary
@@ -2635,7 +2765,7 @@ steps:
 """
 
 _PACK_README = """\
-# {slug} - OpenConstructionERP partner pack
+# {slug} - partner pack
 
 This is a declarative partner pack (Shape A). It carries only presets:
 branding, default locale, currency/tax defaults, module visibility and an
@@ -2800,11 +2930,12 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="openconstructionerp",
         description=(
-            "OpenConstructionERP, open-source construction cost estimation platform.\n\n"
+            f"{_app_name()}, construction cost estimation platform.\n\n"
             "Quick start, one command does everything:\n"
             "    openconstructionerp\n\n"
-            "It creates the local database, loads the demo data, starts the server\n"
-            "and opens http://127.0.0.1:8080 (demo@openconstructionerp.com / DemoPass1234!)."
+            "It creates the local database, asks whether to load demo data, starts\n"
+            "the server and opens http://127.0.0.1:8080. The first account you\n"
+            "register becomes the admin."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -2831,7 +2962,7 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
 
     # serve
-    serve_p = subparsers.add_parser("serve", help="Start the OpenConstructionERP server")
+    serve_p = subparsers.add_parser("serve", help=f"Start the {_app_name()} server")
     _add_common_server_args(serve_p)
     serve_p.add_argument("--open", action="store_true", help="Open browser after startup")
     serve_p.add_argument("--quiet", action="store_true", help="Suppress banner and info logs")
@@ -2924,6 +3055,22 @@ def _build_parser() -> argparse.ArgumentParser:
     promote_p.add_argument("email", nargs="?", help="E-mail of the existing account to promote")
     _add_data_dir_arg(promote_p)
 
+    reset_pw_p = subparsers.add_parser(
+        "reset-password",
+        help="Set a user's password from the command line (recovery when nobody can sign in)",
+    )
+    # Optional at parse time for the same reason promote-admin's is, so
+    # ``reset-password --data-dir X`` parses like every other data-dir command.
+    reset_pw_p.add_argument("email", nargs="?", help="E-mail of the account to reset")
+    reset_pw_p.add_argument(
+        "--password",
+        help=(
+            "The new password, for a script with no terminal to prompt on. Prefer the prompt: "
+            "a password given here is visible in the process list and in the shell's history."
+        ),
+    )
+    _add_data_dir_arg(reset_pw_p)
+
     # demo-cleanup - remove demo rows the old boot seeding wrote into real projects
     demo_cleanup_p = subparsers.add_parser(
         "demo-cleanup",
@@ -2971,7 +3118,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "module",
         help="Install, list, or uninstall modules",
         description=(
-            "Manage OpenConstructionERP modules.\n\n"
+            f"Manage {_app_name()} modules.\n\n"
             "    openconstructionerp module install <archive.zip> [--force]\n"
             "    openconstructionerp module list\n"
             "    openconstructionerp module uninstall <name> [--force]\n\n"
@@ -3005,7 +3152,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "pack",
         help="Scaffold and manage partner packs",
         description=(
-            "Manage OpenConstructionERP partner packs (declarative preset bundles).\n\n"
+            f"Manage {_app_name()} partner packs (declarative preset bundles).\n\n"
             "    openconstructionerp pack new <slug> [--out DIR] [--force]\n\n"
             "Emits a minimal, valid pack folder (manifest.json + logo + onboarding\n"
             "+ README). Drop the folder (or a .zip of it) into <data-dir>/packs/ and\n"
@@ -3072,6 +3219,8 @@ def main() -> None:
         cmd_seed(args)
     elif args.command == "promote-admin":
         cmd_promote_admin(args)
+    elif args.command == "reset-password":
+        cmd_reset_password(args)
     elif args.command == "demo-cleanup":
         cmd_demo_cleanup(args)
     elif args.command == "demo-cost-control":

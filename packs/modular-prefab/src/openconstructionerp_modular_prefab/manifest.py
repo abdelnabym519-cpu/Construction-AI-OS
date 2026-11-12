@@ -70,6 +70,6 @@ MANIFEST = PartnerPackManifest(
             "ISO 19650 (BIM information management)",
             "Buildoffsite DfMA",
         ],
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

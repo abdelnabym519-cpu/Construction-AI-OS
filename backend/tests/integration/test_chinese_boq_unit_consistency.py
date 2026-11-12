@@ -79,7 +79,7 @@ async def _committed_owner() -> uuid.UUID:
     """Return the id of a committed user, so ``Project.owner_id`` satisfies its FK."""
     async with async_session_factory() as session:
         user = User(
-            email=f"cn-units-{uuid.uuid4().hex[:10]}@datadrivenconstruction.io",
+            email=f"cn-units-{uuid.uuid4().hex[:10]}@cnunits-test.com",
             hashed_password="x" * 16,
             full_name="China Units",
         )

@@ -1,6 +1,6 @@
-# OpenConstructionERP — Australia Partner Pack (`aus`)
+# Construction AI OS — Australia Partner Pack (`aus`)
 
-Pre-configures OpenConstructionERP for **Australian** general contractors.
+Pre-configures Construction AI OS for **Australian** general contractors.
 
 ## What's inside
 
@@ -32,4 +32,4 @@ export OE_PARTNER_PACK=aus
 
 ## Licence
 
-AGPL-3.0-or-later — same as OpenConstructionERP core.
+AGPL-3.0-or-later — same as Construction AI OS core.

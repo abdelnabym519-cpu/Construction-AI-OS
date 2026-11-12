@@ -2,11 +2,11 @@
 
 Auch verfügbar auf [English](INSTALL_TROUBLESHOOTING.md) und [Русский](INSTALL_TROUBLESHOOTING.ru.md).
 
-Diese Seite hilft, wenn OpenConstructionERP bei der Installation oder beim Start eine Warnung oder einen Fehler zeigt. Suchen Sie die Meldung, die Sie sehen, lesen Sie, was sie bedeutet, und folgen Sie der dritten Zeile. Die meisten Fälle sind in einer Minute behoben, und keiner davon gefährdet Ihre Projekte.
+Diese Seite hilft, wenn Construction AI OS bei der Installation oder beim Start eine Warnung oder einen Fehler zeigt. Suchen Sie die Meldung, die Sie sehen, lesen Sie, was sie bedeutet, und folgen Sie der dritten Zeile. Die meisten Fälle sind in einer Minute behoben, und keiner davon gefährdet Ihre Projekte.
 
 Die Meldungen der App selbst erscheinen auf Englisch. Wir zitieren sie deshalb im Original. Meldungen von Windows und macOS erscheinen in der Sprache Ihres Systems.
 
-Für eine normale Installation ohne Probleme siehe [Install OpenConstructionERP](desktop/INSTALL.md).
+Für eine normale Installation ohne Probleme siehe [Install Construction AI OS](desktop/INSTALL.md).
 
 ## Zuerst: die Protokolldateien
 
@@ -27,7 +27,7 @@ Wenn Sie mit pip installiert haben, führen Sie im Terminal `openconstructionerp
 
 **Sie sehen:** ein blaues Fenster "Der Computer wurde durch Windows geschützt".
 **Das heißt:** Das Installationsprogramm ist noch nicht codesigniert, Windows kennt den Herausgeber also nicht. Das ist eine Warnung, kein Virenfund.
-**Was tun:** Klicken Sie auf **Weitere Informationen**, prüfen Sie, dass der Dateiname mit `OpenConstructionERP` beginnt, und klicken Sie auf **Trotzdem ausführen**. Details und eine Prüfung des Downloads stehen unter [Windows blockiert die App](desktop/WINDOWS_BLOCKED.de.md).
+**Was tun:** Klicken Sie auf **Weitere Informationen**, prüfen Sie, dass der Dateiname mit `Construction AI OS` beginnt, und klicken Sie auf **Trotzdem ausführen**. Details und eine Prüfung des Downloads stehen unter [Windows blockiert die App](desktop/WINDOWS_BLOCKED.de.md).
 
 **Sie sehen:** Die intelligente App-Steuerung (Smart App Control) meldet, dass sie die App blockiert hat, oder die App lief einmal und wird seitdem bei jedem Start blockiert.
 **Das heißt:** Die intelligente App-Steuerung von Windows 11 lehnt unsignierte Programme ab und bietet keine Schaltfläche zum Fortfahren.
@@ -35,7 +35,7 @@ Wenn Sie mit pip installiert haben, führen Sie im Terminal `openconstructionerp
 
 **Sie sehen:** "Please choose an installation folder whose path uses only Latin letters, digits and spaces. The built-in database cannot start from a folder with other characters in its path".
 **Das heißt:** Der gewählte Ordnerpfad enthält Zeichen wie Umlaute, kyrillische oder chinesische Buchstaben. Die eingebaute Datenbank kann aus einem solchen Ordner nicht starten.
-**Was tun:** Behalten Sie den vorgeschlagenen Ordner `C:\Program Files\OpenConstructionERP` oder wählen Sie einen wie `C:\OpenConstructionERP`. Bei einer stillen Installation (`/S`) zeigt das Programm dieselbe Meldung, endet mit Code 3 und schreibt den Grund nach `%TEMP%\OpenConstructionERP-install-error.log`.
+**Was tun:** Behalten Sie den vorgeschlagenen Ordner `C:\Program Files\Construction AI OS` oder wählen Sie einen wie `C:\Construction AI OS`. Bei einer stillen Installation (`/S`) zeigt das Programm dieselbe Meldung, endet mit Code 3 und schreibt den Grund nach `%TEMP%\OpenConstructionERP-install-error.log`.
 
 **Sie sehen:** Die Installation bricht mit einem Fehler zu WebView2 ab.
 **Das heißt:** Windows konnte Microsoft WebView2 nicht installieren, die Komponente, die das App-Fenster zeichnet. Das Installationsprogramm bringt sie mit, eine Internetverbindung ist also nicht nötig; der Fehler kommt von Windows selbst, etwa durch eine Richtlinie, ein ausstehendes Update oder ein beschädigtes früheres WebView2.
@@ -43,7 +43,7 @@ Wenn Sie mit pip installiert haben, führen Sie im Terminal `openconstructionerp
 
 **Sie sehen:** Ihr Virenschutz löscht eine Datei oder verschiebt sie während der Installation in die Quarantäne.
 **Das heißt:** Das Programm ist neu und unsigniert, manche Virenschutzprogramme behandeln es deshalb misstrauisch.
-**Was tun:** Prüfen Sie den Download wie unter [Windows blockiert die App](desktop/WINDOWS_BLOCKED.de.md) beschrieben. Ergibt die Prüfung `True`, stellen Sie die Datei aus der Quarantäne wieder her und erlauben Sie den Ordner `C:\Program Files\OpenConstructionERP`. Wenn Sie unsicher sind, schreiben Sie uns, bevor Sie etwas erlauben.
+**Was tun:** Prüfen Sie den Download wie unter [Windows blockiert die App](desktop/WINDOWS_BLOCKED.de.md) beschrieben. Ergibt die Prüfung `True`, stellen Sie die Datei aus der Quarantäne wieder her und erlauben Sie den Ordner `C:\Program Files\Construction AI OS`. Wenn Sie unsicher sind, schreiben Sie uns, bevor Sie etwas erlauben.
 
 ## Windows: Aktualisieren auf eine neue Version
 
@@ -51,7 +51,7 @@ Wenn Sie mit pip installiert haben, führen Sie im Terminal `openconstructionerp
 **Das heißt:** Dieser Satz stammt aus dem Baukasten des Installationsprogramms, wir können ihn nicht ändern.
 **Was tun:** Lassen Sie die bereits ausgewählte Option (überschreiben) stehen. Das Installationsprogramm schließt die laufende App selbst und behält alle Ihre Projekte. Der erste Start nach einem Update kann länger dauern, während sich die Datenbank aktualisiert.
 
-**Sie sehen:** Sie betreiben OpenConstructionERP auf demselben Rechner auch mit pip oder aus einem Terminal.
+**Sie sehen:** Sie betreiben Construction AI OS auf demselben Rechner auch mit pip oder aus einem Terminal.
 **Das heißt:** Beide nutzen denselben Ordner `.openestimate` und dieselbe Datenbank. Das Installationsprogramm hält diese Datenbank an, um die Programmdateien zu ersetzen, und damit fällt die Terminal-Version aus. Beim Update von 18.4.0 schließt das alte Deinstallationsprogramm außerdem jedes Programm namens `openconstructionerp.exe`, also auch eine mit pip gestartete Terminal-Version.
 **Was tun:** Beenden Sie die Terminal-Version (Strg+C in ihrem Fenster) vor der Installation und starten Sie sie danach wieder.
 
@@ -65,7 +65,7 @@ Wenn Sie mit pip installiert haben, führen Sie im Terminal `openconstructionerp
 **Das heißt:** Die App legt ihre lokale Datenbank an. Das dauert einmalig ein bis zwei Minuten, auf einer langsamen Festplatte länger.
 **Was tun:** Warten Sie und schließen Sie das Fenster nicht. Spätere Starts sind schnell.
 
-**Sie sehen:** ein Fenster "OpenConstructionERP failed to start", das eine Protokolldatei nennt.
+**Sie sehen:** ein Fenster "Construction AI OS failed to start", das eine Protokolldatei nennt.
 **Das heißt:** Die App konnte ihr Fenster gar nicht öffnen.
 **Was tun:** Starten Sie noch einmal. Kommt das Fenster wieder, senden Sie uns die genannte Protokolldatei.
 
@@ -87,7 +87,7 @@ Wenn Sie mit pip installiert haben, führen Sie im Terminal `openconstructionerp
 
 **Sie sehen:** eine Meldung, dass der Ordner der lokalen Datenbank "sits too deep in the filesystem", mit zwei Zeichenzahlen.
 **Das heißt:** Windows begrenzt die Länge eines vollständigen Dateipfads, und der Pfad Ihres Datenordners ist für die Datenbankdateien darin zu lang. Neu installieren hilft nicht, das Einschalten langer Pfade in Windows auch nicht.
-**Was tun:** Verwenden Sie einen kürzeren Datenordner. Setzen Sie die Benutzer-Umgebungsvariable `OE_DATA_DIR` auf einen kurzen Pfad wie `C:\OpenConstructionERP\data` (Start, "Umgebungsvariablen" eingeben, "Umgebungsvariablen für dieses Konto bearbeiten", Neu) und starten Sie die App erneut. Im Terminal: `openconstructionerp serve --data-dir C:\OpenConstructionERP\data`.
+**Was tun:** Verwenden Sie einen kürzeren Datenordner. Setzen Sie die Benutzer-Umgebungsvariable `OE_DATA_DIR` auf einen kurzen Pfad wie `C:\cao-data` (Start, "Umgebungsvariablen" eingeben, "Umgebungsvariablen für dieses Konto bearbeiten", Neu) und starten Sie die App erneut. Im Terminal: `openconstructionerp serve --data-dir C:\cao-data`.
 
 **Sie sehen:** Ihr Windows-Benutzername enthält nicht-lateinische Buchstaben (zum Beispiel kyrillische oder chinesische), und Sie suchen Ihre Datenbank.
 **Das heißt:** Aus einem solchen Pfad kann die Datenbank nicht arbeiten, deshalb liegt sie in `C:\ProgramData\OpenConstructionERP\clusters\<id>\pgdata`. Die Datei `pgdata.location` in Ihrem `.openestimate` nennt den genauen Ordner.
@@ -115,12 +115,12 @@ Wenn Sie mit pip installiert haben, führen Sie im Terminal `openconstructionerp
 **Das heißt:** Die Mac-Version ist nur für Apple Silicon (M1 und neuer). Für Intel-Macs gibt es keine.
 **Was tun:** Auf einem Intel-Mac nutzen Sie pip oder Docker wie im README beschrieben.
 
-**Sie sehen:** "OpenConstructionERP ist beschädigt und kann nicht geöffnet werden" oder "kann nicht geöffnet werden, da der Entwickler nicht verifiziert werden kann".
+**Sie sehen:** "Construction AI OS ist beschädigt und kann nicht geöffnet werden" oder "kann nicht geöffnet werden, da der Entwickler nicht verifiziert werden kann".
 **Das heißt:** Die App ist von Apple noch nicht notarisiert, und macOS blockiert heruntergeladene Apps, die es nicht prüfen kann. Die App ist nicht beschädigt.
 **Was tun:** Öffnen Sie das Terminal und führen Sie einmal aus:
 
 ```
-xattr -dr com.apple.quarantine /Applications/OpenConstructionERP.app
+xattr -dr com.apple.quarantine "/Applications/Construction AI OS.app"
 ```
 
 Oder klicken Sie die App in "Programme" mit der rechten Maustaste an und wählen Sie **Öffnen**. Unter neuerem macOS gehen Sie zu **Systemeinstellungen**, **Datenschutz & Sicherheit**, scrollen nach unten und klicken auf **Dennoch öffnen**. Das ist nur einmal nötig.
@@ -129,15 +129,15 @@ Oder klicken Sie die App in "Programme" mit der rechten Maustaste an und wählen
 
 **Sie sehen:** Die `.deb` verlangt `libwebkit2gtk-4.1-0` oder lässt sich nicht installieren.
 **Das heißt:** Die App braucht die Bibliothek WebKitGTK 4.1, um ihr Fenster zu zeichnen.
-**Was tun:** Installieren Sie mit `sudo apt install ./OpenConstructionERP_*_amd64.deb`, das zieht die Bibliothek mit. Bietet Ihre Distribution kein `libwebkit2gtk-4.1-0` (Ubuntu älter als 22.04, Debian älter als 12), nutzen Sie pip.
+**Was tun:** Installieren Sie mit `sudo apt install ./construction-ai-os_*_amd64.deb`, das zieht die Bibliothek mit. Bietet Ihre Distribution kein `libwebkit2gtk-4.1-0` (Ubuntu älter als 22.04, Debian älter als 12), nutzen Sie pip.
 
 **Sie sehen:** Die `.rpm` lässt sich nicht installieren oder meldet fehlende Abhängigkeiten.
 **Das heißt:** `rpm -i` installiert die Bibliotheken nicht, die die App braucht.
-**Was tun:** Installieren Sie mit `sudo dnf install ./OpenConstructionERP-*.x86_64.rpm`, das zieht sie mit.
+**Was tun:** Installieren Sie mit `sudo dnf install ./construction-ai-os-*.x86_64.rpm`, das zieht sie mit.
 
 **Sie sehen:** Das AppImage tut beim Doppelklick nichts.
 **Das heißt:** Die Datei ist noch nicht als Programm markiert.
-**Was tun:** Führen Sie `chmod +x OpenConstructionERP*.AppImage` aus und starten Sie erneut.
+**Was tun:** Führen Sie `chmod +x "Construction AI OS"*.AppImage` aus und starten Sie erneut.
 
 **Sie sehen:** einen AppImage-Fehler, der FUSE oder `libfuse.so.2` erwähnt.
 **Das heißt:** Neuere Distributionen installieren die FUSE-2-Bibliothek, die AppImages nutzen, nicht mehr.
@@ -150,7 +150,7 @@ Oder klicken Sie die App in "Programme" mit der rechten Maustaste an und wählen
 ## pip (jedes System)
 
 **Sie sehen:** pip findet keine passende Version oder meldet, Python sei zu alt.
-**Das heißt:** OpenConstructionERP braucht Python 3.12 oder neuer.
+**Das heißt:** Construction AI OS braucht Python 3.12 oder neuer.
 **Was tun:** Installieren Sie Python 3.12 oder neuer und führen Sie `python3.12 -m pip install --upgrade openconstructionerp` aus (unter Windows `py -3.12 -m pip ...`).
 
 **Sie sehen:** `error: externally-managed-environment` (Ubuntu ab 23.04, Debian ab 12).
@@ -187,13 +187,49 @@ Oder klicken Sie die App in "Programme" mit der rechten Maustaste an und wählen
 **Das heißt:** Das veröffentlichte Image ist nur für x86-64 gebaut.
 **Was tun:** Bauen Sie aus dem Quellcode mit `make quickstart`, oder nutzen Sie pip.
 
+## Anmelden bei einer Installation, die Sie selbst betreiben
+
+**Sie sehen:** "Invalid email or password" bei einem Konto, das Sie gerade angelegt haben, und beim erneuten Anlegen steht dort "Email already registered".
+**Das heißt:** Das Konto existiert und wartet darauf, dass eine Administratorin oder ein Administrator es freischaltet. Installationen nutzen standardmäßig `OE_REGISTRATION_MODE=admin-approve`; dabei wird jedes Konto außer dem allerersten auf einer leeren Datenbank als inaktiv gespeichert. Das erste Konto auf einer wirklich leeren Datenbank wird automatisch aktiviert und wird zum Administrator; wenn nicht, lag schon etwas in der Datenbank: Demo-Daten, ein Konto aus einem früheren Lauf oder ein Datenordner, den der Server weiter liest.
+**Was tun:** Wählen Sie einen dieser drei Wege.
+
+- Sie betreiben die Installation selbst und möchten, dass Konten sofort nach dem Anlegen funktionieren: Starten Sie den Server mit der Umgebungsvariablen `OE_REGISTRATION_MODE` auf `open`. In Windows PowerShell schreiben Sie `$env:OE_REGISTRATION_MODE="open"` in die Zeile direkt vor der, die ihn startet; in einer Linux- oder macOS-Shell exportieren Sie sie zuerst auf dieselbe Weise. Unter Docker tragen Sie `OE_REGISTRATION_MODE=open` in die Datei `.env` im Ordner mit `docker-compose.yml` ein, denn das ist die Datei, die Compose liest. Eine Datei `.env` in Ihrem Datenordner wird nicht gelesen: Die Datei, nach der das Programm sucht, liegt neben dem installierten Paket, bei einer pip-Installation also in Ihrer Python-Umgebung. Die Variable in der Umgebung zu setzen, aus der Sie starten, ist deshalb der Weg, der überall funktioniert.
+- Sie sind die Administratorin oder der Administrator und möchten ein Konto freischalten: Melden Sie sich als Administrator an, öffnen Sie in der Seitenleiste **Benutzer** (die Seite **Benutzerverwaltung**) und drücken Sie in dieser Zeile **Aktivieren**. Das Team-Panel in den Einstellungen zeigt, wer wartet, trägt den Schalter aber nicht; es verlinkt hierher.
+- Es kann sich auch niemand als Administrator anmelden: Nutzen Sie die Wiederherstellungsbefehle unten. Sie funktionieren offline, direkt am Datenordner, ohne laufenden Server und ohne versandte E-Mail.
+
+**Sie sehen:** Sie kommen nicht hinein, kennen das Passwort nicht mehr, und es gibt keinen Mailserver, der einen Link zum Zurücksetzen schicken könnte.
+**Das heißt:** Mit der Installation ist nichts falsch; das Passwort ist schlicht nicht wiederherstellbar, weil nur sein Hash gespeichert ist.
+**Was tun:** Setzen Sie ein neues in einem Terminal, in derselben Umgebung, aus der Sie den Server starten:
+
+```
+openconstructionerp reset-password you@example.com
+```
+
+Der Befehl fragt das neue Passwort zweimal ab und zeigt beim Tippen nichts an. Er funktioniert bei gestopptem und bei laufendem Server, und er aktiviert das Konto, falls es inaktiv war. Sie erhalten also nicht ein korrektes Passwort und eine Anmeldung, die trotzdem ablehnt. Mit `--data-dir <Ordner>` geben Sie einen anderen Ort als den Standardordner an. Falls ein Skript das übernehmen muss, gibt es `--password <Passwort>`; ein so übergebenes Passwort ist jedoch in der Prozessliste und im Verlauf der Shell sichtbar, deshalb ist die Abfrage der bessere Standard.
+
+Denselben Befehl gibt es ohne eingerichteten PATH als `python -m openconstructionerp reset-password you@example.com`.
+
+**Sie sehen:** Der letzte Administrator hat das Projekt verlassen oder wurde deaktiviert, und niemand erreicht die **Benutzerverwaltung**.
+**Das heißt:** Die Installation hat keinen aktiven Administrator, also kann niemand jemanden freischalten oder befördern.
+**Was tun:** Stellen Sie einen von einem Terminal aus wieder her:
+
+```
+openconstructionerp promote-admin you@example.com
+```
+
+Der Befehl macht dieses Konto zum Administrator und aktiviert es; eine Adresse, die es nicht gibt, lehnt er ab, statt sie anzulegen. Nutzen Sie danach `reset-password`, wenn Sie außerdem ein neues Passwort brauchen.
+
+**Sie sehen:** "Password must be 72 bytes or fewer when encoded as UTF-8" beim Anlegen eines Kontos oder beim Setzen eines neuen Passworts.
+**Das heißt:** Das Passwort ist länger, als der Hash fassen kann, in dem es gespeichert wird. Buchstaben außerhalb von ASCII (mit Akzent, kyrillisch, arabisch, chinesisch) belegen zwei oder drei Bytes, deshalb liegt ein Passwort aus 30 solchen Zeichen über der Grenze, obwohl es kurz aussieht.
+**Was tun:** Kürzen Sie es. Es wurde nichts gespeichert, Konto und Passwort sind also unverändert. Leerzeichen innerhalb des Passworts sind in Ordnung; Leerzeichen an den beiden Enden gehören hier nicht zum Passwort und werden entfernt, bevor es geprüft und bevor es gespeichert wird. Ein Passwort, das mit einem Leerzeichen am Ende eingefügt wurde, meldet sich deshalb trotzdem an.
+
 ## Deinstallieren und Ihre Daten
 
 Die Deinstallation entfernt das Programm und behält Ihre Projekte. Sie liegen im Ordner `.openestimate` in Ihrem Benutzerordner (dazu der oben genannte `ProgramData`-Ordner, wenn Ihr Benutzername nicht-lateinische Buchstaben enthält). Eine Neuinstallation fängt deshalb nicht von vorn an. Für einen echten Neuanfang deinstallieren Sie und löschen `.openestimate` selbst, nachdem Sie es an einen sicheren Ort kopiert haben.
 
 ## Immer noch Probleme?
 
-Schreiben Sie an info@datadrivenconstruction.io oder eröffnen Sie ein Issue unter [github.com/datadrivenconstruction/OpenConstructionERP/issues](https://github.com/datadrivenconstruction/OpenConstructionERP/issues). Bitte nennen Sie:
+Eröffnen Sie ein Issue unter [github.com/abdelnabym519-cpu/Construction-AI-OS/issues](https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues). Bitte nennen Sie:
 
 - die installierte Version und den Weg (Windows-Installationsprogramm, `.dmg`, `.deb`, `.rpm`, AppImage, pip oder Docker),
 - Ihr System (Windows: Start, `winver` eingeben; macOS: Apple-Menü, Über diesen Mac),

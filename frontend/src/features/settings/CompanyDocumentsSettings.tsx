@@ -22,7 +22,7 @@
  * useful even when you cannot change it.
  */
 
-import { useRef, useState, type DragEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
@@ -683,6 +683,9 @@ export function CompanyDocumentsSettings() {
         )}
       </Card>
 
+      {/* ── Where reports go, and the Legal link ── */}
+      <SupportAndLegalCard canEdit={canEdit} />
+
       {/* ── How documents look ── */}
       <DocumentAppearancePanel placement="settings" onDraftChange={setAppearanceDraft} />
 
@@ -713,6 +716,176 @@ function SectionHeader({
         <p className="mt-0.5 max-w-3xl text-xs text-content-secondary">{subtitle}</p>
       </div>
     </div>
+  );
+}
+
+/* ── Support destination and Legal link ─────────────────────────────── */
+
+/**
+ * The two workspace settings that ride the branding record beside the logos:
+ * where an in-app bug report is sent, and whether the footers point at /legal.
+ *
+ * Both are admin-only because both are decisions about a deployment rather than
+ * about the person using it. A bug report carries the reporter's own words plus
+ * their machine, their build and the page they were on, so where that goes is
+ * the operator's call - and the product ships with no destination at all. Until
+ * one is set here the report channel is simply not in the bug menu, which beats
+ * a default: a product that quietly sends reports somewhere has decided who
+ * maintains it, on the operator's behalf.
+ *
+ * Turning the Legal link off does not hide /legal or /api/source, and cannot.
+ * This software is AGPL-3.0-or-later, so the section 13 source offer has to stay
+ * available to users of a network service; this setting moves one footer pointer,
+ * not the obligation. The notice below says exactly that at the moment the choice
+ * is being made, which is the only moment it is of any use to anyone.
+ */
+function SupportAndLegalCard({ canEdit }: { canEdit: boolean }) {
+  const { t } = useTranslation();
+  const addToast = useToastStore((s) => s.addToast);
+  const destination = useBrandingStore((s) => s.supportDestination);
+  const setDestination = useBrandingStore((s) => s.setSupportDestination);
+  const legalVisible = useBrandingStore((s) => s.legalLinkVisible);
+  const setLegalVisible = useBrandingStore((s) => s.setLegalLinkVisible);
+  const persist = useBrandingStore((s) => s.persistToServer);
+  const [kind, setKind] = useState<'url' | 'email'>(destination?.kind ?? 'url');
+  const [value, setValue] = useState(destination?.value ?? '');
+  const [busy, setBusy] = useState(false);
+
+  // Re-seed the draft when the stored destination changes underneath this panel:
+  // the branding record is fetched after mount, and an admin in another tab can
+  // change it. Without this the field would show a stale value that a stray Save
+  // would then push back over somebody else's.
+  useEffect(() => {
+    setKind(destination?.kind ?? 'url');
+    setValue(destination?.value ?? '');
+  }, [destination?.kind, destination?.value]);
+
+  /** Apply locally, then make it workspace-wide. Returns whether the server took it. */
+  const apply = async (change: () => void, revert?: () => void) => {
+    setBusy(true);
+    change();
+    const ok = await persist();
+    setBusy(false);
+    if (ok) {
+      addToast({
+        type: 'success',
+        title: t('settings.support.title', { defaultValue: 'Support and legal' }),
+        message: t('common.saved', { defaultValue: 'Saved' }),
+      });
+      return true;
+    }
+    // Not admin, or no reachable server. A brand change is allowed to stay local
+    // - your browser shows your logo - but a Legal-link change must not: leaving
+    // it applied here would show one admin a workspace state that does not exist.
+    if (revert) revert();
+    addToast({ type: 'warning', title: t('settings.support.title', { defaultValue: 'Support and legal' }) });
+    return false;
+  };
+
+  const trimmed = value.trim();
+
+  return (
+    <Card padding="md" data-testid="support-and-legal">
+      <SectionHeader
+        icon={<ExternalLink size={16} />}
+        title={t('settings.support.title', { defaultValue: 'Support and legal' })}
+        subtitle={t('settings.support.subtitle', {
+          defaultValue:
+            'Where an in-app bug report is sent, and whether the footers point at the Legal page. Both apply to every user of this workspace.',
+        })}
+      />
+
+      <div className="mt-4 space-y-4">
+        <div>
+          <label htmlFor="support-destination-value" className="block text-xs font-medium text-content-primary">
+            {t('settings.support.destination_label', { defaultValue: 'Bug report destination' })}
+          </label>
+          {!destination && (
+            <p className="mt-0.5 text-xs text-content-secondary" data-testid="support-destination-none">
+              {t('settings.support.destination_none', {
+                defaultValue: 'Not set - the report channel is hidden from the bug menu.',
+              })}
+            </p>
+          )}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <select
+              id="support-destination-kind"
+              data-testid="support-destination-kind"
+              value={kind}
+              disabled={!canEdit || busy}
+              onChange={(e) => setKind(e.target.value === 'email' ? 'email' : 'url')}
+              className="h-8 rounded-md border border-border-light bg-surface-primary px-2 text-xs text-content-primary disabled:opacity-60"
+            >
+              <option value="url">{t('settings.support.kind_url', { defaultValue: 'A support page' })}</option>
+              <option value="email">{t('settings.support.kind_email', { defaultValue: 'A mailbox' })}</option>
+            </select>
+            <input
+              id="support-destination-value"
+              data-testid="support-destination-value"
+              type="text"
+              inputMode={kind === 'email' ? 'email' : 'url'}
+              autoComplete="off"
+              spellCheck={false}
+              value={value}
+              disabled={!canEdit || busy}
+              placeholder={
+                kind === 'email' ? 'support@yourcompany.example' : 'https://support.yourcompany.example/new-ticket'
+              }
+              onChange={(e) => setValue(e.target.value)}
+              className={
+                'h-8 min-w-0 flex-1 rounded-md border border-border-light bg-surface-primary px-2 text-xs ' +
+                'text-content-primary placeholder:text-content-tertiary disabled:opacity-60'
+              }
+            />
+            {/* Saving an empty field clears the destination and hides the channel
+                again, so one button covers set, change and remove. The server
+                refuses a scheme that executes instead of navigating, and drops
+                the value rather than storing it. */}
+            <Button
+              variant="primary"
+              size="sm"
+              icon={busy ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              disabled={!canEdit || busy}
+              onClick={() => void apply(() => setDestination(trimmed ? { kind, value: trimmed } : null))}
+              data-testid="support-destination-save"
+            >
+              {t('common.save', { defaultValue: 'Save' })}
+            </Button>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border-light px-3 py-2">
+          <label className="flex cursor-pointer items-start gap-2 text-xs text-content-primary">
+            <input
+              type="checkbox"
+              data-testid="legal-link-visible"
+              className="mt-0.5 h-3.5 w-3.5 shrink-0"
+              checked={legalVisible}
+              disabled={!canEdit || busy}
+              onChange={(e) => {
+                const next = e.target.checked;
+                void apply(() => setLegalVisible(next), () => setLegalVisible(!next));
+              }}
+            />
+            <span>{t('settings.support.legal_visible', { defaultValue: 'Show the Legal link in the footers' })}</span>
+          </label>
+          {!legalVisible && (
+            <p className="mt-2 text-xs text-amber-600 dark:text-amber-400" data-testid="legal-agpl-notice" role="note">
+              {t('settings.support.legal_agpl_notice', {
+                defaultValue:
+                  'AGPL-3.0 requires the source offer to stay available to users of a network service; legal review is advised.',
+              })}
+            </p>
+          )}
+          <p className="mt-2 text-2xs text-content-tertiary">
+            {t('legal.source_heading', { defaultValue: 'Source code offer' })} ·{' '}
+            <a href="/legal" className="underline" target="_blank" rel="noreferrer">
+              {t('legal.link', { defaultValue: 'Legal' })}
+            </a>
+          </p>
+        </div>
+      </div>
+    </Card>
   );
 }
 

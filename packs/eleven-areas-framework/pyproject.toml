@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "AGPL-3.0-or-later" }
 authors = [
-    { name = "OpenConstructionERP", email = "info@datadrivenconstruction.io" },
+    { name = "Construction AI OS", email = "support@example.com" },
 ]
 keywords = [
     "openconstructionerp",
@@ -31,7 +31,7 @@ dependencies = [
 ]
 
 [project.urls]
-Source = "https://github.com/DataDrivenConstruction/openconstructionerp"
+Source = "https://github.com/abdelnabym519-cpu/Construction-AI-OS"
 
 [project.entry-points."openconstructionerp.packs"]
 eleven-areas-framework = "openconstructionerp_eleven_areas_framework:MANIFEST"

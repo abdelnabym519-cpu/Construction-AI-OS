@@ -17,7 +17,7 @@ manifest = ModuleManifest(
         "Islamic calendar references, Ramadan adjustments, GCC VAT rates, "
         "bilingual PDF support (Arabic + English)."
     ),
-    author="OpenConstructionERP Core Team",
+    author="Construction AI OS Core Team",
     category="regional",
     depends=[],
     auto_install=False,

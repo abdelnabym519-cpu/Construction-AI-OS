@@ -1,6 +1,6 @@
 # Portugal Construction Pack
 
-Configures OpenConstructionERP for the Portuguese construction market. Estimating
+Configures Construction AI OS for the Portuguese construction market. Estimating
 practice in Portugal is structured around the orcamento (budget), with ProNIC
 providing the national classification and specification framework for public
 works. Currency is EUR with 23% IVA on construction services.
@@ -49,7 +49,7 @@ pack is legal, tax or regulatory advice.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules then Partner
+This pack ships inside Construction AI OS. Activate it from Modules then Partner
 Packs: click Rescan, find "Portugal Construction Pack", then Activate pack.
 
 To run a workspace that boots straight into it:
@@ -60,5 +60,5 @@ OE_PACK=portugal-pt openconstructionerp serve
 
 ## License
 
-AGPL-3.0-or-later. OpenConstructionERP is authored and owned by
+AGPL-3.0-or-later. The original Construction AI OS is authored and owned by
 DataDrivenConstruction.

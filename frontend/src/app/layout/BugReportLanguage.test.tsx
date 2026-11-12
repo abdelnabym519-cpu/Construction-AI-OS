@@ -30,7 +30,7 @@
  * one being fixed here.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -65,6 +65,7 @@ vi.mock('react-i18next', () => ({
 }));
 
 import { BugReportMenu, MIN_DESCRIPTION_LENGTH } from './Header';
+import { useBrandingStore } from '@/stores/useBrandingStore';
 
 /** What a Spanish-speaking reporter would have written into the field. */
 const REPORTER_WORDS =
@@ -74,9 +75,14 @@ const REPORTER_WORDS =
  * The popover's controls are located by role and position rather than by
  * label, because in these tests no label is in English. The channels are the
  * only buttons inside the dialog and keep their declared order, so the first
- * is the one that opens GitHub.
+ * is the one that sends the report.
  */
 function openMenuOnModules(lang: string | null) {
+  // The report channel is rendered only when this workspace chose a
+  // destination, so these tests choose one. They are about the language of the
+  // payload, not about the destination; an e-mail address keeps the payload in
+  // the link itself, where every assertion below can read it.
+  useBrandingStore.setState({ supportDestination: { kind: 'email', value: 'support@builder.example' } });
   window.history.pushState({}, '', '/modules');
   // `null` leaves the attribute as the document found it, which is how the
   // page looks if App.tsx ever stops setting it.
@@ -97,7 +103,7 @@ function openMenuOnModules(lang: string | null) {
   };
 }
 
-/** File a report and return the GitHub URL the menu opened. */
+/** File a report and return the link the menu opened. */
 function fileReport(lang: string | null = 'es'): URL {
   const { github, description } = openMenuOnModules(lang);
   fireEvent.change(description, { target: { value: REPORTER_WORDS } });
@@ -112,9 +118,15 @@ beforeEach(() => {
   document.documentElement.lang = '';
 });
 
+afterEach(() => {
+  useBrandingStore.setState({ supportDestination: null });
+});
+
 describe('bug report payload - written in English from a UI that is not', () => {
   it('titles the issue in English and names the screen it came from', () => {
-    const title = fileReport().searchParams.get('title') ?? '';
+    // `subject`, not `title`: the report leaves as a mailto now, and that is
+    // what a mail client reads. The line itself is unchanged and still English.
+    const title = fileReport().searchParams.get('subject') ?? '';
 
     // The exact line that arrived in Spanish, and the surface it names.
     expect(title).toBe('[Modules] Bug report from in-app menu');

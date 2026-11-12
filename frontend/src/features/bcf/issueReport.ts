@@ -11,6 +11,7 @@
  */
 
 import { escapeHtml } from '@/features/bim/printReport';
+import { APP_NAME } from '@/shared/lib/brandName';
 
 import type { IssueStats } from './issueStats';
 
@@ -138,7 +139,7 @@ export function buildIssueReportHtml(params: IssueReportParams): string {
   <p class="meta">${escapeHtml(params.scopeLabel)} &middot; ${escapeHtml(params.generatedOn)}</p>
   ${summaryTable(params.stats, l)}
   ${issuesTable(params.rows, l)}
-  <p class="brand">OpenConstructionERP</p>
+  <p class="brand">${APP_NAME}</p>
 </body>
 </html>`;
 }

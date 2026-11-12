@@ -121,7 +121,7 @@ MANIFEST = PartnerPackManifest(
             "RPS / NFS-e",
             "ISS municipal",
         ],
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
         # Pre-defined city presets surfaced in the onboarding wizard.
         # The corresponding CWICR regional cost databases will arrive
         # in marketplace updates; for now only Sao Paulo is wired in.

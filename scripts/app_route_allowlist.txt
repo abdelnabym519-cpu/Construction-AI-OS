@@ -125,6 +125,7 @@ jobs
 jp-sekisan-exchange
 kr-boq-exchange
 labor-rates
+legal
 login
 login-next
 markups

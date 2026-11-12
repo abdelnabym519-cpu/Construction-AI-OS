@@ -27,6 +27,7 @@
  */
 
 import type { jsPDF as JsPDF } from 'jspdf';
+import { APP_NAME } from '@/shared/lib/brandName';
 import type * as ExcelJS from 'exceljs';
 import type * as PdfJsLib from 'pdfjs-dist';
 import type { Measurement } from './takeoff-types';
@@ -777,7 +778,7 @@ export async function buildTakeoffWorkbook(
   const ExcelJsMod = await import('exceljs');
   const ExcelJsCtor = (ExcelJsMod.Workbook ?? ExcelJsMod.default.Workbook) as typeof ExcelJS.Workbook;
   const wb = new ExcelJsCtor();
-  wb.creator = 'OpenConstructionERP';
+  wb.creator = APP_NAME;
   wb.created = ctx.exportDate ?? new Date();
   // Stored quantities are metric-canonical (D-TKC-016); convert values +
   // units to the user's system at the export boundary. Metric is a

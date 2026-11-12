@@ -1,6 +1,7 @@
 // DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 // Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -255,7 +256,7 @@ const CONNECTORS: ConnectorDef[] = [
     setupSteps: [
       { text: 'Open your Teams channel' },
       { text: 'Click "..." → "Connectors" → "Incoming Webhook"' },
-      { text: 'Name it "OpenConstructionERP" and click "Create"' },
+      { text: `Name it "${APP_NAME}" and click "Create"` },
       { text: 'Copy the webhook URL' },
       { text: 'Paste it below' },
     ],

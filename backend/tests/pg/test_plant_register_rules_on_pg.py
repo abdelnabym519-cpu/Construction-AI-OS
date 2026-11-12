@@ -567,8 +567,19 @@ async def test_readiness_counts_a_long_lead_item_with_no_need_date_as_open_until
 
 
 async def _evidence(
-    w: World, area_code: str, gate_code: str = "development_to_execution", *, label: bool = False
+    w: World,
+    area_code: str,
+    gate_code: str = "development_to_execution",
+    *,
+    label: bool = False,
+    today: date = TODAY,
 ) -> list[tuple[str, str, str]]:
+    """The gate's answer about this world, read on ``today``.
+
+    Every other assertion in this file builds a world and then asks the service about one fixed day, and
+    the evidence has to be asked the same way or it answers about a different world: the one the suite
+    happens to be running in. ``plant_readiness`` says what that cost.
+    """
     from types import SimpleNamespace
 
     from app.modules.plant_register.evidence import plant_readiness
@@ -576,7 +587,11 @@ async def _evidence(
 
     async with w.factory() as s:
         found = await plant_readiness(
-            s, w.project_id, GateAttempt(uuid.uuid4(), gate_code, 1), SimpleNamespace(code=area_code, applicable=True)
+            s,
+            w.project_id,
+            GateAttempt(uuid.uuid4(), gate_code, 1),
+            SimpleNamespace(code=area_code, applicable=True),
+            today=today,
         )
     # A reason the reader must understand travels as the label key; ``detail`` carries data only.
     return [
@@ -633,6 +648,25 @@ async def test_evidence_is_met_and_the_register_ready_once_every_condition_holds
     after = await _do(world, lambda svc: svc.readiness(world.project_id, today=TODAY))
     assert after["ready"] is True
     assert {state for _, state, _ in await _evidence(world, "m04_equipment")} == {"met"}
+
+    # The day has to stay an input, or the line above does not mean what it says. These rows never move;
+    # what moves is the day they are read on. Rule 3 gives a basis quote quote_max_age_days - ninety -
+    # from the day it was asked, and plant_fixtures.quote asks on 2026-08-03, so the long-lead item this
+    # test has just secured is fresh on 2026-11-01 and stale on 2026-11-02. Until ``today`` was passed
+    # in, plant_readiness took the day off the wall clock and answered with the second of those on every
+    # commit from 2026-11-02 onwards: the set came back {'met', 'not_met'} and there was nothing in the
+    # tree to blame. Both readings below are the same whatever day the suite runs on.
+    asked_on = date(2026, 8, 3)
+    last_fresh = {
+        code: state for code, state, _ in await _evidence(world, "m04_equipment", today=asked_on + timedelta(days=90))
+    }
+    first_stale = {
+        code: state for code, state, _ in await _evidence(world, "m04_equipment", today=asked_on + timedelta(days=91))
+    }
+    assert last_fresh["plant:long_lead_secured"] == "met"
+    assert first_stale["plant:long_lead_secured"] == "not_met"
+    # Only the date-sensitive condition moved: the frame document stayed attached across both readings.
+    assert first_stale["plant:frame_document_attached"] == "met"
 
 
 @contextmanager

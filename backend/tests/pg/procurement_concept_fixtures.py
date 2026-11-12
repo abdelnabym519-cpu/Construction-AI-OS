@@ -70,6 +70,9 @@ class World:
     gates: dict[str, uuid.UUID] = field(default_factory=dict)
     area_id: uuid.UUID | None = None
     document_id: uuid.UUID | None = None
+    #: caller -> company. Rows are stamped with the company, tokens name it, and a
+    #: caller with no entry has no tenant, which is what the door refuses.
+    tenants: dict[uuid.UUID, uuid.UUID] = field(default_factory=dict)
 
 
 async def ensure_plan_tables(factory: async_sessionmaker[AsyncSession]) -> None:
@@ -242,7 +245,7 @@ async def approve(w: World, *, submitter: uuid.UUID | None = None, by: uuid.UUID
 
 
 async def _company_model(
-    session: AsyncSession, manager: uuid.UUID, *, from_start: bool, ungated_doc: bool = False
+    session: AsyncSession, manager: uuid.UUID, *, tenant: str, from_start: bool, ungated_doc: bool = False
 ) -> str:
     """A published company copy of the shipped model with its procurement tags changed, every code kept.
 
@@ -256,7 +259,6 @@ async def _company_model(
     from app.modules.project_governance.catalogue_store import CatalogueStore
 
     store = CatalogueStore(session)
-    tenant = str(manager)
     row = await store.create(
         tenant,
         code="from_start" if from_start else "untagged",
@@ -308,6 +310,25 @@ async def _read_governance_rows(w: World) -> None:
         ).scalar_one()
 
 
+async def add_organization(session: AsyncSession, user: uuid.UUID) -> uuid.UUID:
+    """The company this caller belongs to, as the organization id a token names.
+
+    Delegates to ``tests._pg.organization_for``, the shared helper written for
+    exactly this question. It creates the organization *and* the active default
+    membership behind it, which is the part a hand-rolled insert keeps missing:
+    an organization nobody is a member of is not a company a caller can act in,
+    so the door would refuse the very token the fixture went on to mint.
+    """
+    from app.modules.users.models import User
+    from tests._pg import organization_for
+
+    # organization_for reads the caller's memberships in the order the mint uses,
+    # so it wants the persisted person, not the bare id this fixture threads about.
+    person = await session.get(User, user)
+    assert person is not None, "add_organization was called before the user was flushed"
+    return uuid.UUID(await organization_for(session, person))
+
+
 async def build_world(
     factory: async_sessionmaker[AsyncSession],
     *,
@@ -327,12 +348,20 @@ async def build_world(
         area_owner = await add_user(s, "editor")
         editor = await add_user(s, "editor")
         outsider = await add_user(s, "manager")
-        pid = await add_project(s, manager, [area_owner, editor])
+        # One company per caller, including the one who is only a member of the
+        # project. Sharing a company between two callers was tried and rejected:
+        # it moves the failure from the project level view to the tenant level
+        # one instead of settling either, because the two views in that test are
+        # meant to disagree about who owns what.
+        tenants = {u: await add_organization(s, u) for u in (manager, area_owner, editor, outsider)}
+        pid = await add_project(s, manager, [area_owner, editor], organization_id=tenants[manager])
         source, model_id = "shipped", MODEL_ID
         if from_start or not tagged:
             source, model_id = (
                 "tenant",
-                await _company_model(s, manager, from_start=from_start, ungated_doc=ungated_doc),
+                await _company_model(
+                    s, manager, tenant=str(tenants[manager]), from_start=from_start, ungated_doc=ungated_doc
+                ),
             )
         if model:
             await GovernanceService(s).set_model(
@@ -342,10 +371,11 @@ async def build_world(
                 version=None,
                 four_eyes=True,
                 actor_id=manager,
-                tenant_id=str(manager),
+                tenant_id=str(tenants[manager]),
             )
         await s.commit()
     w = World(factory, pid, manager, area_owner, editor, outsider)
+    w.tenants = tenants
     if model:
         await _read_governance_rows(w)
     if concept:
@@ -361,7 +391,7 @@ async def build_world(
                 },
                 actor_id=manager,
                 can_manage=True,
-                tenant_id=str(manager),
+                tenant_id=str(tenants[manager]),
             )
             await s.commit()
     return w
@@ -377,7 +407,7 @@ async def put(
             data,
             actor_id=actor or w.manager,
             can_manage=can_manage,
-            tenant_id=str(w.manager),
+            tenant_id=str(w.tenants[w.manager]),
         )
         await s.commit()
         return row

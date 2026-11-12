@@ -8,11 +8,10 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Mail, Megaphone, X } from 'lucide-react';
+import { Megaphone, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { APP_VERSION } from '@/shared/lib/version';
 import {
-  converterMailtoUrl,
   converterReportUrl,
   dismissConverterNotice,
   isConverterNoticeActive,
@@ -57,14 +56,6 @@ export function ConverterReleaseNotice({
             className="text-xs font-semibold text-oe-blue hover:underline"
           >
             {t('converter_notice.report', { defaultValue: 'Report a problem' })}
-          </a>
-          <a
-            href={converterMailtoUrl(info)}
-            data-testid="converter-notice-email"
-            className="inline-flex items-center gap-1 text-xs font-medium text-content-secondary hover:underline"
-          >
-            <Mail size={12} aria-hidden="true" />
-            {t('converter_notice.email', { defaultValue: 'Write to us by email' })}
           </a>
         </div>
       </div>

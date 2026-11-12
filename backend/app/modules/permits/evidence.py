@@ -135,7 +135,7 @@ def warnings(readiness: dict[str, Any], gate_code: str, project_id: uuid.UUID) -
 
 
 async def roadmap_and_register(
-    session: Any, project_id: uuid.UUID, attempt: GateAttempt, area: Any
+    session: Any, project_id: uuid.UUID, attempt: GateAttempt, area: Any, *, today: date | None = None
 ) -> list[EvidenceItem]:
     from app.modules.permits.service import PermitService
 
@@ -146,7 +146,9 @@ async def roadmap_and_register(
     if (reason := await _missing(session, project_id, hosting)) is not None:
         return [unresolved(ROADMAP_PROVIDER, attempt, reason, project_id)]
     svc = PermitService(session)
-    today = datetime.now(UTC).date()
+    today = (
+        today if today is not None else datetime.now(UTC).date()
+    )  # the reference day is a parameter; production callers pass nothing and get the real date
     out: list[EvidenceItem] = []
     if area.code == hosting.roadmap_area:
         if not hosting.phases_tagged:
@@ -160,7 +162,7 @@ async def roadmap_and_register(
 
 
 async def start_and_handover(
-    session: Any, project_id: uuid.UUID, attempt: GateAttempt, area: Any
+    session: Any, project_id: uuid.UUID, attempt: GateAttempt, area: Any, *, today: date | None = None
 ) -> list[EvidenceItem]:
     from app.modules.permits.service import PermitService
 
@@ -175,7 +177,9 @@ async def start_and_handover(
     if not hosting.phases_tagged:
         return [unresolved(GATE_PROVIDER, attempt, NO_PHASE_TAGS, project_id)]
     svc = PermitService(session)
-    today = datetime.now(UTC).date()
+    today = (
+        today if today is not None else datetime.now(UTC).date()
+    )  # the reference day is a parameter; production callers pass nothing and get the real date
     out: list[EvidenceItem] = []
     for gate in hosting.gates(phase):
         r = await svc.readiness(project_id, gate, today, needed_from=needed_from(read, today))

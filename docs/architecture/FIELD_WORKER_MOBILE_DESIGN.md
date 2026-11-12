@@ -1,7 +1,7 @@
 # Field Worker Mobile Surface — Design Document
 
 Status: DESIGN (not yet implemented)
-Owner: Artem (info@datadrivenconstruction.io)
+Owner: Artem
 Last revised: 2026-05-24
 Target release: v4.8 (pilot) / v5.0 (full role matrix)
 Pilot scope: Daily Diary surface only, behind a new `field_worker` role
@@ -123,7 +123,7 @@ bottom-nav + card-list layout under a new `/field` route.
 `frontend/vite.config.ts` already wires `vite-plugin-pwa` with:
 
 * `registerType: 'autoUpdate'` + `clientsClaim` / `skipWaiting`
-* Manifest: name `OpenConstructionERP`, short_name `OCERP`, theme
+* Manifest: name `Construction AI OS`, short_name `CAIOS`, theme
   `#0284c7`, standalone, 5 SVG icons (192/256/384/512/maskable-512) in
   `frontend/public/pwa/`.
 * Workbox runtime caches: `oce-static-assets` (CacheFirst, 30 d),
@@ -710,4 +710,4 @@ Photos are the heavy payload. The pilot uses the existing
   `frontend/src/shared/ui/PWAInstallPrompt.tsx` — existing offline /
   install-prompt UX
 
-Questions or scope changes: email info@datadrivenconstruction.io.
+Questions or scope changes: open an issue in this repository.

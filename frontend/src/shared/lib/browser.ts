@@ -4,7 +4,7 @@
  * Browser helpers that stay safe outside a secure context.
  *
  * Several Web APIs only exist when the page is a "secure context": HTTPS, or
- * http://localhost / 127.0.0.1. A self-hosted OpenConstructionERP reached over
+ * http://localhost / 127.0.0.1. A self-hosted instance reached over
  * plain http://<server-ip> is NOT a secure context, so `crypto.randomUUID` and
  * `navigator.clipboard` are simply `undefined` there. Calling them throws
  * (e.g. "crypto.randomUUID is not a function" when uploading a DWG), which used

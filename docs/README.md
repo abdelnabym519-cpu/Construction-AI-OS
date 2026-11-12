@@ -1,6 +1,6 @@
-# OpenConstructionERP documentation
+# Construction AI OS documentation
 
-OpenConstructionERP is an open, self-hosted platform for construction estimating and project delivery. It covers the whole job in one place: build a bill of quantities, take off quantities from drawings and models, price the work against national cost bases, turn a BIM model into cost and carbon, run a tender, plan and control the programme, and capture what happens on site. It is modular, so you enable only the parts you need, and 193 modules ship in the box.
+Construction AI OS is an open, self-hosted platform for construction estimating and project delivery. It covers the whole job in one place: build a bill of quantities, take off quantities from drawings and models, price the work against national cost bases, turn a BIM model into cost and carbon, run a tender, plan and control the programme, and capture what happens on site. It is modular, so you enable only the parts you need, and 193 modules ship in the box.
 
 This page is the map for the written documentation. Pick the path that matches why you are here, or scroll the sections below.
 
@@ -48,7 +48,7 @@ Work with the assistant:
 
 ## Build on the platform
 
-For developers extending or building on OpenConstructionERP.
+For developers extending or building on Construction AI OS.
 
 - [Platform and builder guide](./platform/README.md) - the developer story: the module loader, manifests, auto-discovery, events, hooks, and the first-module tutorial.
 - [Module development quickstart](./module-development/quickstart.md) - zero to a running module in about ten minutes.
