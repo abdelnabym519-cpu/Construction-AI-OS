@@ -1,6 +1,7 @@
 // DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 // Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 import { ConverterReleaseNotice } from '@/shared/ui/ConverterReleaseNotice';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -1779,7 +1780,7 @@ export function SettingsPage() {
               to="/about"
               className="inline-flex items-center gap-1 text-xs text-content-tertiary hover:text-oe-blue transition-colors"
             >
-              {t('settings.about_link', { defaultValue: 'About OpenConstructionERP' })}
+              {t('settings.about_link', { defaultValue: `About ${APP_NAME}` })}
               <ChevronRight size={11} />
             </Link>
           </div>
@@ -1951,7 +1952,7 @@ export function SettingsPage() {
                         {t('settings.sign_out_title', { defaultValue: 'Sign out of all sessions' })}
                       </p>
                       <p className="text-xs text-content-secondary mt-0.5">
-                        {t('settings.sign_out_desc', { defaultValue: 'You will need to enter your credentials to access OpenConstructionERP again.' })}
+                        {t('settings.sign_out_desc', { defaultValue: `You will need to enter your credentials to access ${APP_NAME} again.` })}
                       </p>
                     </div>
                     <Button
@@ -2323,7 +2324,7 @@ export function SettingsPage() {
               to="/about"
               className="inline-flex items-center gap-1 text-sm text-content-tertiary hover:text-oe-blue transition-colors"
             >
-              {t('settings.about_link', { defaultValue: 'About OpenConstructionERP' })}
+              {t('settings.about_link', { defaultValue: `About ${APP_NAME}` })}
               <ChevronRight size={12} />
             </Link>
           </div>

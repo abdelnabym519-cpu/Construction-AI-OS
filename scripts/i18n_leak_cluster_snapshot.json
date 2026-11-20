@@ -1579,17 +1579,6 @@
   },
   {
     "locale_set": [
-      "de",
-      "es",
-      "es-CL",
-      "es-CO",
-      "es-MX"
-    ],
-    "key_count_at_seed": 3,
-    "note": "Videos is the German and the Spanish word as well (nav.videos, videos.stat_videos, videos.view_videos). Checked in de and es; ru, fr and pt translate it."
-  },
-  {
-    "locale_set": [
       "fil",
       "fr",
       "ro",

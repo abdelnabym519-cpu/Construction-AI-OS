@@ -1,0 +1,4 @@
+{
+  "_comment": "Per-file counts of promotional strings in the backend surfaces whose text reaches a user: e-mail templates, PDF and export producer strings, OpenAPI documentation and CLI output. Labelled debt, not permission - the guard fails if a count grows or a new file appears. The target is an empty file.",
+  "counts": {}
+}

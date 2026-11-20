@@ -1,6 +1,6 @@
 # oe-sdk
 
-The module SDK for OpenConstructionERP. It gives a module author one clean
+The module SDK for Construction AI OS. It gives a module author one clean
 import surface for the platform building blocks: the manifest, the event bus,
 the hook registry, the validation engine, the RBAC registry and the shared
 router dependencies.
@@ -15,7 +15,7 @@ sync, and nothing here hides the core: `from oe_sdk import event_bus` and
 ## Install
 
 The SDK re-exports the platform core (the `app` package), which ships with the
-OpenConstructionERP backend. Install the backend, then the SDK.
+Construction AI OS backend. Install the backend, then the SDK.
 
 For local work in the monorepo, install both editable so nothing is downloaded:
 

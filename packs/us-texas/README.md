@@ -91,7 +91,7 @@ rather than describing them.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules then
+This pack ships inside Construction AI OS. Activate it from Modules then
 Packs: click Rescan, find "Texas Construction Pack", then Activate pack.
 
 To run a workspace that boots straight into it:

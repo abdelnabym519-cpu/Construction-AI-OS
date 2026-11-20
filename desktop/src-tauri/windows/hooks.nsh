@@ -135,7 +135,7 @@
 
 !macro OE_STOP_THIS_INSTALL
   Push $0
-  DetailPrint "Closing OpenConstructionERP..."
+  DetailPrint "Closing Construction AI OS..."
   ; Hand the install directory to the script below without quoting it.
   System::Call 'kernel32::SetEnvironmentVariable(t "OE_STOP_DIR", t "$INSTDIR")'
   ; Close the app window (which stops its backend cleanly), give it a bounded

@@ -1,5 +1,11 @@
 # Author
 
+> This repository distributes **Construction AI OS**, a modified fork of the original
+> OpenConstructionERP project. The authorship statement below describes the ORIGINAL
+> work and is preserved as attribution (see the NOTICE preamble for the scope of the
+> modifications in this distribution).
+
+
 OpenConstructionERP is authored, owned and maintained by **Artem Boiko**, founder of
 [DataDrivenConstruction](https://datadrivenconstruction.io). Artem is the author of the
 CWICR cost database (55,000+ items, 24 languages), the cad2data pipeline, and has 10+

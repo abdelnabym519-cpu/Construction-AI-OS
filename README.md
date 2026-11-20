@@ -1,29 +1,25 @@
 <div align="center">
 
-# OpenConstructionERP
+# Construction AI OS
 
 ### A leading open-source workspace for construction project management
 
-<img src="docs/screenshots/hero-overview.png" alt="OpenConstructionERP - open-source construction ERP for BOQ, BIM takeoff, DWG/PDF quantification and 5D cost modeling" width="900" />
+<sub>A modified, independently maintained distribution of
+<a href="https://github.com/datadrivenconstruction/OpenConstructionERP">OpenConstructionERP</a>
+by Artem Boiko / DataDrivenConstruction (AGPL-3.0-or-later). Attribution and what changed: <a href="NOTICE">NOTICE</a>.</sub>
 
 Professional BOQ, CAD and BIM takeoff, 4D scheduling, 5D cost model, and tendering - all in one self-hosted platform.
 
 **Like WordPress for construction companies** - pick modules from the marketplace, drop in your own, or replace ours with custom-built ones. Same plug-and-play model, but for BOQ, scheduling, cost control, BIM, and tendering.
 
-[▶ Watch the 12-min walkthrough](https://www.youtube.com/watch?v=X06cIaroAeI) · [Demo](https://openconstructionerp.com) · [Documentation](https://openconstructionerp.com/docs) · [Build on it](DEVELOPING.md) · [Community chat (Telegram)](https://t.me/datadrivenconstruction) · [Report Bug](https://github.com/datadrivenconstruction/OpenConstructionERP/issues)
+[Source code](https://github.com/abdelnabym519-cpu/Construction-AI-OS) · [Documentation](docs/) · [Build on it](DEVELOPING.md) · [Report an issue](https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues)
 
 <!-- Each badge row is one source line on purpose. A newline between two badges
      renders as a line break here, which stacks them into a single column. -->
-[![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE) [![Version](https://img.shields.io/github/v/release/datadrivenconstruction/OpenConstructionERP?label=version&color=green)](https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest) [![Release downloads](https://img.shields.io/github/downloads/datadrivenconstruction/OpenConstructionERP/total?label=downloads&color=brightgreen)](https://github.com/datadrivenconstruction/OpenConstructionERP/releases) [![PyPI](https://img.shields.io/pypi/v/openconstructionerp?color=informational&label=pypi)](https://pypi.org/project/openconstructionerp/) [![Downloads (pepy · per month)](https://static.pepy.tech/personalized-badge/openconstructionerp?period=month&units=international_system&left_color=grey&right_color=blue&left_text=downloads%20(pepy%20%C2%B7%20per%20month))](https://pepy.tech/project/openconstructionerp) [![Stars](https://img.shields.io/github/stars/datadrivenconstruction/OpenConstructionERP?style=flat&logo=github)](https://github.com/datadrivenconstruction/OpenConstructionERP/stargazers) [![Last commit](https://img.shields.io/github/last-commit/datadrivenconstruction/OpenConstructionERP?color=informational)](https://github.com/datadrivenconstruction/OpenConstructionERP/commits/main)
-![Languages](https://img.shields.io/badge/languages-44-orange) ![Cost Items](https://img.shields.io/badge/cost_items-120%2C000%2B-red) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/datadrivenconstruction/OpenConstructionERP/badge)](https://securityscorecards.dev/viewer/?uri=github.com/datadrivenconstruction/OpenConstructionERP) [![CodeQL](https://github.com/datadrivenconstruction/OpenConstructionERP/actions/workflows/codeql.yml/badge.svg)](https://github.com/datadrivenconstruction/OpenConstructionERP/actions/workflows/codeql.yml) [![Signed releases](https://img.shields.io/badge/releases-Sigstore_signed-8250df)](SECURITY.md)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE) [![Version](https://img.shields.io/github/v/release/abdelnabym519-cpu/Construction-AI-OS?label=version&color=green)](https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest) [![Release downloads](https://img.shields.io/github/downloads/abdelnabym519-cpu/Construction-AI-OS/total?label=downloads&color=brightgreen)](https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases) [![PyPI](https://img.shields.io/pypi/v/openconstructionerp?color=informational&label=pypi)](https://pypi.org/project/openconstructionerp/) [![Downloads (pepy · per month)](https://static.pepy.tech/personalized-badge/openconstructionerp?period=month&units=international_system&left_color=grey&right_color=blue&left_text=downloads%20(pepy%20%C2%B7%20per%20month))](https://pepy.tech/project/openconstructionerp) [![Stars](https://img.shields.io/github/stars/abdelnabym519-cpu/Construction-AI-OS?style=flat&logo=github)](https://github.com/abdelnabym519-cpu/Construction-AI-OS/stargazers) [![Last commit](https://img.shields.io/github/last-commit/abdelnabym519-cpu/Construction-AI-OS?color=informational)](https://github.com/abdelnabym519-cpu/Construction-AI-OS/commits/main)
+![Languages](https://img.shields.io/badge/languages-44-orange) ![Cost Items](https://img.shields.io/badge/cost_items-120%2C000%2B-red) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/abdelnabym519-cpu/Construction-AI-OS/badge)](https://securityscorecards.dev/viewer/?uri=github.com/abdelnabym519-cpu/Construction-AI-OS) [![CodeQL](https://github.com/abdelnabym519-cpu/Construction-AI-OS/actions/workflows/codeql.yml/badge.svg)](https://github.com/abdelnabym519-cpu/Construction-AI-OS/actions/workflows/codeql.yml) [![Signed releases](https://img.shields.io/badge/releases-Sigstore_signed-8250df)](SECURITY.md)
 
-<video src="https://github.com/user-attachments/assets/20b9b585-93ac-4829-a3dc-0ede9ca9e2fc" controls width="800" playsinline>
-  <a href="https://github.com/datadrivenconstruction/OpenConstructionERP/releases/download/v2.0.0/oce_full_demo.mp4">▶ 1-minute teaser</a>
-</video>
-
-<sub><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/device-camera-video-dark.svg"><img src="docs/readme-icons/device-camera-video-light.svg" width="14" align="center" alt=""></picture> <b>1-minute teaser above</b> · for the full 12-minute walkthrough → <a href="https://www.youtube.com/watch?v=X06cIaroAeI"><b>watch on YouTube</b></a> · onboarding → BOQ → BIM → DWG → PDF → AI → dashboard</sub>
-
-<img src="docs/screenshots/banner.png" alt="OpenConstructionERP: a honeycomb of the eight company types and fifteen professional roles the platform is built around, over a second honeycomb of its 190+ backend modules and the two shared libraries drawn beside them, each cell coloured by the category its own manifest declares and shaded by how many of the others it is wired to" width="800" />
+<img src="docs/screenshots/banner.png" alt="Construction AI OS: a honeycomb of the eight company types and fifteen professional roles the platform is built around, over a second honeycomb of its 190+ backend modules and the two shared libraries drawn beside them, each cell coloured by the category its own manifest declares and shaded by how many of the others it is wired to" width="800" />
 
 <br/><br/>
 
@@ -31,9 +27,9 @@ Professional BOQ, CAD and BIM takeoff, 4D scheduling, 5D cost model, and tenderi
 
 <sub>No Python, no Docker, nothing to set up. Pick your system and run it.</sub>
 
-<a href="https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest"><img src="https://img.shields.io/badge/Windows-Download%20.exe-0078D6?style=for-the-badge&logo=windows11&logoColor=white" alt="Download OpenConstructionERP for Windows" height="46"></a> &nbsp;&nbsp; <a href="https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest"><img src="https://img.shields.io/badge/macOS-Apple%20Silicon%20.dmg-111111?style=for-the-badge&logo=apple&logoColor=white" alt="Download OpenConstructionERP for macOS on Apple Silicon" height="46"></a> &nbsp;&nbsp; <a href="https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest"><img src="https://img.shields.io/badge/Linux-.deb%20%2F%20.AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Download OpenConstructionERP for Linux" height="46"></a>
+<a href="https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest"><img src="https://img.shields.io/badge/Windows-Download%20.exe-0078D6?style=for-the-badge&logo=windows11&logoColor=white" alt="Download Construction AI OS for Windows" height="46"></a> &nbsp;&nbsp; <a href="https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest"><img src="https://img.shields.io/badge/macOS-Apple%20Silicon%20.dmg-111111?style=for-the-badge&logo=apple&logoColor=white" alt="Download Construction AI OS for macOS on Apple Silicon" height="46"></a> &nbsp;&nbsp; <a href="https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest"><img src="https://img.shields.io/badge/Linux-.deb%20%2F%20.AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Download Construction AI OS for Linux" height="46"></a>
 
-<sub>Not sure which file? <a href="https://openconstructionerp.com/download"><b>openconstructionerp.com/download</b></a> picks the right one for you automatically. Prefer the terminal? <code>pip install openconstructionerp</code> or Docker, see <a href="#quick-start">Quick Start</a> below.</sub>
+<sub>Prefer the terminal? <code>pip install openconstructionerp</code> or Docker, see <a href="#quick-start">Quick Start</a> below.</sub>
 
 <br/>
 
@@ -65,8 +61,7 @@ Professional BOQ, CAD and BIM takeoff, 4D scheduling, 5D cost model, and tenderi
 <td valign="top">
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/rocket-dark.svg"><img src="docs/readme-icons/rocket-light.svg" width="14" align="center" alt=""></picture> **Get Started**
-- [Video guides](#video-guides)
-- [Why OpenConstructionERP?](#why-openconstructionerp)
+- [Why Construction AI OS?](#why-construction-ai-os)
 - [A Look Inside](#a-look-inside)
 - [Quick Start](#quick-start)
 - [Demo Accounts](#demo-accounts)
@@ -124,90 +119,9 @@ Professional BOQ, CAD and BIM takeoff, 4D scheduling, 5D cost model, and tenderi
 
 ---
 
-## Video guides
+## Why Construction AI OS?
 
-Short, practical videos, most of them from the [OpenConstruction Academy](https://www.youtube.com/channel/UCQ3IWLMLnBFwNeG5VBxXQ5Q) YouTube channel. Each one follows a real task in the app, from installing it to getting paid. Videos marked DE are in German, the rest are in English.
-
-**Start here, estimating and BOQ**
-
-<table>
-<tr>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=WjDK-uk9b1w"><img src="https://i.ytimg.com/vi/WjDK-uk9b1w/hqdefault.jpg" alt="Install and set up your first project" width="100%"></a><br/><sub><b>Install and set up your first project</b> · 4:41</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=X06cIaroAeI"><img src="https://i.ytimg.com/vi/X06cIaroAeI/hqdefault.jpg" alt="Full product walkthrough" width="100%"></a><br/><sub><b>Full product walkthrough</b> · 12:00</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=zGgfX19b3gc"><img src="https://i.ytimg.com/vi/zGgfX19b3gc/hqdefault.jpg" alt="Build an estimate step by step" width="100%"></a><br/><sub><b>Build an estimate step by step</b> · 4:48</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=FRI5_7CsZT0"><img src="https://i.ytimg.com/vi/FRI5_7CsZT0/hqdefault.jpg" alt="Overhead, profit and contingency" width="100%"></a><br/><sub><b>Overhead, profit and contingency</b> · 3:54</sub></td>
-</tr>
-<tr>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=LejLQ4skfvM"><img src="https://i.ytimg.com/vi/LejLQ4skfvM/hqdefault.jpg" alt="Price a construction job" width="100%"></a><br/><sub><b>Price a construction job</b> · 4:49</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=tZEdPehNE6Q"><img src="https://i.ytimg.com/vi/tZEdPehNE6Q/hqdefault.jpg" alt="Ein Leistungsverzeichnis aufbauen" width="100%"></a><br/><sub><b>Ein Leistungsverzeichnis aufbauen</b> · 5:02 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=OJ1FMzwY3FM"><img src="https://i.ytimg.com/vi/OJ1FMzwY3FM/hqdefault.jpg" alt="Vom vollständigen LV zur Kostenbasis" width="100%"></a><br/><sub><b>Vom vollständigen LV zur Kostenbasis</b> · 10:15 · DE</sub></td>
-<td width="25%" align="center" valign="middle"><a href="https://www.youtube.com/channel/UCQ3IWLMLnBFwNeG5VBxXQ5Q/videos"><img src="https://img.shields.io/badge/More_videos-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="More videos"></a><br/><sub>All guides on the OpenConstruction Academy channel</sub></td>
-</tr>
-</table>
-
-**Cost databases, quantities and schedule**
-
-<table>
-<tr>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=kEN-F92hNZc"><img src="https://i.ytimg.com/vi/kEN-F92hNZc/hqdefault.jpg" alt="Check a unit rate in the cost database" width="100%"></a><br/><sub><b>Check a unit rate in the cost database</b> · 4:02</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=qFGKRIXHM8w"><img src="https://i.ytimg.com/vi/qFGKRIXHM8w/hqdefault.jpg" alt="Einheitspreise und Kosten nachvollziehen" width="100%"></a><br/><sub><b>Einheitspreise und Kosten nachvollziehen</b> · 6:36 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=uBhNqXw2dm0"><img src="https://i.ytimg.com/vi/uBhNqXw2dm0/hqdefault.jpg" alt="Kostenquellen und Ressourcen anpassen" width="100%"></a><br/><sub><b>Kostenquellen und Ressourcen anpassen</b> · 7:35 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=YEk8F3W28po"><img src="https://i.ytimg.com/vi/YEk8F3W28po/hqdefault.jpg" alt="Mengen aus PDF und DWG ermitteln" width="100%"></a><br/><sub><b>Mengen aus PDF und DWG ermitteln</b> · 5:55 · DE</sub></td>
-</tr>
-<tr>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=KI6e3s7XScY"><img src="https://i.ytimg.com/vi/KI6e3s7XScY/hqdefault.jpg" alt="BIM-Modelle verstehen und nutzen" width="100%"></a><br/><sub><b>BIM-Modelle verstehen und nutzen</b> · 5:41 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=bGUpude30wc"><img src="https://i.ytimg.com/vi/bGUpude30wc/hqdefault.jpg" alt="Abhängigkeiten und Ressourceneinsatz planen" width="100%"></a><br/><sub><b>Abhängigkeiten und Ressourceneinsatz planen</b> · 4:31 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=fKGh2e6pJqc"><img src="https://i.ytimg.com/vi/fKGh2e6pJqc/hqdefault.jpg" alt="Schedule to substantial performance" width="100%"></a><br/><sub><b>Schedule to substantial performance</b> · 4:49</sub></td>
-<td width="25%" align="center" valign="middle"><a href="https://www.youtube.com/watch?v=IM9hK6kCZCs"><img src="https://img.shields.io/badge/German_series-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="German series"></a><br/><sub>The Landshut learning project from start to finish · DE</sub></td>
-</tr>
-</table>
-
-**Tendering, procurement, finance and contracts**
-
-<table>
-<tr>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=7u7Ur3ZFe94"><img src="https://i.ytimg.com/vi/7u7Ur3ZFe94/hqdefault.jpg" alt="Tender work to subcontractors" width="100%"></a><br/><sub><b>Tender work to subcontractors</b> · 4:23</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=T3FBggAeFJ4"><img src="https://i.ytimg.com/vi/T3FBggAeFJ4/hqdefault.jpg" alt="GAEB-Dateien kontrolliert austauschen" width="100%"></a><br/><sub><b>GAEB-Dateien kontrolliert austauschen</b> · 5:34 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=75sjLEjXiBc"><img src="https://i.ytimg.com/vi/75sjLEjXiBc/hqdefault.jpg" alt="Angebote prüfen und Vergabe vorbereiten" width="100%"></a><br/><sub><b>Angebote prüfen und Vergabe vorbereiten</b> · 3:04 · DE</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=G0a5pEiXaS4"><img src="https://i.ytimg.com/vi/G0a5pEiXaS4/hqdefault.jpg" alt="Material und Teillieferung verfolgen" width="100%"></a><br/><sub><b>Material und Teillieferung verfolgen</b> · 7:01 · DE</sub></td>
-</tr>
-<tr>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=b-qv_emcDwc"><img src="https://i.ytimg.com/vi/b-qv_emcDwc/hqdefault.jpg" alt="Monthly progress draw (CCDC 2)" width="100%"></a><br/><sub><b>Monthly progress draw (CCDC 2)</b> · 4:58</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=aQlkuS7ShCM"><img src="https://i.ytimg.com/vi/aQlkuS7ShCM/hqdefault.jpg" alt="The construction payment clock" width="100%"></a><br/><sub><b>The construction payment clock</b> · 4:35</sub></td>
-<td width="25%" valign="top"><a href="https://www.youtube.com/watch?v=tj7McUl37X0"><img src="https://i.ytimg.com/vi/tj7McUl37X0/hqdefault.jpg" alt="Manage change orders" width="100%"></a><br/><sub><b>Manage change orders</b> · 4:45</sub></td>
-<td width="25%" align="center" valign="middle"><a href="https://www.youtube.com/watch?v=CMuMMej0zwM"><img src="https://img.shields.io/badge/French_series-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="French series"></a><br/><sub>Québec: estimating, BSDQ tenders, billing and handover · FR</sub></td>
-</tr>
-</table>
-
-**Playlists by country and language**
-
-Each series follows one construction project in one country, in that country's language, with its own contracts, standards and payment rules.
-
-| | Series | Language | Videos | What it covers |
-|:-:|---|---|:-:|---|
-| 🇺🇸 | [Builder's Playbook USA](https://www.youtube.com/playlist?list=PLWgzwe9nHkSc) | English | 10 | Install, estimate, bid leveling, budget vs actual, schedule, subcontractors, site log, KPIs |
-| 🇬🇧 | [Builder's Playbook UK](https://www.youtube.com/playlist?list=PLTRtkYLR23qM) | English | 6 | NRM 2 tender, subcontractor bids, JCT interim payments, pay less notice, CIS and VAT reverse charge, variations |
-| 🇨🇦 | [Builder's Playbook Canada](https://www.youtube.com/playlist?list=PLPZV4i5ViBm8) | English | 6 | Pricing, tendering, CCDC 2 progress draw, prompt payment, change orders, substantial performance |
-| ⚜️ | [Builder's Playbook Québec](https://www.youtube.com/playlist?list=PLey59QidNON0) | Français, English | 5 | Getting started, estimating, BSDQ bids, billing and legal hypothec, handover |
-| 🇫🇷 | [OpenConstructionERP en français, gérer un chantier](https://www.youtube.com/playlist?list=PLEhAODe5YAXM) | Français | 4 | Budget, purchasing and stock, site hours and equipment, invoice and payment |
-| 🇩🇪 | [OpenConstructionERP auf Deutsch, Projekt Landshut](https://www.youtube.com/playlist?list=PLKN9p-CuMMkE) | Deutsch | 12 | Projektstart, Planmanagement, Mengen, BIM, LV, Einheitspreise, GAEB, Vergabe, Bauablauf, Material, Kostenbasis |
-| 🇩🇪 | [Kosten nach DIN 276](https://www.youtube.com/playlist?list=PLEvGjPeBbuxQ) | Deutsch | 8 | Kostenrahmen, Kostenschätzung, Kostenberechnung, LV und GAEB, Vergabe, Baustart, Nachträge, Abnahme und Schlussrechnung |
-| 🇪🇸 | [Builder's Playbook España](https://www.youtube.com/playlist?list=PLHgtnDPr3Rjg) | Español | 8 | Certificaciones, oferta desde BC3, comparativo, precios contradictorios, cierre mensual, recepción, retención, partes de obra |
-| 🇮🇹 | [Builder's Playbook Italia](https://www.youtube.com/playlist?list=PLObqqyP8chDs) | Italiano | 7 | Computo metrico, ribasso, subappalto, giornale di cantiere, SAL, conto finale, collaudo |
-| 🇧🇬 | [Builder's Playbook България](https://www.youtube.com/playlist?list=PLfSvz7emI6lQ) | Български | 9 | Акт 19, КСС, анализ на цена, договор и график, подизпълнители, заменителна таблица, окончателен акт, паричен поток, дневник |
-| 🇭🇷 | [Builder's Playbook Hrvatska](https://www.youtube.com/playlist?list=PLP4TpwP1yVyI) | Hrvatski | 5 | Ugovoreni troškovnik, ulazni računi, podizvođači, privremena situacija, višak radova |
-| 🇨🇳 | [Builder's Playbook 中国](https://www.youtube.com/playlist?list=PLOCZ6EOWyC_A) | 中文 | 8 | 工程量清单报价, 预付款, 暂估价招标, 进度款, 签证变更, 材料调差, 成本核算, 结算审计 |
-
-Also on the channel: [The uberization of construction (ETH Zürich)](https://www.youtube.com/watch?v=R_PQQHXY-rQ) (14:22), a talk on where construction software is heading.
-
-**[Browse every video on the OpenConstruction Academy channel](https://www.youtube.com/channel/UCQ3IWLMLnBFwNeG5VBxXQ5Q/videos)**
-
-
----
-
-## Why OpenConstructionERP?
-
-Construction cost estimation software is expensive, closed-source, and locked to specific regions. OpenConstructionERP changes that.
+Construction cost estimation software is expensive, closed-source, and locked to specific regions. Construction AI OS changes that.
 
 | What you get | How it works |
 |-------------|-------------|
@@ -240,7 +154,7 @@ The entire UI ships in **44 languages**, including full right-to-left support fo
 <thead>
 <tr>
 <th align="left">Capability</th>
-<th align="center">OpenConstructionERP</th>
+<th align="center">Construction AI OS</th>
 <th align="center">Enterprise<br/>BIM</th>
 <th align="center">CAD<br/>Takeoff</th>
 <th align="center">Legacy<br/>Estimating</th>
@@ -269,91 +183,31 @@ The entire UI ships in **44 languages**, including full right-to-left support fo
 </tbody>
 </table>
 
-<sub>Comparison reflects typical category capabilities based on publicly available information. Pricing is approximate (per-seat, list price) and varies by vendor and region. OpenConstructionERP is an independent open-source project and is not affiliated with any commercial vendor in the categories above.</sub>
+<sub>Comparison reflects typical category capabilities based on publicly available information. Pricing is approximate (per-seat, list price) and varies by vendor and region. Construction AI OS is an independent open-source project and is not affiliated with any commercial vendor in the categories above.</sub>
 
 ---
 
 ## A Look Inside
 
-A quick tour of the main workspaces. Every screen is the real application running the 70-project demo spanning 30+ countries that ships with a fresh install.
+A quick tour of the main workspaces. Each one runs against the 70-project demo spanning 30+ countries that ships with a fresh install.
 
-<table>
-<tr>
-<td align="center" width="50%">
-<strong>Portfolio Dashboard</strong><br/>
-<em>Every project on one live map, with multi-currency totals that are grouped by currency, never blended.</em><br/><br/>
-<img src="docs/screenshots/gallery/portfolio-dashboard.jpg" alt="Portfolio dashboard with world map and KPIs" width="420" />
-</td>
-<td align="center" width="50%">
-<strong>Projects</strong><br/>
-<em>Localized projects worldwide. Each card carries its site map, BIM / DWG / PDF badges and live value.</em><br/><br/>
-<img src="docs/screenshots/gallery/projects.jpg" alt="Projects overview with localized project cards" width="420" />
-</td>
-</tr>
-<tr>
-<td align="center">
-<strong>BOQ Editor</strong><br/>
-<em>Keyboard-first bill of quantities with sections, assemblies, a live quality score and grand total.</em><br/><br/>
-<img src="docs/screenshots/gallery/boq-editor.jpg" alt="Bill of Quantities editor" width="420" />
-</td>
-<td align="center">
-<strong>Cost Database</strong><br/>
-<em>120,000+ priced items across 9 cost bases, bilingual, searchable by code, unit or class.</em><br/><br/>
-<img src="docs/screenshots/gallery/cost-database.jpg" alt="Regional cost databases" width="420" />
-</td>
-</tr>
-<tr>
-<td align="center">
-<strong>3D BIM Viewer</strong><br/>
-<em>Federated models in the browser with a category and storey breakdown. Converted with DDC Converters 2.0.</em><br/><br/>
-<img src="docs/screenshots/gallery/bim-3d-viewer.jpg" alt="3D BIM viewer with element summary" width="420" />
-</td>
-<td align="center">
-<strong>Clash Detection</strong><br/>
-<em>Geometric coordination across federated models, with a clash matrix and BCF export.</em><br/><br/>
-<img src="docs/screenshots/gallery/clash-detection.jpg" alt="Clash detection across federated models" width="420" />
-</td>
-</tr>
-<tr>
-<td align="center">
-<strong>PDF Takeoff</strong><br/>
-<em>Drop a drawing, let AI extract the quantities, then push them straight into the BOQ.</em><br/><br/>
-<img src="docs/screenshots/gallery/pdf-takeoff.jpg" alt="AI-assisted PDF takeoff" width="420" />
-</td>
-<td align="center">
-<strong>AI Estimate</strong><br/>
-<em>Turn text, a photo, a PDF or a spreadsheet into a scoped BOQ in seconds, with confidence scores.</em><br/><br/>
-<img src="docs/screenshots/gallery/ai-estimate.jpg" alt="AI quick estimate" width="420" />
-</td>
-</tr>
-<tr>
-<td align="center">
-<strong>Validation</strong><br/>
-<em>Built-in DIN 276, NRM and MasterFormat rules score every BOQ with a traffic-light report.</em><br/><br/>
-<img src="docs/screenshots/gallery/validation.jpg" alt="Validation report with traffic-light score" width="420" />
-</td>
-<td align="center">
-<strong>Cross-Project Analytics</strong><br/>
-<em>Portfolio KPIs grouped by currency: budget, actuals and variance, project by project.</em><br/><br/>
-<img src="docs/screenshots/gallery/analytics.jpg" alt="Cross-project analytics grouped by currency" width="420" />
-</td>
-</tr>
-<tr>
-<td align="center" colspan="2">
-<strong>Finance &amp; Earned Value</strong><br/>
-<em>Budgets, invoices, payments and earned value tracked against the estimate.</em><br/><br/>
-<img src="docs/screenshots/gallery/finance.jpg" alt="Finance and earned value management" width="420" />
-</td>
-</tr>
-</table>
+- **Portfolio Dashboard** - every project on one live map, with multi-currency totals grouped by currency, never blended
+- **Projects** - localized projects worldwide; each card carries its site map, BIM / DWG / PDF badges and live value
+- **BOQ Editor** - keyboard-first bill of quantities with sections, assemblies, a live quality score and grand total
+- **Cost Database** - 120,000+ priced items across 9 cost bases, bilingual, searchable by code, unit or class
+- **3D BIM Viewer** - federated models in the browser with a category and storey breakdown, converted with DDC Converters 2.0
+- **Clash Detection** - geometric coordination across federated models, with a clash matrix and BCF export
+- **PDF Takeoff** - drop a drawing, let AI extract the quantities, then push them straight into the BOQ
+- **AI Estimate** - turn text, a photo, a PDF or a spreadsheet into a scoped BOQ in seconds, with confidence scores
+- **Validation** - built-in DIN 276, NRM and MasterFormat rules score every BOQ with a traffic-light report
+- **Cross-Project Analytics** - portfolio KPIs grouped by currency: budget, actuals and variance, project by project
+- **Finance & Earned Value** - budgets, invoices, payments and earned value tracked against the estimate
 
 ---
 
 ## Key Features
 
 ### <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/graph-dark.svg"><img src="docs/readme-icons/graph-light.svg" width="14" align="center" alt=""></picture> Bill of Quantities (BOQ) Management
-
-<img src="docs/screenshots/feature-boq.jpg" alt="BOQ Editor - Create, manage and analyze Bills of Quantities" width="800" />
 
 Build professional cost estimates with a powerful BOQ editor. The full lifecycle - from first sketch to final tender submission:
 
@@ -369,8 +223,6 @@ Build professional cost estimates with a powerful BOQ editor. The full lifecycle
 
 ### <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/database-dark.svg"><img src="docs/readme-icons/database-light.svg" width="14" align="center" alt=""></picture> Cost Databases & Resource Catalog
 
-<img src="docs/screenshots/feature-databases.jpg" alt="Cost Database - 120,000+ items across 9 cost bases" width="800" />
-
 - **Cost bases** - 120,000+ cost items across 9 bases and 40+ markets: the global CWICR database covering all major construction trades, plus 8 national bases built on each country's own norm system (China, Turkey, Brazil, Spain, Italy, Greece, Vietnam, Indonesia)
 - **Smart search** - Find items by description, code, or classification. AI-powered semantic search matches meaning, not just keywords ("concrete wall" finds "reinforced partition C30/37")
 - **Resource catalog** - 7,000+ materials, equipment, labor rates, and operators. Build custom assemblies from catalog items
@@ -378,8 +230,6 @@ Build professional cost estimates with a powerful BOQ editor. The full lifecycle
 - **Import your data** - Upload your own cost database from Excel, CSV, or connect via API
 
 ### <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/tools-dark.svg"><img src="docs/readme-icons/tools-light.svg" width="14" align="center" alt=""></picture> CAD/BIM Takeoff & AI Estimation
-
-<img src="docs/screenshots/feature-takeoff-ai.jpg" alt="CAD/BIM Takeoff and AI-powered estimation" width="800" />
 
 Extract quantities from any source - drawings, models, text, or photos:
 
@@ -411,14 +261,13 @@ The platform also includes 3D globe visualization (Cesium), property development
 
 ## Quick Start
 
-> **Problem while installing or starting?** See the **[installation help page](https://openconstructionerp.com/install-help)** or the same guide in the repo: [English](docs/INSTALL_TROUBLESHOOTING.md), [Deutsch](docs/INSTALL_TROUBLESHOOTING.de.md), [Русский](docs/INSTALL_TROUBLESHOOTING.ru.md).
+> **Problem while installing or starting?** See the installation guide in the repo: [English](docs/INSTALL_TROUBLESHOOTING.md), [Deutsch](docs/INSTALL_TROUBLESHOOTING.de.md), [Русский](docs/INSTALL_TROUBLESHOOTING.ru.md).
 
 ### Easiest: download the desktop app (no Python, no setup)
 
-Download the installer for your operating system, run it, and OpenConstructionERP opens as a native desktop app. No Python, no pip, no Docker, and no database to set up. Everything runs locally on your machine.
+Download the installer for your operating system, run it, and Construction AI OS opens as a native desktop app. No Python, no pip, no Docker, and no database to set up. Everything runs locally on your machine.
 
-- **[Download for your platform](https://openconstructionerp.com/download)** picks the right file for your OS automatically.
-- Or grab one straight from the **[latest release](https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest)**: Windows `.exe` installer, macOS `.dmg` (Apple Silicon), or Linux `.deb` / `.AppImage`.
+- Grab one straight from the **[latest release](https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest)**: Windows `.exe` installer, macOS `.dmg` (Apple Silicon), or Linux `.deb` / `.AppImage`.
 
 **Your operating system will warn you before it runs the installer, and that is expected.** There is no code signing certificate for this project yet, so the desktop builds are unsigned. On Windows, SmartScreen says "Windows protected your PC"; choose More info, then Run anyway. If Windows 11 Smart App Control blocks the app instead, there is no Run anyway button, and [Windows blocks the app](docs/desktop/WINDOWS_BLOCKED.md) explains the options. On macOS, Gatekeeper says the developer cannot be verified; open the app from the Finder context menu and choose Open, or clear it with `xattr -dr com.apple.quarantine` on the installed app. Linux packages are unaffected. If you would rather verify the download than trust the warning, every release carries `SHA256SUMS` together with a Sigstore signature and certificate, so you can check the bytes you received against what the build produced.
 
@@ -435,7 +284,7 @@ pip install --upgrade openconstructionerp
 openconstructionerp
 ```
 
-That's it. The single wheel ships the backend plus the pre-built React frontend. The first run sets up a local embedded PostgreSQL database (no Docker, no setup), loads the demo data, opens your browser at **http://localhost:8080**, and you sign in with `demo@openconstructionerp.com` / `DemoPass1234!`. No Node.js and no extra services. Every later run, just type `openconstructionerp` again. [PyPI package](https://pypi.org/project/openconstructionerp/).
+That's it. The single wheel ships the backend plus the pre-built React frontend. The first run sets up a local embedded PostgreSQL database (no Docker, no setup), asks whether to load demo data, and opens your browser at **http://localhost:8080**. The first account you register becomes the admin; if you opted into demo data, the demo login (`demo@openconstructionerp.com`) accepts any password on a local install. No Node.js and no extra services. Every later run, just type `openconstructionerp` again. [PyPI package](https://pypi.org/project/openconstructionerp/).
 
 If the `openconstructionerp` command is not found after install, run it through Python instead. This works on every operating system and never depends on PATH:
 
@@ -459,21 +308,21 @@ python -m openconstructionerp
 
 ```bash
 # Linux / macOS
-curl -fsSL https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/scripts/install.sh | bash
 
 # Windows (PowerShell)
-irm https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/scripts/install.ps1 | iex
 ```
 
-If you would rather not think about PATH at all, use this. It picks Docker if installed, otherwise uv, otherwise a dedicated Python virtual environment, installs OpenConstructionERP there, puts the `openconstructionerp` command on your PATH automatically, and finishes with a short panel showing the URL, the demo login and how to start. It also offers to launch right away. Open a new terminal afterwards and `openconstructionerp` just works. Runs at **http://localhost:8080**.
+If you would rather not think about PATH at all, use this. It picks Docker if installed, otherwise uv, otherwise a dedicated Python virtual environment, installs Construction AI OS there, puts the `openconstructionerp` command on your PATH automatically, and finishes with a short panel showing the URL, how to sign in and how to start. It also offers to launch right away. Open a new terminal afterwards and `openconstructionerp` just works. Runs at **http://localhost:8080**.
 
 ### Alternative 2: Docker
 
 From the published image, no clone needed:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/docker-compose.quickstart.yml       -o docker-compose.yml
-curl -fsSL https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionERP/main/docker-compose.quickstart.image.yml -o docker-compose.override.yml
+curl -fsSL https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/docker-compose.quickstart.yml       -o docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/abdelnabym519-cpu/Construction-AI-OS/main/docker-compose.quickstart.image.yml -o docker-compose.override.yml
 echo "POSTGRES_PASSWORD=$(openssl rand -base64 24)" >  .env
 echo "JWT_SECRET=$(openssl rand -hex 32)"           >> .env
 docker compose pull app && docker compose up -d
@@ -482,8 +331,8 @@ docker compose pull app && docker compose up -d
 Or build from source (also the better choice on Apple Silicon):
 
 ```bash
-git clone https://github.com/datadrivenconstruction/OpenConstructionERP.git
-cd OpenConstructionERP
+git clone https://github.com/abdelnabym519-cpu/Construction-AI-OS.git
+cd Construction-AI-OS
 echo "POSTGRES_PASSWORD=$(openssl rand -base64 24)" >  .env
 echo "JWT_SECRET=$(openssl rand -hex 32)"           >> .env
 make quickstart
@@ -494,8 +343,8 @@ Open **http://localhost:8080**. On Windows PowerShell, see [docs/getting-started
 ### Alternative 3: Local development (clone + npm + uvicorn)
 
 ```bash
-git clone https://github.com/datadrivenconstruction/OpenConstructionERP.git
-cd OpenConstructionERP
+git clone https://github.com/abdelnabym519-cpu/Construction-AI-OS.git
+cd Construction-AI-OS
 
 # Install dependencies
 pip install -e ./backend[server]
@@ -513,7 +362,7 @@ Open **http://localhost:5173** - for hacking on the codebase. Requires Python 3.
 
 ### Demo Accounts
 
-Three demo accounts are created on first start. On a local install, sign in to any of them with the password `DemoPass1234!`. To set your own passwords (for a team demo or CI), set these before the first start:
+Demo data is opt-in: it loads only when you answer Yes to the first-run prompt (or set `SEED_DEMO=true`, or `serve --demo`). When it loads, three demo accounts exist. On a local install the demo sign-in accepts any password. To pin passwords instead (for a team demo or CI), set these before the first start:
 
 - `DEMO_USER_PASSWORD` - admin (`demo@openconstructionerp.com`)
 - `DEMO_ESTIMATOR_PASSWORD` - estimator (`estimator@openconstructionerp.com`)
@@ -521,9 +370,9 @@ Three demo accounts are created on first start. On a local install, sign in to a
 
 | Account | Email | Password | Role |
 |---------|-------|----------|------|
-| Admin | `demo@openconstructionerp.com` | `DemoPass1234!` | Full access |
-| Estimator | `estimator@openconstructionerp.com` | `DemoPass1234!` | Estimator |
-| Manager | `manager@openconstructionerp.com` | `DemoPass1234!` | Manager |
+| Admin | `demo@openconstructionerp.com` | any (local demo sign-in) | Full access |
+| Estimator | `estimator@openconstructionerp.com` | any (local demo sign-in) | Estimator |
+| Manager | `manager@openconstructionerp.com` | any (local demo sign-in) | Manager |
 
 > Demo accounts include 70 pre-loaded projects across 30+ countries with complete BOQs, schedules and cost models, from a Berlin residential block and a Paris school to a Dubai warehouse, a Shanghai office tower, a Toronto condo and a Guangzhou renovation.
 >
@@ -553,9 +402,9 @@ Three demo accounts are created on first start. On a local install, sign in to a
 
 ### How the platform turns raw CAD/BIM into structured ERP data
 
-<img src="docs/screenshots/architecture-pipeline.jpg" alt="OpenConstructionERP - Digitalization of Processes: Pipelines for Automatic Data Creation" width="100%" />
+<img src="docs/screenshots/architecture-pipeline.jpg" alt="Construction AI OS - Digitalization of Processes: Pipelines for Automatic Data Creation" width="100%" />
 
-OpenConstructionERP is built around **seven cooperating pipelines** that turn closed CAD/BIM files (RVT, IFC, DWG) into structured, queryable ERP data - without locking you into a proprietary stack. Every module in the platform plugs into one or more of these stages:
+Construction AI OS is built around **seven cooperating pipelines** that turn closed CAD/BIM files (RVT, IFC, DWG) into structured, queryable ERP data - without locking you into a proprietary stack. Every module in the platform plugs into one or more of these stages:
 
 1. **Mining** - collect existing project data (CAD/BIM models, CDE drops, COBie deliverables) into a semi-structured pool. Handled by `cad`, `documents`, `bim_hub`, `file_search` modules + the **DDC Converters 2.0** (RVT/IFC/DWG → canonical JSON).
 2. **QTO Check & Quantity Take-off rules** - apply rule sets per discipline / family / type to extract quantities deterministically. Handled by `takeoff`, `requirements`, `validation`, and the rule editor in `match-elements`.
@@ -601,9 +450,12 @@ The right-hand side of the diagram is the **automatic data retrieval** layer tha
 
 ---
 
-## Project growth
+## Project growth of the original project
 
-<sub>Measured on 30 September 2026 from the GitHub API, PyPI and pypistats.org.</sub>
+<sub>The numbers and charts in this section describe the ORIGINAL
+OpenConstructionERP repository up to the point this distribution
+diverged from it, measured on 30 September 2026 from the GitHub API,
+PyPI and pypistats.org. This repository starts fresh.</sub>
 
 <table>
 <tr>
@@ -620,7 +472,7 @@ The right-hand side of the diagram is the **automatic data retrieval** layer tha
 
 ### Release downloads
 
-<sub>GitHub release assets only, does not include <code>pip install</code> from PyPI, <code>docker pull</code> from GHCR, <code>git clone</code>, or direct downloads from <a href="https://openconstructionerp.com/download">openconstructionerp.com</a>.</sub>
+<sub>GitHub release assets only, does not include <code>pip install</code> from PyPI, <code>docker pull</code> from GHCR, <code>git clone</code>, or direct downloads.</sub>
 
 [![Downloads (pepy · per month)](https://static.pepy.tech/personalized-badge/openconstructionerp?period=month&units=international_system&left_color=grey&right_color=blue&left_text=downloads%20(pepy%20%C2%B7%20per%20month))](https://pepy.tech/project/openconstructionerp)
 
@@ -628,7 +480,7 @@ The right-hand side of the diagram is the **automatic data retrieval** layer tha
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/readme-charts/download-history-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="docs/readme-charts/download-history-light.svg">
-    <img alt="OpenConstructionERP release downloads: 11,544 GitHub release asset downloads as of 30 September 2026, accumulated by release date" src="docs/readme-charts/download-history-light.svg" width="720">
+    <img alt="Original-project release downloads: 11,544 GitHub release asset downloads as of 30 September 2026, accumulated by release date" src="docs/readme-charts/download-history-light.svg" width="720">
   </picture>
 </a>
 
@@ -640,7 +492,7 @@ The right-hand side of the diagram is the **automatic data retrieval** layer tha
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/readme-charts/star-history-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="docs/readme-charts/star-history-light.svg">
-    <img alt="OpenConstructionERP star history: 878 stars as of 30 September 2026, from 2 April 2026" src="docs/readme-charts/star-history-light.svg" width="720">
+    <img alt="Original-project star history: 878 stars as of 30 September 2026, from 2 April 2026" src="docs/readme-charts/star-history-light.svg" width="720">
   </picture>
 </a>
 
@@ -648,22 +500,18 @@ The right-hand side of the diagram is the **automatic data retrieval** layer tha
 
 ## Support the Project
 
-OpenConstructionERP is built by [DataDrivenConstruction](https://datadrivenconstruction.io) and shaped by feedback from users worldwide. If you find it useful:
+Construction AI OS is maintained in this repository and builds on OpenConstructionERP by [DataDrivenConstruction](https://datadrivenconstruction.io). If you find it useful:
 
-- ⭐ **[Star this repo](https://github.com/datadrivenconstruction/OpenConstructionERP)** - helps others discover the project
-- <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/comment-discussion-dark.svg"><img src="docs/readme-icons/comment-discussion-light.svg" width="14" align="center" alt=""></picture> **[Community chat (Telegram)](https://t.me/datadrivenconstruction)** - ask questions, share ideas, help others
-- <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/bug-dark.svg"><img src="docs/readme-icons/bug-light.svg" width="14" align="center" alt=""></picture> **[Report issues](https://github.com/datadrivenconstruction/OpenConstructionERP/issues)** - help us improve
-- <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/briefcase-dark.svg"><img src="docs/readme-icons/briefcase-light.svg" width="14" align="center" alt=""></picture> **[Professional consulting](https://datadrivenconstruction.io/contact-support/)** - custom deployment, training, enterprise support
+- ⭐ **[Star this repo](https://github.com/abdelnabym519-cpu/Construction-AI-OS)** - helps others discover this distribution
+- <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme-icons/bug-dark.svg"><img src="docs/readme-icons/bug-light.svg" width="14" align="center" alt=""></picture> **[Report issues](https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues)** - help this distribution improve
 
 ## Contributors
 
-OpenConstructionERP is shaped by the people who report bugs, request features, and ask the sharp questions that push the platform forward. We credit every one of them. For supply-chain security, we do not merge external pull requests - see **[CONTRIBUTING.md](CONTRIBUTING.md)** for how contributions work here.
-
-See **[CONTRIBUTORS.md](CONTRIBUTORS.md)** for the full list. Want to join it? [Open an issue](https://github.com/datadrivenconstruction/OpenConstructionERP/issues) or say hello in the [community chat](https://t.me/datadrivenconstruction).
+The platform this distribution builds on was shaped by the people who reported bugs, requested features, and asked the sharp questions that pushed it forward - they are credited in **[CONTRIBUTORS.md](CONTRIBUTORS.md)**. For how contributions work in THIS repository, see **[CONTRIBUTING.md](CONTRIBUTING.md)**. Want to be credited here? [Open an issue](https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues).
 
 ## Security
 
-Report vulnerabilities privately via [GitHub Security Advisories](https://github.com/datadrivenconstruction/OpenConstructionERP/security/advisories/new) or [info@datadrivenconstruction.io](mailto:info@datadrivenconstruction.io). See [SECURITY.md](SECURITY.md) for the full coordinated-disclosure policy and supported versions.
+Report vulnerabilities privately via [GitHub Security Advisories](https://github.com/abdelnabym519-cpu/Construction-AI-OS/security/advisories/new) on this repository. See [SECURITY.md](SECURITY.md) for the full coordinated-disclosure policy and supported versions.
 
 ## AI disclaimer
 
@@ -677,9 +525,10 @@ tender-submission use. See [NOTICE](NOTICE) and [TERMS.md](docs/legal/TERMS.md) 
 All product names, logos, and trademarks referenced in this repository
 are property of their respective owners. Any comparative references to
 commercial categories or products are made for fair comparative purposes
-based on publicly available information. OpenConstructionERP is an
-independent project and is not affiliated with, endorsed by, or sponsored
-by any third-party trademark owners. Full attributions in [NOTICE](NOTICE).
+based on publicly available information. Construction AI OS is an
+independent modified distribution of the original OpenConstructionERP
+project and is not affiliated with, endorsed by, or sponsored by any
+third-party trademark owners. Full attributions in [NOTICE](NOTICE).
 
 ## Development and Contribution Model
 
@@ -694,10 +543,12 @@ You can freely use, modify, and distribute this software. If you modify
 and deploy it as a service, AGPL §13 requires you to make the
 corresponding source code available under the same license.
 
-For **commercial licensing**, which lifts the AGPL obligations on
-OpenConstructionERP itself so you can deploy it closed-source, see
-[COMMERCIAL-LICENSE.md](docs/legal/COMMERCIAL-LICENSE.md) or contact
-[info@datadrivenconstruction.io](mailto:info@datadrivenconstruction.io).
+The upstream project offers **commercial licensing** for the original
+OpenConstructionERP; see [COMMERCIAL-LICENSE.md](docs/legal/COMMERCIAL-LICENSE.md)
+and the note at its top - it does not automatically extend to this
+modified distribution. Deploying THIS distribution closed-source needs
+permission from the copyright holders of the code you deploy: see the
+NOTICE preamble.
 
 No dependency we ship is under the AGPL, so the commercial license
 covers everything a closed-source deployment runs. Releases up to and
@@ -713,26 +564,3 @@ has the details.
 - [SECURITY.md](SECURITY.md) - responsible disclosure
 
 ---
-
-<p align="left">
-  <!-- Social Links -->
-  <a href="https://x.com/datadrivenconst" target="_blank">
-    <img src="https://img.shields.io/twitter/follow/datadrivenconst?logo=X&style=flat&color=%23f5f5f5" alt="Follow on X">
-  </a>
-  <a href="https://www.youtube.com/@datadrivenconstruction" target="_blank">
-    <img src="https://img.shields.io/badge/YouTube-FF0000?logo=youtube&logoColor=white" alt="Subscribe on YouTube">
-  </a>
-  <a href="https://www.linkedin.com/company/78381569" target="_blank">
-    <img src="https://custom-icon-badges.demolab.com/badge/LinkedIn-0A66C2?logo=linkedin-white&logoColor=fff" alt="Connect on LinkedIn">
-  </a>
-  <a href="https://www.youtube.com/watch?v=X06cIaroAeI" target="_blank">
-    <img src="https://img.shields.io/badge/▶_Watch_demo-12_min_walkthrough-FF0000?logo=youtube&logoColor=white" alt="Watch the 12-minute walkthrough">
-  </a>
-</p>
-
-
-<p align="left">
-  <a href="https://datadrivenconstruction.io">
-    <img src="https://datadrivenconstruction.io/wp-content/uploads/2023/07/DataDrivenConstruction-1-1.png" alt="DataDrivenConstruction logo" width="200"/>
-  </a>
-</p>

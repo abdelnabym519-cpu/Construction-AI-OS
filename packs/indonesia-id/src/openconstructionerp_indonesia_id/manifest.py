@@ -55,6 +55,6 @@ MANIFEST = PartnerPackManifest(
             "Perpres 16/2018 tentang Pengadaan Barang/Jasa Pemerintah (Public Procurement)",
         ],
         "vat_standard_rate": 11,
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

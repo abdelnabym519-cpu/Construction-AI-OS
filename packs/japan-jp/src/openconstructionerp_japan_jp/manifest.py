@@ -59,6 +59,6 @@ MANIFEST = PartnerPackManifest(
             "Public Works Standard Specifications (MLIT)",
             "Sekisan Kijun (Public Works Estimation Standards, MLIT)",
         ],
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

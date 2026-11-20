@@ -3,11 +3,11 @@
 /**
  * Which language a piece of dashboard content is actually shown in.
  *
- * Cases and videos carry text that may or may not exist in the reader's
- * language. A case title falls back to English through `defaultValue`, a video
- * is spoken in one language. Either way the reader deserves to know before
- * opening it, so the card prints a small language tag ("EN") on content that
- * does not match the UI language, and nothing on content that does.
+ * A case title falls back to English through `defaultValue`, so a dashboard
+ * set to another language can still be showing English tiles. The reader
+ * deserves to know before opening one, so the card prints a small language tag
+ * ("EN") on content that does not match the UI language, and nothing on
+ * content that does.
  */
 
 /** The base subtag of a BCP 47 tag, lower-cased: `pt-BR` reads `pt`. */
@@ -47,18 +47,6 @@ export function keyLanguage(i18n: ResourceReader, key: string, ns = 'translation
     if (typeof value === 'string' && value.length > 0) return lng;
   }
   return 'en';
-}
-
-/**
- * Stable reorder that puts content in the reader's language first. Nothing is
- * dropped: a reader whose language has no video still gets the English ones,
- * tagged, rather than an empty strip.
- */
-export function preferLanguage<T>(items: readonly T[], languageOf: (item: T) => string, uiLanguage: string): T[] {
-  const ui = baseLanguage(uiLanguage);
-  const own = items.filter((item) => baseLanguage(languageOf(item)) === ui);
-  const rest = items.filter((item) => baseLanguage(languageOf(item)) !== ui);
-  return [...own, ...rest];
 }
 
 /** The tags a card's tiles carry, each once, in first-seen order, for the

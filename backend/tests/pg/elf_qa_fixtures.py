@@ -126,9 +126,30 @@ async def install_pack(client: AsyncClient, headers: dict[str, str]) -> dict[str
     return done_payload(resp.text)
 
 
-async def add_member(factory: Any, email_prefix: str, role: str, project_ids: list[uuid.UUID]) -> uuid.UUID:
+async def add_member(
+    factory: Any,
+    email_prefix: str,
+    role: str,
+    project_ids: list[uuid.UUID],
+    *,
+    organization_id: str | None = None,
+    own_organization: bool = False,
+) -> tuple[uuid.UUID, str]:
+    """Add a QA member and return their user id and the organization they belong to.
+
+    The organization is not optional decoration. Since ADR 005 an access token
+    without a ``tenant_id`` claim is refused at the door rather than scoped to its
+    holder, so a member with no membership could not be driven over HTTP at all -
+    and a member invented one would see a world in which nothing belongs to them.
+
+    Pass ``organization_id`` to put the member in somebody else's company, which is
+    what makes an insider an insider. Pass ``own_organization`` to give them a
+    company of their own, which is what makes an outsider an outsider: the point of
+    the outsider token is that it is authenticated and still sees nothing, and a
+    token with no tenant would prove only that the door works.
+    """
     from app.modules.teams.models import Team, TeamMembership
-    from app.modules.users.models import User
+    from app.modules.users.models import Membership, Organization, User
 
     uid = uuid.uuid4()
     async with factory() as s:
@@ -145,22 +166,51 @@ async def add_member(factory: Any, email_prefix: str, role: str, project_ids: li
             )
         )
         await s.flush()
+        if own_organization:
+            slug = f"qa-{email_prefix}-{uid.hex[:8]}"
+            organization = Organization(name=f"QA {email_prefix} Ltd", slug=slug, status="active")
+            s.add(organization)
+            # The membership names its parent through a plain column and not a
+            # relationship, so the insert has to be ordered by hand.
+            await s.flush()
+            organization_id = str(organization.id)
+        if organization_id is not None:
+            s.add(
+                Membership(
+                    user_id=uid,
+                    organization_id=uuid.UUID(organization_id),
+                    role=role,
+                    status="active",
+                    is_default=True,
+                )
+            )
         for pid in project_ids:
             team = Team(project_id=pid, name=f"QA {email_prefix}")
             s.add(team)
             await s.flush()
             s.add(TeamMembership(team_id=team.id, user_id=uid))
         await s.commit()
-    return uid
+    if organization_id is None:
+        raise AssertionError(f"QA member {email_prefix} has no organization, so its token would be refused")
+    return uid, organization_id
 
 
-def mint_token(user_id: uuid.UUID, role: str, email: str) -> dict[str, str]:
+def mint_token(user_id: uuid.UUID, role: str, email: str, tenant_id: str) -> dict[str, str]:
+    """Headers for a QA member, naming the organization their rows belong to.
+
+    ``tenant_id`` is required and has no default on purpose: these users are built
+    in memory and never go through :meth:`UserService._issue_token_pair`, so the
+    claim is this function's responsibility alone, and a call site that forgets it
+    should fail here rather than produce a token the door refuses.
+    """
     from app.config import get_settings
+    from app.core.tenant_scope import TENANT_CLAIM
     from app.modules.users.models import User
     from app.modules.users.service import create_access_token
 
     user = User(id=user_id, email=email, hashed_password="x", full_name="QA", role=role, locale="en", is_active=True)
-    return {"Authorization": f"Bearer {create_access_token(user, get_settings())}"}
+    token = create_access_token(user, get_settings(), {TENANT_CLAIM: tenant_id})
+    return {"Authorization": f"Bearer {token}"}
 
 
 async def boot_world(pg_async_url: str, data_dir: str):
@@ -173,6 +223,7 @@ async def boot_world(pg_async_url: str, data_dir: str):
     import app.database
     from app.config import get_settings
     from app.core.events import event_bus
+    from app.core.jwt_keys import decode_jwt
     from app.core.module_loader import module_loader
     from app.core.partner_pack.discovery import reset_cache
     from app.database import Base
@@ -234,6 +285,11 @@ async def boot_world(pg_async_url: str, data_dir: str):
             resp = await client.post("/api/v1/users/auth/demo-login/", json={"email": DEMO_ADMIN})
             assert resp.status_code == 200, f"demo login answered {resp.status_code}: {resp.text[:300]}"
             headers = {"Authorization": f"Bearer {resp.json()['access_token']}"}
+            # The demo admin signed in for real, so its token already names an
+            # organization; read that id rather than inventing one, because the
+            # members added below have to be inside it to see anything the pack
+            # installed.
+            admin_tenant = decode_jwt(resp.json()["access_token"], get_settings())["tenant_id"]
 
             collector.active = True
             done = await install_pack(client, headers)
@@ -262,12 +318,12 @@ async def boot_world(pg_async_url: str, data_dir: str):
             )
             pids = list(projects.values())
             for who, role in (("viewer", "viewer"), ("manager2", "manager")):
-                uid = await add_member(factory, who, role, pids)
+                uid, organization = await add_member(factory, who, role, pids, organization_id=admin_tenant)
                 world.users[who] = uid
-                world.tokens[who] = mint_token(uid, role, f"{who}@example.test")
-            uid = await add_member(factory, "outsider", "manager", [])
+                world.tokens[who] = mint_token(uid, role, f"{who}@example.test", organization)
+            uid, organization = await add_member(factory, "outsider", "manager", [], own_organization=True)
             world.users["outsider"] = uid
-            world.tokens["outsider"] = mint_token(uid, "manager", "outsider@example.test")
+            world.tokens["outsider"] = mint_token(uid, "manager", "outsider@example.test", organization)
             yield world
     finally:
         logging.getLogger().removeHandler(collector)

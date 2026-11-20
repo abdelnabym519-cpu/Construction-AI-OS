@@ -30,6 +30,23 @@ PackType = Literal["country", "industry", "partner", "showcase"]
 _CROSS_REGION_MARKER = "XX"
 
 
+def _resolve_brand_name() -> str:
+    """The product name for co-branding lines, from the one constant.
+
+    Guarded so importing and parsing pack manifests never requires a
+    configured environment (CLI tools, tests, pack validators).
+    """
+    try:
+        from app.config import get_settings
+
+        name = str(get_settings().app_name or "").strip()
+        if name:
+            return name
+    except Exception:
+        pass
+    return "Construction AI OS"
+
+
 class PartnerBranding(BaseModel):
     """Branding overrides applied at runtime when a pack is active."""
 
@@ -60,7 +77,7 @@ class PartnerBranding(BaseModel):
         default=None,
         description=(
             "Co-branding line shown next to the partner logo. "
-            "Defaults to 'Powered by OpenConstructionERP · In partnership with {partner_name}'."
+            "Defaults to 'Powered by <product name> · In partnership with {partner_name}'."
         ),
     )
 
@@ -468,9 +485,10 @@ class PartnerPackManifest(BaseModel):
         """
         if self.branding.powered_by_text:
             return self.branding.powered_by_text
+        brand = _resolve_brand_name()
         if self.type == "partner":
-            return f"Powered by OpenConstructionERP · In partnership with {self.partner_name}"
-        return "Powered by OpenConstructionERP"
+            return f"Powered by {brand} · In partnership with {self.partner_name}"
+        return f"Powered by {brand}"
 
     def _carries(self, relpath: str | None) -> bool:
         """Whether the pack actually ships the file it names at ``relpath``.

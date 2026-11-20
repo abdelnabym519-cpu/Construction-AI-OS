@@ -11,6 +11,7 @@
 // so a changed default needs its translations redone too.
 
 import type { ModuleGuideContent } from '@/shared/ui';
+import { APP_NAME } from '@/shared/lib/brandName';
 
 export const integrationsGuide: ModuleGuideContent = {
   titleKey: 'guide.integrations.title',
@@ -57,7 +58,7 @@ export const integrationsGuide: ModuleGuideContent = {
       titleDefault: 'Automation and webhooks',
       bodyKey: 'guide.integrations.automation.body',
       bodyDefault:
-        'A signed webhook sends events to any URL as an HTTP POST with optional HMAC signing. Point n8n, Zapier or Make at that endpoint to wire OpenConstructionERP into thousands of other apps through a single trigger node.',
+        `A signed webhook sends events to any URL as an HTTP POST with optional HMAC signing. Point n8n, Zapier or Make at that endpoint to wire ${APP_NAME} into thousands of other apps through a single trigger node.`,
     },
     {
       icon: 'Database',

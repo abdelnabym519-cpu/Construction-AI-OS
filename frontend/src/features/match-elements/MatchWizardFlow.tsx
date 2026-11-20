@@ -20,6 +20,7 @@
 //   8 Apply & done   dry-run BOQ rollup → write → summary
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -1254,7 +1255,7 @@ export function MatchWizardFlow() {
           })}
         </p>
         <a
-          href="https://github.com/datadrivenconstruction/OpenConstructionERP/issues/new?labels=match-elements&template=bug_report.yml"
+          href={`${SOURCE_REPO_URL}/issues/new?labels=match-elements&template=bug_report.yml`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-300/60 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-amber-900 shadow-sm transition-all hover:-translate-y-px hover:bg-amber-50 dark:border-amber-700/40 dark:bg-surface-primary/80 dark:text-amber-100 dark:hover:bg-amber-900/30"

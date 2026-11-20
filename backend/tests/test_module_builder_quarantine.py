@@ -363,7 +363,13 @@ class TestWhatIsQuarantined:
 
 
 class TestOrdinaryModulesRefreshToTheSameBytes:
-    """The four v2 fixtures: generator 3 renders them byte for byte, so only the stamp moves."""
+    """The four v2 fixtures: generator 3 renders their statements byte for byte.
+
+    Since the 2026-10 identity change the generator's own file stamp is one
+    of the things a refresh moves, so the code files are rewritten with
+    identical statements and the product's header; the contract files and
+    every data row stay exactly as they stand.
+    """
 
     @pytest.mark.parametrize("make", [hire_spec, notice_spec, a_spec, a_minimal_spec])
     def test_zero_diff_but_the_stamp(self, root: Path, make) -> None:
@@ -382,7 +388,20 @@ class TestOrdinaryModulesRefreshToTheSameBytes:
 
         after = _snapshot(target)
         assert set(after) == set(before)
-        assert {p for p in before if before[p] != after[p]} == {"spec.json"}
+        # The statements render byte for byte; since the 2026-10 identity
+        # change the stamp generation on the code files and the module's own
+        # test moves too (the old upstream header -> the product's own), so
+        # those files are rewritten with identical statements. The contract
+        # files keep standing exactly as they were - a refresh never touches
+        # a table definition to move a comment.
+        moved = {"spec.json", *refresh.CODE_FILES, f"tests/test_{spec.key}.py"}
+        assert {p for p in before if before[p] != after[p]} == moved
+        for name in refresh.CONTRACT_FILES:
+            assert before[name] == after[name], f"{name} was rewritten"
+        for name in refresh.CODE_FILES:
+            assert refresh.same_apart_from_docstrings(before[name], after[name]), (
+                f"{name}: the refresh changed more than the stamp"
+            )
         old_spec, new_spec = json.loads(before["spec.json"]), json.loads(after["spec.json"])
         assert new_spec.pop("generator") == generator.GENERATOR_STAMP
         old_spec.pop("generator")

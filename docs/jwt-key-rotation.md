@@ -1,6 +1,6 @@
 # Rotating the JWT signing secret
 
-OpenConstructionERP signs its tokens (access, refresh, password reset and buyer
+Construction AI OS signs its tokens (access, refresh, password reset and buyer
 portal tokens) with HS256 using `JWT_SECRET` (also accepted as `OE_JWT_SECRET`).
 Every token carries a `kid` header: the first 16 hex characters of a SHA-256
 over a domain-separated copy of the secret. The `kid` identifies the key, it

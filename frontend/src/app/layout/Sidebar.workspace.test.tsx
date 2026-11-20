@@ -50,9 +50,6 @@ vi.mock('react-i18next', () => ({
 vi.mock('@/shared/lib/useI18nReady', () => ({ useI18nReady: () => 0 }));
 vi.mock('./CustomBranding', () => ({ CustomBranding: () => null }));
 vi.mock('@/shared/ui/UpdateChecker', () => ({ UpdateNotification: () => null, UpdateBadge: () => null }));
-vi.mock('@/features/modules/RequestCustomModuleDialog', () => ({
-  RequestCustomModuleDialog: () => null,
-}));
 vi.mock('@/shared/hooks/useSidebarBadges', () => ({
   useSidebarBadges: () => ({ tasks: 0, rfi: 0, safety: 0 }),
 }));
@@ -125,10 +122,6 @@ const litHrefs = (): string[] =>
 
 const moreExpanded = () => screen.getByTestId('sidebar-more-modules').getAttribute('aria-expanded');
 
-// The Learn card (Videos, Cases, Packs) sits above everything else in every mode,
-// workspace included, until the user hides it.
-const LEARN = ['/videos', '/cases', '/packs'];
-
 const GC_WORKSPACE = [
   '/',
   '/inbox',
@@ -151,9 +144,9 @@ const GC_WORKSPACE = [
 // their `advancedOnly` rows. Written out rather than derived from the catalogue,
 // because deriving it would restate the rule under test.
 const TODAYS_SIMPLE = [
-  ...LEARN,
   '/',
   '/projects',
+  '/cases',
   '/files',
   '/inbox',
   '/timeline',
@@ -206,7 +199,7 @@ describe('Simple mode with a general contractor profile', () => {
 
     const workspace = await screen.findByTestId('sidebar-workspace');
     expect(menuHrefs(workspace)).toEqual(GC_WORKSPACE);
-    expect(menuHrefs()).toEqual([...LEARN, ...GC_WORKSPACE]);
+    expect(menuHrefs()).toEqual(GC_WORKSPACE);
     expect(screen.getByText('General Contractor')).toBeTruthy();
 
     const more = screen.getByTestId('sidebar-more-modules');
@@ -220,7 +213,7 @@ describe('Simple mode with a general contractor profile', () => {
     fireEvent.click(await screen.findByTestId('sidebar-more-modules'));
 
     const hrefs = menuHrefs();
-    expect(hrefs.slice(0, LEARN.length + GC_WORKSPACE.length)).toEqual([...LEARN, ...GC_WORKSPACE]);
+    expect(hrefs.slice(0, GC_WORKSPACE.length)).toEqual(GC_WORKSPACE);
     // Screens Simple mode hid outright are now one click away...
     for (const route of ['/rfi', '/finance', '/variations', '/fx', '/geo', '/crm']) {
       expect(hrefs).toContain(route);
@@ -424,7 +417,7 @@ describe('without a workspace, or in Advanced mode', () => {
     expect(screen.queryByTestId('sidebar-workspace')).toBeNull();
     expect(screen.queryByTestId('sidebar-more-modules')).toBeNull();
     const hrefs = menuHrefs();
-    const head = [...LEARN, '/', '/projects', '/files', '/inbox', '/timeline'];
+    const head = ['/', '/projects', '/cases', '/files', '/inbox', '/timeline'];
     expect(hrefs.slice(0, head.length)).toEqual(head);
     for (const route of ['/subcontractors', '/changeorders', '/finance', '/fx', '/geo']) {
       expect(hrefs).toContain(route);

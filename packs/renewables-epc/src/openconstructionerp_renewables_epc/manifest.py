@@ -76,6 +76,6 @@ MANIFEST = PartnerPackManifest(
             "ISO 50001 (Energy management)",
             "NREL ATB / LBNL / BloombergNEF (LCOE methodology)",
         ],
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

@@ -795,6 +795,25 @@
     "n": 27,
     "reason": "Seeded when the leak guard was first split into three lists (ci(i18n): rebuild the leak guard as two separate lists plus a general scan). This entry's n is >=24/28, the shape the threshold scan actually flags; filed as ambiguous at guard rollout rather than triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
   },
+  "changeorders.source_kind_ncr": {
+    "added_by": "batch 18.4 integration (2026-10-04)",
+    "differs_in": [
+      "es",
+      "es-CL",
+      "es-CO",
+      "es-MX"
+    ],
+    "en_value": "NCR",
+    "n": 38,
+    "reason": "Short pill label naming the source record type of an automatically drafted change order. NCR is kept as the acronym in most locales, the way each file already labels the QMS records; the locales that differ write a local acronym. Filed for a native review of which reads better on the pill, not a prose leak."
+  },
+  "changeorders.source_kind_rfi": {
+    "added_by": "batch 18.4 integration (2026-10-04)",
+    "differs_in": [],
+    "en_value": "RFI",
+    "n": 42,
+    "reason": "Short pill label naming the source record type of an automatically drafted change order. RFI is the acronym the locale files already use for the RFI module; filed for review rather than allowlisted because a few locales spell it differently."
+  },
   "clash.kbd_open3d": {
     "added_by": "adb78c983 (2026-08-02)",
     "differs_in": [
@@ -935,6 +954,46 @@
     "en_value": ".xlsx, .csv",
     "n": 27,
     "reason": "Seeded when the leak guard was first split into three lists (ci(i18n): rebuild the leak guard as two separate lists plus a general scan). This entry's n is >=24/28, the shape the threshold scan actually flags; filed as ambiguous at guard rollout rather than triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
+  },
+  "contracts.sov_link_boq": {
+    "added_by": "i18n sweep (2026-09-25)",
+    "differs_in": [
+      "de",
+      "et",
+      "fa",
+      "fi",
+      "fr",
+      "he",
+      "hu",
+      "it",
+      "ja",
+      "ko",
+      "uk",
+      "zh"
+    ],
+    "en_value": "BOQ",
+    "n": 30,
+    "reason": "New key for the SOV-to-BOQ link picker. BOQ is kept literal (CLAUDE.md: not translated) in most locales, but de/fr/it/ja/ko/uk/et/fi/hu/zh/fa/he already use their own established term for the bill of quantities elsewhere in the app (e.g. tendering.export_gaeb_title), so this key follows that per-locale precedent instead of the acronym."
+  },
+  "contracts.sov_link_linked": {
+    "added_by": "i18n sweep (2026-09-25)",
+    "differs_in": [
+      "de",
+      "et",
+      "fa",
+      "fi",
+      "fr",
+      "he",
+      "hu",
+      "it",
+      "ja",
+      "ko",
+      "uk",
+      "zh"
+    ],
+    "en_value": "BOQ {{position}}",
+    "n": 30,
+    "reason": "Sibling of contracts.sov_link_boq (same key family, same picker): the BOQ label is substituted with each locale established term where one exists, kept literal elsewhere."
   },
   "coordination.threshold_level_ok": {
     "added_by": "15aa69993 (2026-08-11)",
@@ -1229,6 +1288,52 @@
     "n": 1,
     "reason": "Added in the commit that finished registering Estonian as a gated locale (i18n: finish registering Estonian where the gates look for it). Checked: this entry's differs_in set does not name 'et' specifically, so the commit's own framing is the only link to that locale, not something confirmed at the entry level. Not individually triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
   },
+  "delivery_model.ui.matrix.share": {
+    "added_by": "i18n translation of the eleven modules (2026-10-14)",
+    "differs_in": [
+      "fr",
+      "ja",
+      "tr",
+      "zh"
+    ],
+    "en_value": "{{party}}: {{share}} %",
+    "n": 38,
+    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
+  },
+  "design.common.ok": {
+    "added_by": "i18n translation of the eleven modules (2026-10-14)",
+    "differs_in": [
+      "bg",
+      "bn",
+      "es",
+      "es-CL",
+      "es-CO",
+      "es-MX",
+      "fa",
+      "he",
+      "hi",
+      "hr",
+      "ko",
+      "ru",
+      "th",
+      "uk",
+      "ur"
+    ],
+    "en_value": "OK",
+    "n": 27,
+    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
+  },
+  "design.ui.setup.target_shown": {
+    "added_by": "i18n translation of the eleven modules (2026-10-14)",
+    "differs_in": [
+      "fr",
+      "ja",
+      "zh"
+    ],
+    "en_value": "{{phase}}: {{status}}",
+    "n": 39,
+    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
+  },
   "dwg_takeoff.format_support": {
     "added_by": "adb78c983 (2026-08-02)",
     "differs_in": [
@@ -1522,6 +1627,22 @@
     "n": 35,
     "reason": "The name of the RFI collection in the global search results, added when that label stopped being hardcoded English. Reviewed when it was added rather than seeded: 35 locales keep the acronym, ar and he render it in their own script, which is the same shape and the same two-script split as nav.rfi already recorded here. Not the allowlist, because the allowlist's tell is a value identical in every locale including ru, and these two differ; not the baseline either, because the 35 are a decision each of those locales already made for this term elsewhere, not untranslated debt. It resolves whenever nav.rfi does, and the same way."
   },
+  "hakedis.rate.percent": {
+    "added_by": "Turkey pack i18n parity (2026-10-10)",
+    "differs_in": [
+      "cs",
+      "da",
+      "fi",
+      "fr",
+      "hr",
+      "no",
+      "sv",
+      "tr"
+    ],
+    "en_value": "{{rate}}%",
+    "n": 34,
+    "reason": "Percent template. Identical to en where the locale writes the sign directly after the number; cs, da, fi, fr, hr, no and sv put a space before it by their typographic rule, and tr puts the sign first. Differences are deliberate, so it cannot be allowlisted, which requires identity in every locale."
+  },
   "howto.crm.title": {
     "added_by": "adb78c983 (2026-08-02)",
     "differs_in": [
@@ -1651,6 +1772,96 @@
     "en_value": "Number",
     "n": 1,
     "reason": "Added in the commit that finished registering Estonian as a gated locale (i18n: finish registering Estonian where the gates look for it). Checked: this entry's differs_in set does not name 'et' specifically, so the commit's own framing is the only link to that locale, not something confirmed at the entry level. Not individually triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
+  },
+  "legal.licence_heading": {
+    "added_by": "part C legal page (2026-11-03)",
+    "differs_in": [
+      "en-US"
+    ],
+    "en_value": "Licence",
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
+    "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
+  },
+  "legal.licence_reference": {
+    "added_by": "part C legal page (2026-11-03)",
+    "differs_in": [
+      "en-US"
+    ],
+    "en_value": "The full licence text ships with this distribution as the LICENSE file.",
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
+    "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
+  },
+  "legal.link": {
+    "added_by": "part C legal page (2026-11-03)",
+    "differs_in": [
+      "en-US"
+    ],
+    "en_value": "Legal",
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
+    "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
+  },
+  "legal.machine_readable": {
+    "added_by": "part C legal page (2026-11-03)",
+    "differs_in": [
+      "en-US"
+    ],
+    "en_value": "Machine-readable disclosure",
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
+    "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
+  },
+  "legal.notice_heading": {
+    "added_by": "part C legal page (2026-11-03)",
+    "differs_in": [
+      "en-US"
+    ],
+    "en_value": "Attribution notice",
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
+    "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
+  },
+  "legal.page_title": {
+    "added_by": "part C legal page (2026-11-03)",
+    "differs_in": [
+      "en-US"
+    ],
+    "en_value": "Legal",
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
+    "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
+  },
+  "legal.source_body": {
+    "added_by": "part C legal page (2026-11-03)",
+    "differs_in": [
+      "en-US"
+    ],
+    "en_value": "The complete corresponding source code for the version of this application you are using is available from the location below, as required by section 13 of the GNU Affero General Public License.",
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
+    "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
+  },
+  "legal.source_heading": {
+    "added_by": "part C legal page (2026-11-03)",
+    "differs_in": [
+      "en-US"
+    ],
+    "en_value": "Source code offer",
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
+    "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
+  },
+  "legal.unavailable": {
+    "added_by": "part C legal page (2026-11-03)",
+    "differs_in": [
+      "en-US"
+    ],
+    "en_value": "Some of this information could not be loaded.",
+    "n": 43,
+    "note": "en-US carries no value of its own: it resolves through en, which is the point of the fallback.",
+    "reason": "New key for the /legal page and its footer link. Shipped in English in every locale on purpose: it states a licence obligation, and a machine translation of legal wording is worse than the English original. Filed here rather than in the allowlist because it should be translated by a human who can check the legal terminology, and the guard should keep pointing at it until that happens."
   },
   "leveling.legend_high": {
     "added_by": "adb78c983 (2026-08-02)",
@@ -2095,6 +2306,123 @@
     "n": 27,
     "reason": "Seeded when the leak guard was first split into three lists (ci(i18n): rebuild the leak guard as two separate lists plus a general scan). This entry's n is >=24/28, the shape the threshold scan actually flags; filed as ambiguous at guard rollout rather than triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
   },
+  "price_index.ri.fot_short": {
+    "added_by": "batch 18.4 integration (2026-10-04)",
+    "differs_in": [
+      "bg",
+      "ru",
+      "uk"
+    ],
+    "en_value": "FOT",
+    "n": 39,
+    "reason": "Short column label of the Russian resource-index method for the payroll fund (FOT). Cyrillic locales write the native abbreviation; the others keep the transliterated code of the method. Filed for a native review of whether each market reads the code or wants a local abbreviation."
+  },
+  "price_index.ri.nr_pct": {
+    "added_by": "batch 18.4 integration (2026-10-04)",
+    "differs_in": [
+      "bg",
+      "cs",
+      "da",
+      "et",
+      "fi",
+      "hr",
+      "hu",
+      "no",
+      "pl",
+      "ru",
+      "sv",
+      "uk"
+    ],
+    "en_value": "NR %",
+    "n": 30,
+    "reason": "Column label NR % of the Russian resource-index method (overheads as a percent of the payroll fund). Kept as the method code in most locales, native abbreviation where the script allows. Filed for native review."
+  },
+  "price_index.ri.nr_short": {
+    "added_by": "batch 18.4 integration (2026-10-04)",
+    "differs_in": [
+      "bg",
+      "ru",
+      "uk"
+    ],
+    "en_value": "NR",
+    "n": 39,
+    "reason": "Short column label of the Russian resource-index method for overheads (NR). Cyrillic locales write the native abbreviation; the others keep the method's code. Filed for native review, not a prose leak."
+  },
+  "price_index.ri.sp_pct": {
+    "added_by": "batch 18.4 integration (2026-10-04)",
+    "differs_in": [
+      "bg",
+      "cs",
+      "da",
+      "et",
+      "fi",
+      "hr",
+      "hu",
+      "no",
+      "pl",
+      "ru",
+      "sv",
+      "uk"
+    ],
+    "en_value": "SP %",
+    "n": 30,
+    "reason": "Column label SP % of the Russian resource-index method (estimated profit as a percent of the payroll fund). Kept as the method code in most locales, native abbreviation where the script allows. Filed for native review."
+  },
+  "price_index.ri.sp_short": {
+    "added_by": "batch 18.4 integration (2026-10-04)",
+    "differs_in": [
+      "bg",
+      "ru",
+      "uk"
+    ],
+    "en_value": "SP",
+    "n": 39,
+    "reason": "Short column label of the Russian resource-index method for estimated profit (SP). Cyrillic locales write the native abbreviation; the others keep the method's code. Filed for native review, not a prose leak."
+  },
+  "procurement.from_rfq_unnamed": {
+    "added_by": "batch 18.4 integration (2026-10-04)",
+    "differs_in": [
+      "ar",
+      "he"
+    ],
+    "en_value": "RFQ",
+    "n": 40,
+    "reason": "Fallback label for a purchase order drafted from an RFQ that has no title, so the order names its source by the record type alone. RFQ is the acronym each locale already uses for the RFQ module; ar and he spell the request out, so it is filed for a native review rather than allowlisted."
+  },
+  "projectHandbook.tabs.data_room": {
+    "added_by": "i18n handbook translation (2026-10-14)",
+    "differs_in": [
+      "ar",
+      "bn",
+      "de",
+      "fa",
+      "he",
+      "hi",
+      "ja",
+      "ko",
+      "ru",
+      "th",
+      "uk",
+      "ur",
+      "zh"
+    ],
+    "en_value": "Data room",
+    "n": 29,
+    "reason": "Short term. Locales in differs_in carry their own word or script; the rest write Data room as in English, the common term in several Latin-script locales. Flagged for a native read of fr, es, nl and pl."
+  },
+  "projectHandbook.version_short": {
+    "added_by": "i18n handbook translation (2026-10-14)",
+    "differs_in": [
+      "bg",
+      "ky",
+      "pl",
+      "ru",
+      "uk"
+    ],
+    "en_value": "v{{n}}",
+    "n": 37,
+    "reason": "Version abbreviation template, v plus a number, written the same in Latin-script locales; the differing locales use their own script."
+  },
   "project_intelligence.forecast.col_eac": {
     "added_by": "adb78c983 (2026-08-02)",
     "differs_in": [
@@ -2189,6 +2517,27 @@
     "en_value": "WBS",
     "n": 26,
     "reason": "Seeded when the leak guard was first split into three lists (ci(i18n): rebuild the leak guard as two separate lists plus a general scan). This entry's n is >=24/28, the shape the threshold scan actually flags; filed as ambiguous at guard rollout rather than triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
+  },
+  "quality_concept.common.ok": {
+    "added_by": "i18n translation of the eleven modules (2026-10-14)",
+    "differs_in": [
+      "ar",
+      "bn",
+      "es",
+      "es-CL",
+      "es-CO",
+      "es-MX",
+      "fa",
+      "he",
+      "hi",
+      "ko",
+      "th",
+      "tr",
+      "ur"
+    ],
+    "en_value": "OK",
+    "n": 29,
+    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
   },
   "quantities.source_boq": {
     "added_by": "adb78c983 (2026-08-02)",
@@ -2349,6 +2698,36 @@
     "en_value": "BOQ",
     "n": 26,
     "reason": "Seeded when the leak guard was first split into three lists (ci(i18n): rebuild the leak guard as two separate lists plus a general scan). This entry's n is >=24/28, the shape the threshold scan actually flags; filed as ambiguous at guard rollout rather than triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
+  },
+  "rfi.discipline_mep": {
+    "added_by": "Turkey pack i18n parity (2026-10-10)",
+    "differs_in": [
+      "de",
+      "el",
+      "fa",
+      "fi",
+      "fil",
+      "he",
+      "ja",
+      "kk",
+      "ru",
+      "sv",
+      "tr",
+      "uk",
+      "ur"
+    ],
+    "en_value": "MEP",
+    "n": 29,
+    "reason": "MEP is the discipline code (mechanical, electrical, plumbing) and stays as is in most locales; 13 locales use their own trade term (for example TGA in de, VVS/El in sv), taken from each file's own category_mep. Filed for native review."
+  },
+  "risk.cont_p80_exact": {
+    "added_by": "batch 18.4 integration (2026-10-04)",
+    "differs_in": [
+      "hu"
+    ],
+    "en_value": "P80 {{amount}}",
+    "n": 41,
+    "reason": "Value cell for the 80th percentile of the contingency simulation, P80 followed by an amount. P80 is the risk notation used across markets; the locales that differ write a local form. Filed for a native review of the notation, not a prose leak."
   },
   "romEstimate.quality_region": {
     "added_by": "adb78c983 (2026-08-02)",
@@ -2575,6 +2954,62 @@
     "n": 27,
     "reason": "Seeded when the leak guard was first split into three lists (ci(i18n): rebuild the leak guard as two separate lists plus a general scan). This entry's n is >=24/28, the shape the threshold scan actually flags; filed as ambiguous at guard rollout rather than triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
   },
+  "settings.support.destination_label": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "Bug report destination",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.destination_none": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "Not set - the report channel is hidden from the bug menu.",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.kind_email": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "A mailbox",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.kind_url": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "A support page",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.legal_agpl_notice": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "AGPL-3.0 requires the source offer to stay available to users of a network service; legal review is advised.",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.legal_visible": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "Show the Legal link in the footers",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.subtitle": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "Where an in-app bug report is sent, and whether the footers point at the Legal page. Both apply to every user of this workspace.",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
+  "settings.support.title": {
+    "added_by": "Part G support-and-legal settings card (2026-10-23)",
+    "differs_in": [],
+    "en_value": "Support and legal",
+    "n": 42,
+    "reason": "New with the admin card that sets the bug-report destination and the Legal-link visibility. Seeded in English in every locale because the card had to ship with the setting it configures; translation is the follow-up the pending list exists to track. Not a leak of an existing wording - there was no previous string."
+  },
   "settings.tm_col_actions": {
     "added_by": "adb78c983 (2026-08-02)",
     "differs_in": [
@@ -2583,6 +3018,77 @@
     "en_value": "",
     "n": 27,
     "reason": "Seeded when the leak guard was first split into three lists (ci(i18n): rebuild the leak guard as two separate lists plus a general scan). This entry's n is >=24/28, the shape the threshold scan actually flags; filed as ambiguous at guard rollout rather than triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
+  },
+  "site_logistics.plan.enum.flow_mode.kanban": {
+    "added_by": "i18n translation of the eleven modules (2026-10-14)",
+    "differs_in": [
+      "ar",
+      "bg",
+      "bn",
+      "de",
+      "ja",
+      "ko",
+      "ru",
+      "uk",
+      "ur",
+      "zh"
+    ],
+    "en_value": "Kanban",
+    "n": 32,
+    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
+  },
+  "site_logistics.plan.f.incoterm": {
+    "added_by": "i18n translation of the eleven modules (2026-10-14)",
+    "differs_in": [
+      "ar",
+      "bg",
+      "bn",
+      "de",
+      "ja",
+      "kk",
+      "ko",
+      "ky",
+      "ru",
+      "uk",
+      "ur",
+      "uz",
+      "zh"
+    ],
+    "en_value": "Incoterm",
+    "n": 29,
+    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
+  },
+  "site_logistics.plan.m2": {
+    "added_by": "i18n translation of the eleven modules (2026-10-14)",
+    "differs_in": [
+      "ar",
+      "bg",
+      "bn",
+      "fa",
+      "he",
+      "kk",
+      "ky",
+      "mn",
+      "ru",
+      "uk"
+    ],
+    "en_value": "{{value}} m2",
+    "n": 32,
+    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
+  },
+  "site_logistics.plan.neighbourhood.dba": {
+    "added_by": "i18n translation of the eleven modules (2026-10-14)",
+    "differs_in": [
+      "ar",
+      "kk",
+      "ky",
+      "mn",
+      "ru",
+      "uk"
+    ],
+    "en_value": "{{value}} dB(A)",
+    "n": 36,
+    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
   },
   "site_prep.value_na": {
     "added_by": "adb78c983 (2026-08-02)",
@@ -2628,6 +3134,52 @@
     "en_value": "n/a",
     "n": 1,
     "reason": "Added in the commit that finished registering Estonian as a gated locale (i18n: finish registering Estonian where the gates look for it). Checked: this entry's differs_in set does not name 'et' specifically, so the commit's own framing is the only link to that locale, not something confirmed at the entry level. Not individually triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
+  },
+  "staffing.handover.person_on": {
+    "added_by": "i18n translation of the eleven modules (2026-10-14)",
+    "differs_in": [
+      "ar",
+      "fa",
+      "ja",
+      "ur",
+      "zh"
+    ],
+    "en_value": "{{person}}, {{position}}",
+    "n": 37,
+    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
+  },
+  "staffing.org_chart.person_proposed": {
+    "added_by": "i18n translation of the eleven modules (2026-10-14)",
+    "differs_in": [
+      "ja",
+      "ko",
+      "zh"
+    ],
+    "en_value": "{{name}} ({{status}})",
+    "n": 39,
+    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
+  },
+  "staffing.position.fte": {
+    "added_by": "i18n translation of the eleven modules (2026-10-14)",
+    "differs_in": [
+      "de",
+      "pl"
+    ],
+    "en_value": "FTE",
+    "n": 40,
+    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
+  },
+  "staffing.position.fte_times": {
+    "added_by": "i18n translation of the eleven modules (2026-10-14)",
+    "differs_in": [
+      "ar",
+      "de",
+      "fa",
+      "pl"
+    ],
+    "en_value": "{{fte}} FTE x {{n}}",
+    "n": 38,
+    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
   },
   "supplier_catalogs.moq": {
     "added_by": "15aa69993 (2026-08-11)",
@@ -2920,110 +3472,6 @@
     "n": 24,
     "reason": "Seeded when the leak guard was first split into three lists (ci(i18n): rebuild the leak guard as two separate lists plus a general scan). This entry's n is >=24/28, the shape the threshold scan actually flags; filed as ambiguous at guard rollout rather than triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
   },
-  "variations.mod_boq": {
-    "added_by": "15aa69993 (2026-08-11)",
-    "differs_in": [
-      "bn",
-      "el",
-      "es-MX",
-      "et",
-      "fa",
-      "fil",
-      "fr",
-      "he",
-      "kk",
-      "ky",
-      "pl",
-      "ro",
-      "ru",
-      "ur",
-      "vi"
-    ],
-    "en_value": "BOQ",
-    "n": 25,
-    "reason": "Added in the commit that split Chile, Colombia and Brazil into their own locales (feat(i18n): give Chile, Colombia and Brazil a locale of their own). This entry's n is >=25/28, the shape the threshold scan actually flags. Checked: only one of the thirteen keys from this commit names es-CL or es-CO in its differs_in set (this one may or may not be that key), so a link to those new locales is not established for most of them. Not individually triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
-  },
-  "videos.matrix_cell": {
-    "added_by": "wip/learn-menu (2026-09-25)",
-    "differs_in": [
-      "ar",
-      "fa"
-    ],
-    "en_value": "{{row}}, {{stage}}: {{n}}",
-    "n": 40,
-    "reason": "Screen-reader label of one cell in the Videos coverage map: a role or country, a stage and a count, joined by punctuation only. There is no word to translate; the Arabic-script locales write their own comma, so it is not identical everywhere and does not qualify for the allowlist."
-  },
-  "whatsnew.v450.geo.chip": {
-    "added_by": "a959ccb4f (2026-08-02)",
-    "differs_in": [
-      "ar",
-      "cs",
-      "fi",
-      "hr",
-      "ja",
-      "ko",
-      "ky",
-      "mn",
-      "pl",
-      "ro",
-      "tr",
-      "zh"
-    ],
-    "en_value": "Geo Hub",
-    "n": 16,
-    "reason": "Added alongside the costExplorer cluster fix (fix(i18n): contain the costExplorer leak cluster found below threshold). This entry's n sits at 15-16, below the 24/28 threshold - the same below-threshold band the commit's own title names for the costExplorer cluster - so it was not caught by the general threshold scan; filed without individual triage. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
-  },
-  "whatsnew.v450.propdev.chip": {
-    "added_by": "adb78c983 (2026-08-02)",
-    "differs_in": [
-      "ar",
-      "ja",
-      "zh"
-    ],
-    "en_value": "PropDev",
-    "n": 25,
-    "reason": "Seeded when the leak guard was first split into three lists (ci(i18n): rebuild the leak guard as two separate lists plus a general scan). This entry's n is >=24/28, the shape the threshold scan actually flags; filed as ambiguous at guard rollout rather than triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
-  },
-  "contracts.sov_link_boq": {
-    "added_by": "i18n sweep (2026-09-25)",
-    "differs_in": [
-      "de",
-      "et",
-      "fa",
-      "fi",
-      "fr",
-      "he",
-      "hu",
-      "it",
-      "ja",
-      "ko",
-      "uk",
-      "zh"
-    ],
-    "en_value": "BOQ",
-    "n": 30,
-    "reason": "New key for the SOV-to-BOQ link picker. BOQ is kept literal (CLAUDE.md: not translated) in most locales, but de/fr/it/ja/ko/uk/et/fi/hu/zh/fa/he already use their own established term for the bill of quantities elsewhere in the app (e.g. tendering.export_gaeb_title), so this key follows that per-locale precedent instead of the acronym."
-  },
-  "contracts.sov_link_linked": {
-    "added_by": "i18n sweep (2026-09-25)",
-    "differs_in": [
-      "de",
-      "et",
-      "fa",
-      "fi",
-      "fr",
-      "he",
-      "hu",
-      "it",
-      "ja",
-      "ko",
-      "uk",
-      "zh"
-    ],
-    "en_value": "BOQ {{position}}",
-    "n": 30,
-    "reason": "Sibling of contracts.sov_link_boq (same key family, same picker): the BOQ label is substituted with each locale established term where one exists, kept literal elsewhere."
-  },
   "validation.rs_label_gesn": {
     "added_by": "18.1.0 release (2026-09-28)",
     "differs_in": [
@@ -3065,370 +3513,58 @@
     "n": 41,
     "reason": "Validation rule set label added in 18.1.0. It names a standard or a workflow, so most locales keep the English form on purpose, while the locales in differs_in write it natively; filed for review rather than allowlisted because it is not identical everywhere."
   },
-  "changeorders.source_kind_ncr": {
-    "added_by": "batch 18.4 integration (2026-10-04)",
+  "variations.mod_boq": {
+    "added_by": "15aa69993 (2026-08-11)",
     "differs_in": [
-      "es",
-      "es-CL",
-      "es-CO",
-      "es-MX"
-    ],
-    "en_value": "NCR",
-    "n": 38,
-    "reason": "Short pill label naming the source record type of an automatically drafted change order. NCR is kept as the acronym in most locales, the way each file already labels the QMS records; the locales that differ write a local acronym. Filed for a native review of which reads better on the pill, not a prose leak."
-  },
-  "changeorders.source_kind_rfi": {
-    "added_by": "batch 18.4 integration (2026-10-04)",
-    "differs_in": [],
-    "en_value": "RFI",
-    "n": 42,
-    "reason": "Short pill label naming the source record type of an automatically drafted change order. RFI is the acronym the locale files already use for the RFI module; filed for review rather than allowlisted because a few locales spell it differently."
-  },
-  "risk.cont_p80_exact": {
-    "added_by": "batch 18.4 integration (2026-10-04)",
-    "differs_in": [
-      "hu"
-    ],
-    "en_value": "P80 {{amount}}",
-    "n": 41,
-    "reason": "Value cell for the 80th percentile of the contingency simulation, P80 followed by an amount. P80 is the risk notation used across markets; the locales that differ write a local form. Filed for a native review of the notation, not a prose leak."
-  },
-  "procurement.from_rfq_unnamed": {
-    "added_by": "batch 18.4 integration (2026-10-04)",
-    "differs_in": [
-      "ar",
-      "he"
-    ],
-    "en_value": "RFQ",
-    "n": 40,
-    "reason": "Fallback label for a purchase order drafted from an RFQ that has no title, so the order names its source by the record type alone. RFQ is the acronym each locale already uses for the RFQ module; ar and he spell the request out, so it is filed for a native review rather than allowlisted."
-  },
-  "price_index.ri.fot_short": {
-    "added_by": "batch 18.4 integration (2026-10-04)",
-    "differs_in": [
-      "bg",
-      "ru",
-      "uk"
-    ],
-    "en_value": "FOT",
-    "n": 39,
-    "reason": "Short column label of the Russian resource-index method for the payroll fund (FOT). Cyrillic locales write the native abbreviation; the others keep the transliterated code of the method. Filed for a native review of whether each market reads the code or wants a local abbreviation."
-  },
-  "price_index.ri.nr_short": {
-    "added_by": "batch 18.4 integration (2026-10-04)",
-    "differs_in": [
-      "bg",
-      "ru",
-      "uk"
-    ],
-    "en_value": "NR",
-    "n": 39,
-    "reason": "Short column label of the Russian resource-index method for overheads (NR). Cyrillic locales write the native abbreviation; the others keep the method's code. Filed for native review, not a prose leak."
-  },
-  "price_index.ri.sp_short": {
-    "added_by": "batch 18.4 integration (2026-10-04)",
-    "differs_in": [
-      "bg",
-      "ru",
-      "uk"
-    ],
-    "en_value": "SP",
-    "n": 39,
-    "reason": "Short column label of the Russian resource-index method for estimated profit (SP). Cyrillic locales write the native abbreviation; the others keep the method's code. Filed for native review, not a prose leak."
-  },
-  "price_index.ri.nr_pct": {
-    "added_by": "batch 18.4 integration (2026-10-04)",
-    "differs_in": [
-      "bg",
-      "cs",
-      "da",
-      "et",
-      "fi",
-      "hr",
-      "hu",
-      "no",
-      "pl",
-      "ru",
-      "sv",
-      "uk"
-    ],
-    "en_value": "NR %",
-    "n": 30,
-    "reason": "Column label NR % of the Russian resource-index method (overheads as a percent of the payroll fund). Kept as the method code in most locales, native abbreviation where the script allows. Filed for native review."
-  },
-  "price_index.ri.sp_pct": {
-    "added_by": "batch 18.4 integration (2026-10-04)",
-    "differs_in": [
-      "bg",
-      "cs",
-      "da",
-      "et",
-      "fi",
-      "hr",
-      "hu",
-      "no",
-      "pl",
-      "ru",
-      "sv",
-      "uk"
-    ],
-    "en_value": "SP %",
-    "n": 30,
-    "reason": "Column label SP % of the Russian resource-index method (estimated profit as a percent of the payroll fund). Kept as the method code in most locales, native abbreviation where the script allows. Filed for native review."
-  },
-  "hakedis.rate.percent": {
-    "added_by": "Turkey pack i18n parity (2026-10-10)",
-    "differs_in": [
-      "cs",
-      "da",
-      "fi",
-      "fr",
-      "hr",
-      "no",
-      "sv",
-      "tr"
-    ],
-    "en_value": "{{rate}}%",
-    "n": 34,
-    "reason": "Percent template. Identical to en where the locale writes the sign directly after the number; cs, da, fi, fr, hr, no and sv put a space before it by their typographic rule, and tr puts the sign first. Differences are deliberate, so it cannot be allowlisted, which requires identity in every locale."
-  },
-  "rfi.discipline_mep": {
-    "added_by": "Turkey pack i18n parity (2026-10-10)",
-    "differs_in": [
-      "de",
+      "bn",
       "el",
+      "es-MX",
+      "et",
       "fa",
-      "fi",
       "fil",
-      "he",
-      "ja",
-      "kk",
-      "ru",
-      "sv",
-      "tr",
-      "uk",
-      "ur"
-    ],
-    "en_value": "MEP",
-    "n": 29,
-    "reason": "MEP is the discipline code (mechanical, electrical, plumbing) and stays as is in most locales; 13 locales use their own trade term (for example TGA in de, VVS/El in sv), taken from each file's own category_mep. Filed for native review."
-  },
-  "delivery_model.ui.matrix.share": {
-    "added_by": "i18n translation of the eleven modules (2026-10-14)",
-    "differs_in": [
       "fr",
-      "ja",
-      "tr",
-      "zh"
-    ],
-    "en_value": "{{party}}: {{share}} %",
-    "n": 38,
-    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
-  },
-  "design.common.ok": {
-    "added_by": "i18n translation of the eleven modules (2026-10-14)",
-    "differs_in": [
-      "bg",
-      "bn",
-      "es",
-      "es-CL",
-      "es-CO",
-      "es-MX",
-      "fa",
-      "he",
-      "hi",
-      "hr",
-      "ko",
-      "ru",
-      "th",
-      "uk",
-      "ur"
-    ],
-    "en_value": "OK",
-    "n": 27,
-    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
-  },
-  "design.ui.setup.target_shown": {
-    "added_by": "i18n translation of the eleven modules (2026-10-14)",
-    "differs_in": [
-      "fr",
-      "ja",
-      "zh"
-    ],
-    "en_value": "{{phase}}: {{status}}",
-    "n": 39,
-    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
-  },
-  "quality_concept.common.ok": {
-    "added_by": "i18n translation of the eleven modules (2026-10-14)",
-    "differs_in": [
-      "ar",
-      "bn",
-      "es",
-      "es-CL",
-      "es-CO",
-      "es-MX",
-      "fa",
-      "he",
-      "hi",
-      "ko",
-      "th",
-      "tr",
-      "ur"
-    ],
-    "en_value": "OK",
-    "n": 29,
-    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
-  },
-  "site_logistics.plan.enum.flow_mode.kanban": {
-    "added_by": "i18n translation of the eleven modules (2026-10-14)",
-    "differs_in": [
-      "ar",
-      "bg",
-      "bn",
-      "de",
-      "ja",
-      "ko",
-      "ru",
-      "uk",
-      "ur",
-      "zh"
-    ],
-    "en_value": "Kanban",
-    "n": 32,
-    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
-  },
-  "site_logistics.plan.f.incoterm": {
-    "added_by": "i18n translation of the eleven modules (2026-10-14)",
-    "differs_in": [
-      "ar",
-      "bg",
-      "bn",
-      "de",
-      "ja",
-      "kk",
-      "ko",
-      "ky",
-      "ru",
-      "uk",
-      "ur",
-      "uz",
-      "zh"
-    ],
-    "en_value": "Incoterm",
-    "n": 29,
-    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
-  },
-  "site_logistics.plan.m2": {
-    "added_by": "i18n translation of the eleven modules (2026-10-14)",
-    "differs_in": [
-      "ar",
-      "bg",
-      "bn",
-      "fa",
       "he",
       "kk",
-      "ky",
-      "mn",
-      "ru",
-      "uk"
-    ],
-    "en_value": "{{value}} m2",
-    "n": 32,
-    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
-  },
-  "site_logistics.plan.neighbourhood.dba": {
-    "added_by": "i18n translation of the eleven modules (2026-10-14)",
-    "differs_in": [
-      "ar",
-      "kk",
-      "ky",
-      "mn",
-      "ru",
-      "uk"
-    ],
-    "en_value": "{{value}} dB(A)",
-    "n": 36,
-    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
-  },
-  "staffing.handover.person_on": {
-    "added_by": "i18n translation of the eleven modules (2026-10-14)",
-    "differs_in": [
-      "ar",
-      "fa",
-      "ja",
-      "ur",
-      "zh"
-    ],
-    "en_value": "{{person}}, {{position}}",
-    "n": 37,
-    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
-  },
-  "staffing.org_chart.person_proposed": {
-    "added_by": "i18n translation of the eleven modules (2026-10-14)",
-    "differs_in": [
-      "ja",
-      "ko",
-      "zh"
-    ],
-    "en_value": "{{name}} ({{status}})",
-    "n": 39,
-    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
-  },
-  "staffing.position.fte": {
-    "added_by": "i18n translation of the eleven modules (2026-10-14)",
-    "differs_in": [
-      "de",
-      "pl"
-    ],
-    "en_value": "FTE",
-    "n": 40,
-    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
-  },
-  "staffing.position.fte_times": {
-    "added_by": "i18n translation of the eleven modules (2026-10-14)",
-    "differs_in": [
-      "ar",
-      "de",
-      "fa",
-      "pl"
-    ],
-    "en_value": "{{fte}} FTE x {{n}}",
-    "n": 38,
-    "reason": "Short term, unit or placeholder template. The locales listed in differs_in carry a real localized form (own script, punctuation, spacing or word), the others write it as in English. Each differing value was read in the locale file rather than counted; none is an untranslated copy of a sentence."
-  },
-  "projectHandbook.tabs.data_room": {
-    "added_by": "i18n handbook translation (2026-10-14)",
-    "differs_in": [
-      "ar",
-      "bn",
-      "de",
-      "fa",
-      "he",
-      "hi",
-      "ja",
-      "ko",
-      "ru",
-      "th",
-      "uk",
-      "ur",
-      "zh"
-    ],
-    "en_value": "Data room",
-    "n": 29,
-    "reason": "Short term. Locales in differs_in carry their own word or script; the rest write Data room as in English, the common term in several Latin-script locales. Flagged for a native read of fr, es, nl and pl."
-  },
-  "projectHandbook.version_short": {
-    "added_by": "i18n handbook translation (2026-10-14)",
-    "differs_in": [
-      "bg",
       "ky",
       "pl",
+      "ro",
       "ru",
-      "uk"
+      "ur",
+      "vi"
     ],
-    "en_value": "v{{n}}",
-    "n": 37,
-    "reason": "Version abbreviation template, v plus a number, written the same in Latin-script locales; the differing locales use their own script."
+    "en_value": "BOQ",
+    "n": 25,
+    "reason": "Added in the commit that split Chile, Colombia and Brazil into their own locales (feat(i18n): give Chile, Colombia and Brazil a locale of their own). This entry's n is >=25/28, the shape the threshold scan actually flags. Checked: only one of the thirteen keys from this commit names es-CL or es-CO in its differs_in set (this one may or may not be that key), so a link to those new locales is not established for most of them. Not individually triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
+  },
+  "whatsnew.v450.geo.chip": {
+    "added_by": "a959ccb4f (2026-08-02)",
+    "differs_in": [
+      "ar",
+      "cs",
+      "fi",
+      "hr",
+      "ja",
+      "ko",
+      "ky",
+      "mn",
+      "pl",
+      "ro",
+      "tr",
+      "zh"
+    ],
+    "en_value": "Geo Hub",
+    "n": 16,
+    "reason": "Added alongside the costExplorer cluster fix (fix(i18n): contain the costExplorer leak cluster found below threshold). This entry's n sits at 15-16, below the 24/28 threshold - the same below-threshold band the commit's own title names for the costExplorer cluster - so it was not caught by the general threshold scan; filed without individual triage. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
+  },
+  "whatsnew.v450.propdev.chip": {
+    "added_by": "adb78c983 (2026-08-02)",
+    "differs_in": [
+      "ar",
+      "ja",
+      "zh"
+    ],
+    "en_value": "PropDev",
+    "n": 25,
+    "reason": "Seeded when the leak guard was first split into three lists (ci(i18n): rebuild the leak guard as two separate lists plus a general scan). This entry's n is >=24/28, the shape the threshold scan actually flags; filed as ambiguous at guard rollout rather than triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
   }
 }

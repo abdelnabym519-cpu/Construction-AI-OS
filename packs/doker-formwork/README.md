@@ -1,6 +1,6 @@
-# OpenConstructionERP × Doker — Formwork Partner Pack
+# Construction AI OS × Doker — Formwork Partner Pack
 
-Pre-configures OpenConstructionERP for **formwork (Schalung) and concrete
+Pre-configures Construction AI OS for **formwork (Schalung) and concrete
 contractors** in the DACH region.
 
 ## What it does
@@ -77,4 +77,4 @@ export OE_PARTNER_PACK=doker-formwork
 
 ## License
 
-AGPL-3.0-or-later, same as the OpenConstructionERP core.
+AGPL-3.0-or-later, same as the Construction AI OS core.

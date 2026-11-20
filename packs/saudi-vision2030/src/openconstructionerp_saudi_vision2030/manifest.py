@@ -145,6 +145,6 @@ MANIFEST = PartnerPackManifest(
             "surfaced in onboarding and resolve through the marketplace "
             "import when the user opts in."
         ),
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

@@ -226,6 +226,52 @@ def _first_sighting_of_missing_session(sid: str) -> bool:
     return True
 
 
+def reject_token_without_a_tenant(payload: dict[str, Any]) -> None:
+    """Refuse an access token that names no organization.
+
+    ADR 005. Since organizations exist, an access token carries a ``tenant_id``
+    claim naming the organization the holder was an active member of when it was
+    minted. A token without one was issued before that, and there is nothing
+    honest to do with it: :func:`app.core.tenant_scope.resolve_tenant_id` used to
+    answer with the caller's own ``sub``, which is how a person's id came to be
+    stored in tenant columns and why the readiness blocker is named
+    ``tenant_is_user``. Guessing that again here would keep the blocker raised
+    forever however carefully the rows were migrated.
+
+    So the credential is refused, with a detail that says what to do about it, and
+    the recovery is a refresh: redeeming a refresh token goes back through the
+    mint point, which resolves the organization against the database as it stands
+    then. A refresh token is therefore exempt here, and that exemption is what
+    makes the refusal survivable rather than a forced re-login for every session
+    that predates the change.
+
+    This differs from the tolerance ``decode_access_token`` shows a missing
+    ``type`` claim, and the difference is the point. That one decides which
+    *flavour* of token this is, and an old token is still an access token. This
+    one decides whose rows the caller may see, and an old token does not say.
+
+    Only ``access`` tokens are refused, using the same convention
+    ``decode_access_token`` applies: an absent ``type`` means ``access``, because
+    that is what every credential issued before the claim existed is.
+    """
+    if payload.get("type", "access") != "access":
+        return
+
+    from app.core.tenant_scope import resolve_tenant_id
+
+    if resolve_tenant_id(payload) is not None:
+        return
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=(
+            "Invalid token: no tenant. This credential was issued before "
+            "organizations existed; refresh it or sign in again."
+        ),
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
 async def reject_revoked_session(
     session: AsyncSession,
     sid: str | None,
@@ -339,6 +385,10 @@ async def get_current_user_payload(
             headers={"WWW-Authenticate": "Bearer"},
         )
     payload = decode_access_token(credentials.credentials, settings)
+    # Before the database is touched for anything else: a credential that cannot
+    # name a tenant is refused here rather than being scoped to its holder's own
+    # id further down.
+    reject_token_without_a_tenant(payload)
 
     # Re-hydrate role + permissions from the database and check that the
     # token was issued AFTER the user's last password change.
@@ -494,6 +544,14 @@ async def get_optional_user_payload(
         return None
     try:
         payload = decode_access_token(token, settings)
+        # Inside the try, on purpose: on this door a credential that cannot be
+        # honoured degrades to an anonymous request, exactly as an unknown or
+        # inactive ``sub`` does below. A claimless token is not a reason to fail
+        # an endpoint that was never authenticated. It narrows rather than widens
+        # what the caller sees, which was checked at the consumer rather than
+        # assumed: ``CatalogueStore._available`` adds an organization's catalogues
+        # only when a tenant is present, so ``None`` returns fewer rows.
+        reject_token_without_a_tenant(payload)
         await verify_user_exists_and_active(
             payload["sub"],
             issued_at=payload.get("iat"),
@@ -1076,9 +1134,9 @@ OptionalUserPayload = Annotated[dict[str, Any] | None, Depends(get_optional_user
 
 # ── Tenant scope (multi-tenant isolation, Phase 1 scaffolding) ──────────────
 #
-# The "tenant" today is simply the owning user's id (the JWT ``sub``);
-# there is no separate Tenant entity and no ``tenant_id`` claim in the JWT
-# yet. The pure resolver lives in :mod:`app.core.tenant_scope` (import-safe,
+# The tenant is the caller's organization (ADR 005), named by the ``tenant_id``
+# claim the mint point puts in every access token. The pure resolver lives in
+# :mod:`app.core.tenant_scope` (import-safe,
 # no DB); the request-time dependency is assembled here because this module
 # owns ``get_optional_user_payload`` and the session plumbing. Importing
 # tenant_scope from here (and never the reverse) keeps the edge acyclic.
@@ -1095,10 +1153,16 @@ async def get_current_tenant_id(
     an endpoint that must be authenticated, keep using :data:`CurrentUserId`
     for the 401 and use this only to obtain the scoping key.
 
-    Resolution (see :func:`app.core.tenant_scope.resolve_tenant_id`):
-    explicit ``tenant_id`` claim if present (forward-compatible), else the
-    user id ``sub`` (the tenant == the user in single-tenant installs,
-    matching ``Contact.tenant_id`` / ``Snapshot.tenant_id``), else ``None``.
+    Resolution (see :func:`app.core.tenant_scope.resolve_tenant_id`): the
+    ``tenant_id`` claim, or ``None``. There is no fall-through to ``sub``; a
+    person's id is not a tenant (ADR 005).
+
+    A ``None`` here does not mean the caller was refused. On an authenticated
+    endpoint the refusal already happened one level up, in
+    :func:`reject_token_without_a_tenant`, so a ``None`` reaching a handler means
+    an anonymous or absent credential. On an endpoint built on this dependency
+    alone it can also mean a credential issued before organizations existed,
+    which :func:`get_optional_user_payload` treats as anonymous.
     """
     from app.core.tenant_scope import resolve_tenant_id
 
@@ -1113,6 +1177,7 @@ CurrentTenantId = Annotated[str | None, Depends(get_current_tenant_id)]
 async def tenant_scoped_owner_filter(
     session: SessionDep,
     tenant_id: CurrentTenantId = None,
+    payload: OptionalUserPayload = None,
 ) -> str | None:
     """Reference usage: the ready-to-apply ``owner_id`` filter for the caller.
 
@@ -1133,10 +1198,17 @@ async def tenant_scoped_owner_filter(
     :func:`accessible_project_ids` uses). This is **not** wired into any
     existing endpoint yet - it is the Phase 1 reference that Phase 2 rolls
     out module-by-module. Importing or exposing it changes no behaviour.
+
+    The payload is needed beside the tenant id, and not instead of it: the admin
+    check looks a *user* up, and since ADR 005 the tenant is an organization. Hand
+    it the tenant and the lookup finds nothing, fails closed, and every
+    administrator silently loses the unfiltered view this helper exists to give
+    them. Nothing raises, which is why the separation is asserted in a test rather
+    than left to review.
     """
     from app.core.tenant_scope import tenant_scope_owner
 
-    return await tenant_scope_owner(session, tenant_id)
+    return await tenant_scope_owner(session, tenant_id, actor_id=(payload or {}).get("sub"))
 
 
 # ── Epic H - universal audit context dependency ────────────────────────────

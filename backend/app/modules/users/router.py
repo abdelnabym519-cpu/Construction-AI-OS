@@ -253,7 +253,11 @@ class DemoLoginRequest(BaseModel):
 _DEMO_EMAIL_WHITELIST: frozenset[str] = DEMO_ACCOUNT_EMAILS
 
 
-@router.post("/auth/demo-login/", response_model=TokenResponse)
+# Both spellings are registered, so both have to leave the schema. Hiding only the
+# second left the trailing-slash variant in /openapi.json and in /docs, which is
+# where a passwordless login endpoint is least welcome: it is kept for the e2e
+# suite and for a seeded demo, not advertised as a way in.
+@router.post("/auth/demo-login/", response_model=TokenResponse, include_in_schema=False)
 @router.post("/auth/demo-login", response_model=TokenResponse, include_in_schema=False)
 async def demo_login(
     data: DemoLoginRequest,
@@ -364,6 +368,7 @@ def _demo_login_setting_state() -> DemoLoginSettingResponse:
 @router.get(
     "/auth/demo-login/settings/",
     response_model=DemoLoginSettingResponse,
+    include_in_schema=False,
     dependencies=[Depends(RequireRole("admin"))],
 )
 @router.get(
@@ -380,6 +385,7 @@ async def get_demo_login_setting() -> DemoLoginSettingResponse:
 @router.put(
     "/auth/demo-login/settings/",
     response_model=DemoLoginSettingResponse,
+    include_in_schema=False,
     dependencies=[Depends(RequireRole("admin"))],
 )
 @router.put(

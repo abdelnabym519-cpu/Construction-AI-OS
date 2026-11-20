@@ -42,9 +42,23 @@ logger = logging.getLogger(__name__)
 SARIF_VERSION = "2.1.0"
 SARIF_SCHEMA = "https://json.schemastore.org/sarif-2.1.0.json"
 
-TOOL_NAME = "OpenConstructionERP"
-TOOL_INFORMATION_URI = "https://datadrivenconstruction.io/openconstructionerp"
-TOOL_ORG = "DataDrivenConstruction"
+
+def _resolve_tool_name() -> str:
+    """Read the SARIF driver name from the one display-name constant."""
+    try:
+        from app.config import get_settings
+
+        name = str(get_settings().app_name or "").strip()
+        if name:
+            return name
+    except Exception:
+        pass
+    return "Construction AI OS"
+
+
+TOOL_NAME = _resolve_tool_name()
+# Where a SARIF consumer can find this tool's source and docs.
+TOOL_INFORMATION_URI = "https://github.com/abdelnabym519-cpu/Construction-AI-OS"
 
 
 # ── Severity mapping ────────────────────────────────────────────────────────
@@ -300,10 +314,6 @@ def report_to_sarif(report: Any) -> dict[str, Any]:
             "passingChecks": sum(1 for r in norm["results"] if r.get("passed")),
             "totalChecks": len(norm["results"]),
             "ruleSets": norm["rule_sets"],
-            # Authorship pin - SARIF properties survive even when tool.driver
-            # values get rebranded by a downstream consumer / fork.
-            "engineSignature": "DDC-CWICR-OE-2026",
-            "engineUri": "https://datadrivenconstruction.io",
         },
     }
 
@@ -311,7 +321,6 @@ def report_to_sarif(report: Any) -> dict[str, Any]:
         "tool": {
             "driver": {
                 "name": TOOL_NAME,
-                "organization": TOOL_ORG,
                 "version": _get_tool_version(),
                 "informationUri": TOOL_INFORMATION_URI,
                 "rules": list(rules_by_id.values()),
@@ -322,7 +331,7 @@ def report_to_sarif(report: Any) -> dict[str, Any]:
         "originalUriBaseIds": {
             "%SRCROOT%": {
                 "uri": f"openconstructionerp://{norm['target_type']}/{norm['target_id']}/",
-                "description": {"text": f"OpenConstructionERP {norm['target_type']} {norm['target_id']}"},
+                "description": {"text": f"{TOOL_NAME} {norm['target_type']} {norm['target_id']}"},
             }
         },
         "properties": {

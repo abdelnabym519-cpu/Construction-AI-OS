@@ -1,0 +1,4 @@
+{
+  "_comment": "Per-file counts of promotional strings that were already in the tree when check_no_promotional_strings.py landed. This is labelled debt, not permission: the guard fails if any count grows or a new file appears, so these numbers can only go down. Lower an entry in the same diff that removes the strings it counts.",
+  "counts": {}
+}

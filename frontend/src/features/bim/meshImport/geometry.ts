@@ -4,7 +4,7 @@
  * Mesh geometry extraction - pure functions plus a Three.js scene walker.
  *
  * These helpers turn raw triangle soup (from any loaded mesh format) into the
- * quantities OpenConstructionERP cares about: surface area, mesh volume,
+ * quantities the product cares about: surface area, mesh volume,
  * bounding box, triangle/object count and the longest extent (length). They
  * are deliberately kept free of any UI or network concern so they can be unit
  * tested in isolation - see ``geometry.test.ts``.

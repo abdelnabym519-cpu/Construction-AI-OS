@@ -1,6 +1,6 @@
 # Renewables EPC Pack
 
-Pre-configures OpenConstructionERP for solar, wind and battery storage EPC
+Pre-configures Construction AI OS for solar, wind and battery storage EPC
 contractors: PV array takeoff, turbine bill of materials, medium-voltage cable
 schedules, levelised cost templates and the grid compliance regimes on both
 sides of the Atlantic.
@@ -55,7 +55,7 @@ publishers' own text and tables are not reproduced here.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules then
+This pack ships inside Construction AI OS. Activate it from Modules then
 Partner Packs: click Rescan, find "Renewables EPC Pack", then Activate pack.
 
 To run a workspace that boots straight into it:
@@ -66,5 +66,5 @@ OE_PACK=renewables-epc openconstructionerp serve
 
 ## License
 
-AGPL-3.0-or-later. OpenConstructionERP is authored and owned by
+AGPL-3.0-or-later. The original Construction AI OS is authored and owned by
 DataDrivenConstruction.

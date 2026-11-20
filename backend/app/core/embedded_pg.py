@@ -15,10 +15,20 @@ existing cluster.
 Ordering contract
 ~~~~~~~~~~~~~~~~~
 ``app.database`` builds the SQLAlchemy engine from ``settings.database_url`` at
-*import time*. :func:`boot` therefore MUST run before the first ``from app...``
-import that pulls in ``app.database`` (and before ``get_settings()`` is cached).
-The CLI calls it from ``_setup_env``, which every command runs before importing
-any app module - so the contract holds for ``serve``/``init-db``/``seed``.
+*import time*, and ``get_settings()`` is ``@lru_cache``d while ``Settings`` reads
+the environment once, when it is constructed. :func:`boot` therefore MUST run
+before the first ``from app...`` import that pulls in ``app.database``, and a
+``Settings`` built *before* :func:`boot` wrote the two variables is stale by
+construction: it keeps the empty ``database_url`` it was constructed with, and
+the engine import refuses it.
+
+The CLI cannot honour that by ordering alone. ``main()`` builds the argument
+parser before it looks at the command, and the parser's help and description
+strings carry the display name - a real ``get_settings()`` read that predates
+every command, including this boot. So ``_setup_env`` drops the settings cache
+immediately after :func:`boot` succeeds, and that is what makes the contract
+hold for ``serve``/``init-db``/``seed``. Any other caller of :func:`boot` that
+may have read settings earlier owes the same ``get_settings.cache_clear()``.
 
 Single-process only: run ONE uvicorn worker with embedded PG (the default). For
 multi-worker deployments use an external PostgreSQL and set ``DATABASE_URL``
@@ -74,8 +84,21 @@ _fatal_detail: str | None = None
 _TRUTHY = {"1", "true", "yes", "on"}
 _FALSY = {"0", "false", "no", "off"}
 
-#: Support contact surfaced (in the log) when embedded PostgreSQL cannot start.
-_CONTACT_EMAIL = "info@datadrivenconstruction.io"
+#: Support contact surfaced (in the log) when embedded PostgreSQL cannot
+#: start. Read from ``settings.support_email`` at log time so the operator
+#: of THIS installation owns it; the neutral RFC 2606 placeholder below only
+#: appears when settings cannot be imported at all (very early boot failure).
+_FALLBACK_CONTACT_EMAIL = "support@example.com"
+
+
+def _contact_email() -> str:
+    try:
+        from app.config import get_settings
+
+        return get_settings().support_email or _FALLBACK_CONTACT_EMAIL
+    except Exception:  # noqa: BLE001 - early-boot import may not be ready yet
+        return _FALLBACK_CONTACT_EMAIL
+
 
 #: Name of the logger ``pixeltable-pgserver`` writes everything through. Both of
 #: its emitters (``postgres_server`` and ``pgexec``) take this one name, so a
@@ -511,7 +534,7 @@ def boot(data_dir: Path | str) -> bool:
             last_exc,
             resolved_pgdata / "log",
             _launcher_log_path(),
-            _CONTACT_EMAIL,
+            _contact_email(),
         )
         return False
 

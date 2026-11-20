@@ -20,7 +20,7 @@ manifest = ModuleManifest(
         "when it is valid; regional packs supply the country-specific "
         "vocabularies."
     ),
-    author="OpenConstructionERP Core Team",
+    author="Construction AI OS Core Team",
     category="core",
     depends=["oe_users", "oe_projects"],
     auto_install=True,

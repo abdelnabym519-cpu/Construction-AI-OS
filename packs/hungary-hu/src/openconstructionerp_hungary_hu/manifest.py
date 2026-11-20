@@ -120,6 +120,6 @@ MANIFEST = PartnerPackManifest(
             "Kocsis Tamás (BIM Control, bimcontrol.hu). The statutory "
             "references are drawn from public sources."
         ),
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

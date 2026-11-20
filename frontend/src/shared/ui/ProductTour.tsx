@@ -1,7 +1,7 @@
 // DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 // Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 /**
- * ProductTour — first-run guided tour of OpenConstructionERP.
+ * ProductTour — first-run guided tour of the product.
  *
  * A multi-step spotlight coachmark walkthrough that introduces a new user
  * to the key surfaces of the app: sidebar navigation, project picker,
@@ -254,12 +254,6 @@ export const DEFAULT_PRODUCT_TOUR_STEPS: ProductTourStep[] = [
     // Geo Hub moved into the collapsed-by-default "Reality Capture & 3D"
     // group (grp_reality); reveal it so the spotlight can latch on.
     revealGroupId: 'grp_reality',
-  },
-  {
-    selector: '[data-testid="header-help-menu"]',
-    titleKey: 'tour.step.7.title',
-    bodyKey: 'tour.step.7.body',
-    preferredPosition: 'bottom',
   },
   {
     selector: null,
@@ -641,9 +635,6 @@ const STEP_FALLBACKS: Record<string, string> = {
   'tour.step.6.title': 'Geo Hub',
   'tour.step.6.body':
     '3D globe with project anchors, CAD tilesets and pins from HSE, Punchlist and Daily Diary.',
-  'tour.step.7.title': 'Help and bug reports',
-  'tour.step.7.body':
-    'Found something? Report a bug from here - it lands on GitHub. You can also re-launch this quick tour from this menu.',
   'tour.step.8.title': "You're set!",
   'tour.step.8.body':
     'Pick a module from the sidebar to dive in. Full docs are linked from the About page.',

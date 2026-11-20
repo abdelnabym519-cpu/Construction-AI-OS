@@ -5,6 +5,13 @@
 # first-party identity, this check fails so the PR cannot be merged. We read
 # community issues and write every fix in-house; we do not merge external code.
 # See CONTRIBUTORS.md for how to propose a change by opening an issue.
+#
+# That policy belongs to the canonical repository, so the check is
+# repository-aware. In datadrivenconstruction/OpenConstructionERP the author
+# validation below runs exactly as written. In a personal fork, where the
+# owner develops and merges their own work, there is no external
+# contribution to reject, so the check says so and passes. Only whether the
+# step runs depends on the repository; its logic never changes.
 
 name: Authors Guard
 
@@ -21,6 +28,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Verify every commit in the PR is first-party
+        # Evaluated before the step runs, where the github context is
+        # available, so the canonical repository keeps enforcing the rule.
+        if: github.repository == 'datadrivenconstruction/OpenConstructionERP'
         uses: actions/github-script@v7
         with:
           script: |
@@ -72,3 +82,18 @@ jobs:
             } else {
               core.info('All commits are first-party. OK.');
             }
+
+      - name: Say why the upstream author policy does not apply to this fork
+        if: github.repository != 'datadrivenconstruction/OpenConstructionERP'
+        run: |
+          echo "Skipping upstream-only author policy for this personal fork."
+          echo "Repository: ${GITHUB_REPOSITORY}"
+          echo "The first-party authorship rule in the step above is the policy"
+          echo "of the canonical datadrivenconstruction/OpenConstructionERP"
+          echo "repository, where every commit must come from a"
+          echo "DataDrivenConstruction author. This fork is where its owner"
+          echo "develops and merges their own work, so there is no external"
+          echo "contribution here to reject. Nothing is waived upstream: the"
+          echo "rule runs unchanged whenever this repository is the canonical"
+          echo "one, including for any pull request that proposes these"
+          echo "commits there."

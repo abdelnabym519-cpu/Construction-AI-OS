@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in OpenConstructionERP,
+If you discover a security vulnerability in Construction AI OS,
 please report it responsibly.
 
 **DO NOT** open a public GitHub issue for security vulnerabilities.
@@ -11,9 +11,8 @@ Public disclosure before a fix is available puts users at risk.
 ### How to Report
 
 1. **GitHub Security Advisories** (preferred):
-   [Create a new advisory](https://github.com/datadrivenconstruction/OpenConstructionERP/security/advisories/new)
+   [Create a new advisory](https://github.com/abdelnabym519-cpu/Construction-AI-OS/security/advisories/new)
 
-2. **Email:** `info@datadrivenconstruction.io`
 
 ### What to Include
 
@@ -47,7 +46,7 @@ through GitHub, which is a CVE Numbering Authority. We request the
 identifier ourselves so the record carries the verified facts: the
 component, the fixed release and the severity we assessed with the
 reporter. All published advisories are listed at
-<https://github.com/datadrivenconstruction/OpenConstructionERP/security/advisories>.
+<https://github.com/abdelnabym519-cpu/Construction-AI-OS/security/advisories>.
 
 Please keep a report private until we publish the advisory, and leave the
 CVE request to us, so that one accurate record exists rather than
@@ -69,8 +68,8 @@ advisory and in the CVE record unless they ask for anonymity.
 - Backend API (FastAPI services under `backend/app/`)
 - Frontend web application (`frontend/`)
 - Desktop client (`desktop/`)
-- Official Docker images published by DataDrivenConstruction and
-  the DDC-operated instance at `https://openconstructionerp.com`
+- Docker images published from this repository and any instance
+  operated by its maintainers
 - CLI tools distributed with the project
 - Build and release automation that produces signed artefacts
   (`.github/workflows/release*.yml`, `signatures/`)
@@ -104,7 +103,7 @@ DataDrivenConstruction.
 
 ## Self-Hosting Security Checklist
 
-If you deploy OpenConstructionERP on your own infrastructure:
+If you deploy Construction AI OS on your own infrastructure:
 
 - [ ] Change `JWT_SECRET` from the default value
 - [ ] Use HTTPS (TLS 1.2+) in production - never expose HTTP
@@ -144,7 +143,7 @@ to your installer, then run:
 cosign verify-blob \
   --certificate SHA256SUMS.pem \
   --signature SHA256SUMS.sig \
-  --certificate-identity-regexp 'https://github.com/datadrivenconstruction/OpenConstructionERP/.*' \
+  --certificate-identity-regexp 'https://github.com/abdelnabym519-cpu/Construction-AI-OS/.*' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
@@ -174,7 +173,7 @@ anonymity is requested.
 
 ## Contact
 
-All security communication: `info@datadrivenconstruction.io`.
-Where GitHub Security Advisories are available, please use that
-channel for reports that include sensitive proof-of-concept
-material.
+All security communication goes through this repository's
+[private security advisories](https://github.com/abdelnabym519-cpu/Construction-AI-OS/security/advisories/new).
+Please use that channel for reports that include sensitive
+proof-of-concept material.

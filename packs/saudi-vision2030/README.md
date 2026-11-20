@@ -1,6 +1,6 @@
-# OpenConstructionERP — Saudi Vision 2030 Pack
+# Construction AI OS — Saudi Vision 2030 Pack
 
-Partner pack pre-configuring [OpenConstructionERP](https://github.com/DataDrivenConstruction/openconstructionerp)
+Partner pack pre-configuring [Construction AI OS](https://github.com/abdelnabym519-cpu/Construction-AI-OS)
 for Saudi Arabian mega-project contractors — NEOM, Red Sea Global,
 Diriyah Gate, Qiddiya, PIF giga-projects, Saudi Aramco EPC, RCJY,
 MoMRAH municipal works.

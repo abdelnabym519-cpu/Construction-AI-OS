@@ -128,8 +128,9 @@ class TestDemoLoginEndpoint:
     ) -> None:
         """The public first-run probe surfaces ``demo_enabled`` so the login
         page can hide its demo block on installs that never seeded demo data.
-        It mirrors ``seed_demo_enabled()`` - true by default, false when
-        ``SEED_DEMO`` is off (issue #272)."""
+        It mirrors ``seed_demo_enabled()`` - demo data is opt-in, so this
+        is true only when ``SEED_DEMO`` (or a persisted first-run choice)
+        turns it on (issue #272)."""
         resp = await demo_client.get("/api/v1/auth/first-run/")
         assert resp.status_code == 200, resp.text
         assert resp.json().get("demo_enabled") is True

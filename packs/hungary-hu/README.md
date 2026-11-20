@@ -1,6 +1,6 @@
 # Hungary Construction Pack
 
-Pre-configures OpenConstructionERP for the Hungarian market: the item order a
+Pre-configures Construction AI OS for the Hungarian market: the item order a
 Hungarian bill of quantities is written against, the material and fee split it
 is priced in, and the summary cascade it is totalled through. Built from
 Hungarian workbooks in production use rather than from a description of them,
@@ -53,7 +53,7 @@ lawfully evaluate.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules then
+This pack ships inside Construction AI OS. Activate it from Modules then
 Packs: click Rescan, find "Hungary Construction Pack", then Apply.
 
 To run a workspace that boots straight into it:
@@ -93,7 +93,7 @@ site setup, item 01 temporary roads and bridges. Each chapter carries a `99` or
 
 Installing the pack switches the interface to Hungarian (`default_locale` is
 `hu`). The pack brings no strings of its own for that: the Hungarian interface
-is the bundle OpenConstructionERP ships and offers in its language picker, and
+is the bundle Construction AI OS ships and offers in its language picker, and
 anyone can switch back to another language there at any time. The pack's own
 Hungarian vocabulary sits where it is read, in the onboarding wizard and in the
 reference documents.

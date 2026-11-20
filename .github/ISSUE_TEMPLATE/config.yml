@@ -1,14 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Installation Help
-    url: https://openconstructionerp.com/install-help
-    about: A warning or an error while installing or starting? Check here first
-  - name: Community Chat
-    url: https://t.me/datadrivenconstruction
-    about: Ask questions and share ideas in our Telegram community
+    url: https://github.com/abdelnabym519-cpu/Construction-AI-OS/tree/main/docs
+    about: A warning or an error while installing or starting? Read this distribution's documentation first
   - name: Security Vulnerability
-    url: https://github.com/datadrivenconstruction/OpenConstructionERP/security/advisories/new
-    about: Report security vulnerabilities privately
-  - name: Professional Support
-    url: https://datadrivenconstruction.io/contact-support/
-    about: Enterprise deployment, training and consulting
+    url: https://github.com/abdelnabym519-cpu/Construction-AI-OS/security/advisories/new
+    about: Report a security vulnerability in THIS distribution privately
+  - name: License, attribution and support contacts
+    url: https://github.com/abdelnabym519-cpu/Construction-AI-OS/blob/main/NOTICE
+    about: What this distribution changed, who owns the upstream work, and how to reach this installation's operator

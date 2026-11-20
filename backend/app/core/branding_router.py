@@ -130,6 +130,18 @@ class WorkspaceAppearance(BaseModel):
     menu: WorkspaceMenu | None = None
 
 
+class SupportDestination(BaseModel):
+    """Where a bug report goes: a support page the operator runs, or a mailbox.
+
+    Validated by :func:`app.core.app_branding.sanitise_support_destination` on
+    the way in and again on the way out of the file, so a value that reached the
+    file by hand cannot be served to a browser and opened on a user's machine.
+    """
+
+    kind: str
+    value: str
+
+
 class BrandingResponse(BaseModel):
     """The workspace brand. ``mode`` is one of default / logo / text."""
 
@@ -139,6 +151,13 @@ class BrandingResponse(BaseModel):
     logo_png_data_url: str | None = None
     company_name: str = ""
     appearance: WorkspaceAppearance | None = None
+    #: None means no destination is configured, and the UI then hides the
+    #: bug-report channel entirely rather than pointing it at a repository the
+    #: user was never told about.
+    support_destination: SupportDestination | None = None
+    #: Whether footers show the Legal link. The /legal page itself, /api/source
+    #: and the bundled LICENSE and NOTICE assets are never hidden by this.
+    legal_link_visible: bool = True
 
 
 class BrandingUpdate(BaseModel):
@@ -157,6 +176,12 @@ class BrandingUpdate(BaseModel):
     company_name: str | None = Field(default=None, max_length=MAX_COMPANY_NAME)
     #: Omitted keeps the stored value, like every field here; ``null`` clears it.
     appearance: WorkspaceAppearance | None = None
+    #: Omitted keeps the stored destination; ``null`` clears it, which hides the
+    #: bug-report channel again.
+    support_destination: SupportDestination | None = None
+    #: Omitted keeps the stored value. A workspace that never set it is visible,
+    #: which is the default the legal position requires.
+    legal_link_visible: bool | None = None
 
 
 @router.get("/branding/", response_model=BrandingResponse)

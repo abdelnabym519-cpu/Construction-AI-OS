@@ -1,5 +1,17 @@
 # Commercial License, Template
 
+> **Note on this modified distribution (Construction AI OS).** The
+> template below is the upstream document: its Licensor is the upstream
+> copyright holder and its contact address is the upstream inbox. It is
+> reproduced unmodified because it governs the upstream work. A closed
+> deployment of **this** distribution is a different question: it needs
+> permission from the copyright holders of the code actually deployed -
+> the upstream authors for the original code and this repository's
+> maintainers for the modifications (see the NOTICE preamble). Contact
+> this repository's maintainers through its issue tracker; nothing
+> below is an offer they can accept on the upstream Licensor's behalf.
+
+
 This document is a **template** for organisations that cannot accept the
 AGPL-3.0 network-copyleft obligation (see §13 of the AGPL) and therefore
 need a commercial licence to deploy OpenConstructionERP in a

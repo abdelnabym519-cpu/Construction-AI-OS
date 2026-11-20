@@ -4,20 +4,20 @@
 //
 // Renders the user's company logo / name when they have customised
 // the platform via the edit modal; otherwise renders the default
-// OpenConstructionERP wordmark. Clicking the brand area (or the
+// product wordmark. Clicking the brand area (or the
 // "Customise" pencil that appears on hover) opens the editor.
 //
 // Layout rules:
-//   * No customisation → full OpenConstructionERP logo+wordmark, as
+//   * No customisation → full product logo+wordmark, as
 //     before (visual parity with v3.0.5).
 //   * Logo set        → user's logo fills the header width;
-//                       "OpenConstructionERP" subtitle is rendered at
+//                       "by <product>" subtitle is rendered at
 //                       roughly 1/3 of the original size beneath it
 //                       as a "powered by" attribution (required by
 //                       the AGPL-3.0 licence).
 //   * Name only       → company name in Plus Jakarta Sans 800, sized
 //                       to match the default wordmark; same small
-//                       OpenConstructionERP subtitle below.
+//                       product-name subtitle below.
 //
 // The editor is a lightweight inline form (not WideModal) so the
 // sidebar can keep working on narrow viewports. The logo upload
@@ -26,6 +26,7 @@
 // so the brand follows the workspace to other browsers and to invited
 // users (issue #272).
 import { useEffect, useRef, useState } from 'react';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
@@ -118,15 +119,15 @@ export function CustomBranding({ iconified }: CustomBrandingProps) {
       );
     }
     return (
-      <a
-        href="https://openconstructionerp.com/?utm_source=app"
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
         className="hover:opacity-80 transition-opacity"
-        title="OpenConstructionERP"
+        title={APP_NAME}
+        aria-label={t('branding.edit', { defaultValue: 'Customise branding' })}
       >
         <Logo size="sm" />
-      </a>
+      </button>
     );
   }
 
@@ -170,10 +171,10 @@ export function CustomBranding({ iconified }: CustomBrandingProps) {
                   {companyName}
                 </span>
               )}
-              {/* "by OpenConstructionERP" — minimal subordinate attribution
-                  under the user's brand. AGPL-3.0 attribution requirement
-                  is satisfied while the user's logo stays the dominant
-                  visual; font is small + muted on purpose. */}
+              {/* "by <product>" — minimal subordinate attribution under the
+                  user's brand, naming the platform the white-label sits on.
+                  The user's logo stays the dominant visual; font is small +
+                  muted on purpose. */}
               <span
                 className="mt-1 block text-[8px] leading-none text-content-quaternary truncate"
                 style={{
@@ -182,19 +183,16 @@ export function CustomBranding({ iconified }: CustomBrandingProps) {
                 }}
               >
                 by{' '}
-                <span className="font-semibold tracking-tight">
-                  Open<span className="text-oe-blue/60">Construction</span>
-                  <span className="text-content-quaternary">ERP</span>
-                </span>
+                <span className="font-semibold tracking-tight">{APP_NAME}</span>
               </span>
             </button>
           ) : (
-            <a
-              href="https://openconstructionerp.com/?utm_source=app"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
               className="flex items-center gap-1 hover:opacity-80 transition-opacity"
-              title="OpenConstructionERP"
+              title={APP_NAME}
+              aria-label={t('branding.edit', { defaultValue: 'Customise branding' })}
             >
               {/* Compact wordmark — 13px text + smaller gap to fit
                   the 248px sidebar minus the 32px edit button without
@@ -208,10 +206,9 @@ export function CustomBranding({ iconified }: CustomBrandingProps) {
                   letterSpacing: '-0.02em',
                 }}
               >
-                Open<span className="text-oe-blue">Construction</span>
-                <span className="text-content-quaternary">ERP</span>
+                {APP_NAME}
               </span>
-            </a>
+            </button>
           )}
         </div>
 

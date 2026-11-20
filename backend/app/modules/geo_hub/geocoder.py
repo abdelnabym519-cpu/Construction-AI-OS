@@ -140,9 +140,12 @@ _DEFAULT_BASE_URL = "https://nominatim.openstreetmap.org"
 # to Nominatim.
 _DEFAULT_PHOTON_URL = "https://photon.komoot.io"
 
-# Default contact in the UA header - required by Nominatim's UA policy.
-# Falls back to the project email when no override is set.
-_DEFAULT_CONTACT_EMAIL = "info@datadrivenconstruction.io"
+# Fallback contact in the UA header - required by Nominatim's UA policy.
+# ``settings.support_email`` (configurable per installation) is preferred;
+# this neutral RFC 2606 placeholder only applies when settings cannot load.
+# Operators doing real Nominatim traffic should set a reachable address:
+# OE_GEOCODER_USER_AGENT_CONTACT overrides everything.
+_DEFAULT_CONTACT_EMAIL = "support@example.com"
 
 # Global rate-limit guard. Process-scoped (not container-scoped) - a
 # multi-worker uvicorn deployment behind a single egress IP will still
@@ -178,14 +181,17 @@ def _photon_disabled() -> bool:
 def _user_agent(version: str | None = None) -> str:
     """Build the UA header required by Nominatim.
 
-    Includes a hard-coded contact email by default so even a totally
-    unconfigured deploy satisfies the UA policy. Operators may append an
-    extra contact via ``OE_GEOCODER_USER_AGENT_CONTACT``.
+    The product token is ``settings.app_name`` (spaces folded to dashes
+    for UA syntax) and the contact is ``settings.support_email``, so the
+    outbound identity follows the installation. A totally unconfigured
+    deploy still satisfies the UA policy through the neutral placeholder.
+    Operators may override the contact via
+    ``OE_GEOCODER_USER_AGENT_CONTACT``.
     """
     ver = (version or _app_version()) or "0.0.0"
     extra_contact = (os.environ.get("OE_GEOCODER_USER_AGENT_CONTACT") or "").strip()
-    contact = extra_contact or _DEFAULT_CONTACT_EMAIL
-    return f"OpenConstructionERP/{ver} ({contact})"
+    contact = extra_contact or _support_contact()
+    return f"{_product_token()}/{ver} ({contact})"
 
 
 def _app_version() -> str | None:
@@ -195,6 +201,25 @@ def _app_version() -> str | None:
         return get_settings().app_version
     except Exception:  # noqa: BLE001 - settings import is best-effort
         return None
+
+
+def _product_token() -> str:
+    """``app_name`` folded into a single UA product token."""
+    try:
+        from app.config import get_settings
+
+        return get_settings().app_name.replace(" ", "-")
+    except Exception:  # noqa: BLE001 - settings import is best-effort
+        return "oe-geocoder"
+
+
+def _support_contact() -> str:
+    try:
+        from app.config import get_settings
+
+        return get_settings().support_email or _DEFAULT_CONTACT_EMAIL
+    except Exception:  # noqa: BLE001 - settings import is best-effort
+        return _DEFAULT_CONTACT_EMAIL
 
 
 def _normalised_query(addr: ProjectAddress) -> str:

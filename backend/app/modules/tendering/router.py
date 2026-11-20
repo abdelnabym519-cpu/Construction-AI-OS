@@ -23,6 +23,7 @@ from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, Requ
 from fastapi.responses import StreamingResponse
 
 from app.core.content_disposition import attachment_disposition
+from app.core.tenant_scope import resolve_tenant_id
 from app.dependencies import (
     CurrentUserId,
     CurrentUserPayload,
@@ -715,7 +716,12 @@ async def add_package_recipient(
 ) -> RecipientResponse:
     """Add a subcontractor to a package's distribution list."""
     await _verify_package_owner(service, session, package_id, user_id, payload)
-    return await service.add_recipient(package_id, data, tenant_id=str(user_id))
+    # The recipient is scoped to the caller's organization, not to the caller: a
+    # colleague on the same tender package has to see who else was invited, which
+    # is the point of the row. ``user_id`` was passed here while the tenant was the
+    # user; ``payload`` was already a parameter of this handler, so resolving from
+    # it adds no new plumbing.
+    return await service.add_recipient(package_id, data, tenant_id=resolve_tenant_id(payload))
 
 
 @router.post(
@@ -754,7 +760,9 @@ async def import_package_recipients(
     """Add the valid rows of a CSV/XLSX file to the distribution list."""
     await _verify_package_owner(service, session, package_id, user_id, payload)
     content = await file.read(MAX_IMPORT_BYTES + 1)
-    return await service.import_recipients(package_id, file.filename or "", content, tenant_id=str(user_id))
+    return await service.import_recipients(
+        package_id, file.filename or "", content, tenant_id=resolve_tenant_id(payload)
+    )
 
 
 @router.delete(

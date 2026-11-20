@@ -125,7 +125,7 @@ MANIFEST = PartnerPackManifest(
         # international-style works.
         "endorsed_contract_suite": ["JBCC", "GCC 2015 (SAICE)", "NEC4", "FIDIC"],
         "default_contract": "GCC 2015",
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
         # Credit for the proposal and reference implementation. The shipped pack
         # is written from the public standards (see CONTRIBUTORS.md).
         "acknowledgements": [

@@ -2,9 +2,11 @@
 
 These cover the precedence that ``seed_demo_enabled()`` encodes and that both
 CLI flags rely on: ``SEED_DEMO`` in the environment wins, then the persisted
-``demo_seed_choice.json`` in the data dir, then the out-of-the-box default of
-on. ``serve --no-demo`` persists a ``False`` choice; ``serve --demo`` persists
-``True`` to clear that opt-out and bring the demo sign-in back.
+``demo_seed_choice.json`` in the data dir, then the out-of-the-box default
+of off: demo data is opt-in, so a fresh install with no answer yet boots an
+empty workspace. ``serve --no-demo`` persists a ``False`` choice;
+``serve --demo`` persists ``True`` to opt in and bring the demo sign-in
+back.
 
 Pure filesystem + environment, no database, so this runs everywhere.
 """
@@ -33,9 +35,12 @@ def isolated_data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return tmp_path
 
 
-def test_defaults_to_enabled_when_nothing_is_set(isolated_data_dir: Path) -> None:
+def test_defaults_to_disabled_when_nothing_is_set(isolated_data_dir: Path) -> None:
+    # Opt-in: with no env var and no persisted choice, nothing seeds. The
+    # interactive first run asks ("Load demo projects? [y/N]") and persists
+    # the answer; unattended starts stay empty until someone opts in.
     assert read_demo_seed_choice() is None
-    assert seed_demo_enabled() is True
+    assert seed_demo_enabled() is False
 
 
 def test_no_demo_choice_disables_seeding(isolated_data_dir: Path) -> None:
@@ -83,4 +88,4 @@ def test_explicit_data_dir_is_honoured(tmp_path: Path) -> None:
 def test_corrupt_choice_file_is_treated_as_unset(isolated_data_dir: Path) -> None:
     (isolated_data_dir / CHOICE_FILENAME).write_text("{ not json", encoding="utf-8")
     assert read_demo_seed_choice() is None
-    assert seed_demo_enabled() is True
+    assert seed_demo_enabled() is False

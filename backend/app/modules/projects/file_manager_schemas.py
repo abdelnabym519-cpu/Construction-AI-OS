@@ -16,6 +16,24 @@ from typing import Literal, get_args
 
 from pydantic import BaseModel, Field
 
+
+def _brand() -> str:
+    """The product name from the one display-name constant (``app_name``).
+
+    Guarded so importing this module never requires a configured
+    environment; the fallback is the constant's own default.
+    """
+    try:
+        from app.config import get_settings
+
+        name = str(get_settings().app_name or "").strip()
+        if name:
+            return name
+    except Exception:
+        pass
+    return "Construction AI OS"
+
+
 # Kind of file as far as the UI is concerned. Drives the icon + which
 # download endpoint to call. Stable string identifiers - never i18n.
 FileKind = Literal[
@@ -193,13 +211,11 @@ class BundleManifest(BaseModel):
     attachment_total_bytes: int = 0
     engine_name: str = "OpenConstructionERP"
     engine_version: str = "2.9.4"
-    # Origin provenance stamped on every exported .ocep bundle. Default
-    # bytes XOR-decode (key 0x55) to the project authorship marker. Purely
-    # informational manifest metadata: the importer reads tables/attachments
-    # by name and never branches on this field, so it changes no behaviour.
-    provenance: str = "OpenConstructionERP · DataDrivenConstruction · " + bytes(
-        b ^ 0x55 for b in b"\x11\x11\x16\x78\x16\x02\x1c\x16\x07\x78\x1a\x10\x78\x67\x65\x67\x63"
-    ).decode("ascii")
+    # Origin provenance stamped on every exported .ocep bundle: the product
+    # name, from the one display-name constant. Purely informational manifest
+    # metadata: the importer reads tables/attachments by name and never
+    # branches on this field, so it changes no behaviour.
+    provenance: str = _brand()
 
 
 ImportMode = Literal["new_project", "merge_into_existing", "replace_existing"]

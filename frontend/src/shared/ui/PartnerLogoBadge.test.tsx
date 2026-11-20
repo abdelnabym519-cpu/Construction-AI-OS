@@ -50,7 +50,7 @@ const ACTIVE_PACK: PartnerPackResponse = {
       accent_color: null,
       has_logo: true,
       has_favicon: false,
-      powered_by_text: 'Powered by OpenConstructionERP',
+      powered_by_text: 'Powered by Construction AI OS',
     },
     has_onboarding_script: false,
     metadata: {},
@@ -119,7 +119,7 @@ describe('<PartnerLogoBadge />', () => {
     renderBadge(<PartnerLogoBadge variant="dashboard" />);
 
     // Powered-by text is the manifest's powered_by_text.
-    expect(screen.getByText('Powered by OpenConstructionERP')).toBeTruthy();
+    expect(screen.getByText('Powered by Construction AI OS')).toBeTruthy();
     // Description rendered.
     expect(screen.getByText('Industry-tuned ERP for ACME.')).toBeTruthy();
     // The pack declares ``has_logo: true`` and the badge still does not draw

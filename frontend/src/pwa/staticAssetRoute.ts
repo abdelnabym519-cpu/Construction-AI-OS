@@ -8,14 +8,15 @@
  * a no-cors request, so what comes back is an OPAQUE response: status 0, no
  * headers, no way to tell a picture from a 404. Caching status 0 therefore
  * cached failures too, and CacheFirst then served them for the full 30 days
- * without asking the network again. The video covers are the case that
- * showed it: YouTube answers a thumbnail that does not exist yet with a 404
- * grey placeholder, the first visit stored that as a success, and every later
- * visit got the placeholder back from the cache while the real thumbnail was
- * live. Only a hard reload, which bypasses the service worker, showed the
- * cover. Chrome also counts each opaque entry at a padded size of several
- * megabytes against the origin quota, so a few hundred of them can exhaust
- * it and make every other cache write fail.
+ * without asking the network again. The tutorial covers that the removed
+ * video library shipped are the case that showed it: YouTube answers a
+ * thumbnail that does not exist yet with a 404 grey placeholder, the first
+ * visit stored that as a success, and every later visit got the placeholder
+ * back from the cache while the real thumbnail was live. Only a hard reload,
+ * which bypasses the service worker, showed the cover. Chrome also counts
+ * each opaque entry at a padded size of several megabytes against the origin
+ * quota, so a few hundred of them can exhaust it and make every other cache
+ * write fail.
  *
  * So: same origin only, status 200 only. Cross-origin images go to the
  * browser's own HTTP cache, which honours the host's cache headers and heals

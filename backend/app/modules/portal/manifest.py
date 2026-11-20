@@ -12,7 +12,7 @@ manifest = ModuleManifest(
         "suppliers/building users) with magic-link auth, RLS, notifications, "
         "audit log"
     ),
-    author="OpenConstructionERP Core Team",
+    author="Construction AI OS Core Team",
     category="business",
     depends=["oe_users", "oe_projects"],
     auto_install=True,

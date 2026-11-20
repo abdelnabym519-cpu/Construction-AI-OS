@@ -106,6 +106,30 @@ class Project(Base):
         index=True,
     )
 
+    # ── Organization (ADR 005) ──────────────────────────────────────────
+    # The tenant this project belongs to. Nullable, and it stays nullable
+    # here: ``oe_projects_project`` carries no ``tenant_id`` column, so it is
+    # not in ``tenant_tables()`` and no row-level policy is attached to it.
+    # This is the edge ``Organization -> Project`` in the ownership graph,
+    # recorded so that ownership can be answered from the project instead of
+    # only through its owner's membership, which is a two-hop question and
+    # changes meaning the moment an owner leaves the company.
+    #
+    # ``SET NULL`` rather than ``CASCADE``: removing an organization must not
+    # remove its projects. A project with no organization can be re-pointed by
+    # the boot repair or by an administrator; a deleted one cannot be recovered.
+    #
+    # Tightening this to ``NOT NULL`` is deliberately not part of this change.
+    # It is a decision to make once ``rls_readiness_report`` says every row has
+    # an owner, not a constraint to add and then discover which installs fail
+    # it.
+    organization_id: Mapped[uuid.UUID | None] = mapped_column(
+        GUID(),
+        ForeignKey("oe_users_organization.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
     # ── Country code (Wave 28; migration v3136) ─────────────────────────
     # ISO 3166-1 alpha-2. Drives the CPM calendar engine and the AIA
     # G702/G703 country gate (US/CA/AU only). The column already exists in

@@ -1,6 +1,6 @@
 # Czech Republic Construction Pack
 
-Configures OpenConstructionERP for the Czech construction market. The Czech
+Configures Construction AI OS for the Czech construction market. The Czech
 estimating tradition is built on TSKP (Tridnik stavebnich konstrukci a praci),
 a work classification system that structures both project budgets (rozpocet)
 and price databases. Currency is CZK with 21% DPH on construction services.
@@ -48,7 +48,7 @@ pack is legal, tax or regulatory advice.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules then Partner
+This pack ships inside Construction AI OS. Activate it from Modules then Partner
 Packs: click Rescan, find "Czech Republic Construction Pack", then Activate pack.
 
 To run a workspace that boots straight into it:
@@ -59,5 +59,5 @@ OE_PACK=czechia-cz openconstructionerp serve
 
 ## License
 
-AGPL-3.0-or-later. OpenConstructionERP is authored and owned by
+AGPL-3.0-or-later. The original Construction AI OS is authored and owned by
 DataDrivenConstruction.

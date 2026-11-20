@@ -79,7 +79,7 @@ def test_pdf_marks_ai_rows_in_info_xmp_and_text() -> None:
     assert marked.metadata["/AI-GENERATED-ROWS"] == "1"
     assert marked.metadata["/AI-GENERATED-SOURCES"] == "ai_copilot_accepted"
     xmp = marked.trailer["/Root"]["/Metadata"].get_object().get_data().decode("utf-8")
-    assert "<oce:aiGenerated>true</oce:aiGenerated>" in xmp
+    assert "<cao:aiGenerated>true</cao:aiGenerated>" in xmp
     # The marker sits under the description in a narrow column and may wrap.
     text = "".join("".join(page.extract_text().split()) for page in marked.pages)
     assert "AI-generated(ai_copilot_accepted)" in text

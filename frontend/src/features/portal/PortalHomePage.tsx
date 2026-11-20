@@ -24,6 +24,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -203,7 +204,7 @@ export function PortalHomePage() {
           className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-oe-blue transition-colors hover:underline"
         >
           <ArrowLeft size={14} />
-          {t('homeportal.back_to_app', { defaultValue: 'Back to OpenConstructionERP' })}
+          {t('homeportal.back_to_app', { defaultValue: `Back to ${APP_NAME}` })}
         </Link>
       </CenteredShell>
     );

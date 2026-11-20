@@ -41,4 +41,4 @@ folder that holds `manifest.json` into `<data dir>/packs/`: that manifest is val
 
 ## License
 
-AGPL-3.0-or-later. OpenConstructionERP is authored and owned by DataDrivenConstruction.
+AGPL-3.0-or-later. The original Construction AI OS is authored and owned by DataDrivenConstruction.

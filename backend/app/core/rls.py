@@ -95,6 +95,36 @@ def set_request_tenant(tenant_id: str | None) -> Token[Any]:
     return _request_tenant.set(tenant_id)
 
 
+@contextlib.asynccontextmanager
+async def bound_tenant(tenant_id: str | None) -> Any:
+    """Bind a tenant around work that has no request to inherit one from.
+
+    The request path binds through :func:`app.dependencies.rls_request_context`,
+    which reads the tenant off the caller's token. A background path has no token
+    and no request, and until it binds something the ``after_begin`` listener sees
+    the private ``_UNSET`` sentinel and leaves the session on the connecting
+    superuser role, which bypasses every policy: that is how a run started by one
+    company's user could read another company's rows without a single query being
+    wrong.
+
+    So the value is passed in, explicitly, by whoever started the work. ``None`` is
+    allowed and is not the same as not binding: it stamps an empty
+    ``app.current_tenant``, which a fail-closed policy matches nothing against. A
+    run whose initiator belongs to no organization therefore sees no tenant rows
+    rather than all of them, which is the only one of the two answers that is safe
+    to be wrong about.
+
+    Inert while ``OE_RLS_ENFORCE`` is off, exactly like the request binding: the
+    listener ignores the value, so this costs a ContextVar and changes nothing on a
+    default install.
+    """
+    token = set_request_tenant(tenant_id)
+    try:
+        yield tenant_id
+    finally:
+        reset_request_tenant(token)
+
+
 def reset_request_tenant(token: Token[Any]) -> None:
     """Undo a :func:`set_request_tenant`, tolerating a stale/foreign token."""
     with contextlib.suppress(ValueError, LookupError):

@@ -57,6 +57,6 @@ MANIFEST = PartnerPackManifest(
             "KS standards (Korean Industrial Standards, KATS)",
             "MOLIT Standard Specifications",
         ],
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

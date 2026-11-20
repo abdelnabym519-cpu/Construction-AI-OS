@@ -1,49 +1,58 @@
-# CODEOWNERS for OpenConstructionERP
+# CODEOWNERS for Construction AI OS
 #
 # See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/managing-other-settings/about-code-owners
 #
 # Scope: legal, security, compliance, and CI release paths
 # require explicit approval from the repository owner. The
-# account @datadrivenconstruction is the formal owner; branch
+# account @abdelnabym519-cpu is the formal owner; branch
 # protection on main should require Code Owner review for any
 # file matched here.
+#
+# This distribution replaced the upstream owner account with this
+# repository's owner. @datadrivenconstruction has no access to this
+# fork, so a Code Owner review naming that account could never be
+# given, and branch protection requiring one would have blocked every
+# pull request touching a matched path. Upstream's first-party author
+# policy is a separate concern: .github/workflows/authors-guard.yml
+# applies only when the repository IS the upstream project, and says
+# why it does not apply here when it is not.
 
 # Default owner for everything
-*                                       @datadrivenconstruction
+*                                       @abdelnabym519-cpu
 
 # Root-level legal and policy files
-/LICENSE                                @datadrivenconstruction
-/NOTICE                                 @datadrivenconstruction
-/docs/legal/CLA.md                      @datadrivenconstruction
-/docs/legal/COMMERCIAL-LICENSE.md       @datadrivenconstruction
-/SECURITY.md                            @datadrivenconstruction
-/docs/legal/PRIVACY.md                  @datadrivenconstruction
-/docs/legal/TERMS.md                    @datadrivenconstruction
-/docs/legal/COOKIES.md                  @datadrivenconstruction
-/CODE_OF_CONDUCT.md                     @datadrivenconstruction
-/CONTRIBUTING.md                        @datadrivenconstruction
-/README.md                              @datadrivenconstruction
-/docs/legal/PATENTS.md                  @datadrivenconstruction
-/docs/legal/TRADEMARK.md                @datadrivenconstruction
-/docs/legal/ACCESSIBILITY.md            @datadrivenconstruction
-/docs/legal/THIRD_PARTY_LICENSES.md     @datadrivenconstruction
+/LICENSE                                @abdelnabym519-cpu
+/NOTICE                                 @abdelnabym519-cpu
+/docs/legal/CLA.md                      @abdelnabym519-cpu
+/docs/legal/COMMERCIAL-LICENSE.md       @abdelnabym519-cpu
+/SECURITY.md                            @abdelnabym519-cpu
+/docs/legal/PRIVACY.md                  @abdelnabym519-cpu
+/docs/legal/TERMS.md                    @abdelnabym519-cpu
+/docs/legal/COOKIES.md                  @abdelnabym519-cpu
+/CODE_OF_CONDUCT.md                     @abdelnabym519-cpu
+/CONTRIBUTING.md                        @abdelnabym519-cpu
+/README.md                              @abdelnabym519-cpu
+/docs/legal/PATENTS.md                  @abdelnabym519-cpu
+/docs/legal/TRADEMARK.md                @abdelnabym519-cpu
+/docs/legal/ACCESSIBILITY.md            @abdelnabym519-cpu
+/docs/legal/THIRD_PARTY_LICENSES.md     @abdelnabym519-cpu
 
 # Source trees
-/backend/                               @datadrivenconstruction
-/frontend/                              @datadrivenconstruction
-/desktop/                               @datadrivenconstruction
-/modules/                               @datadrivenconstruction
+/backend/                               @abdelnabym519-cpu
+/frontend/                              @abdelnabym519-cpu
+/desktop/                               @abdelnabym519-cpu
+/modules/                               @abdelnabym519-cpu
 
 # GitHub configuration - workflows touch signing, release,
 # and CLA enforcement, so gate them.
-/.github/                               @datadrivenconstruction
+/.github/                               @abdelnabym519-cpu
 
 # Infrastructure
-/deploy/                                @datadrivenconstruction
-docker-compose*.yml                     @datadrivenconstruction
+/deploy/                                @abdelnabym519-cpu
+docker-compose*.yml                     @abdelnabym519-cpu
 
 # Compliance documentation (RoPA template, SOC 2 readiness, etc.)
-/docs/compliance/                       @datadrivenconstruction
+/docs/compliance/                       @abdelnabym519-cpu
 
 # Release signatures
-/signatures/                            @datadrivenconstruction
+/signatures/                            @abdelnabym519-cpu

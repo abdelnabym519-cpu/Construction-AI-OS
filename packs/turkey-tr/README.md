@@ -1,6 +1,6 @@
 # Turkey Construction Pack
 
-Pre-configures OpenConstructionERP for work in Türkiye: the poz numbers a
+Pre-configures Construction AI OS for work in Türkiye: the poz numbers a
 Turkish bill of quantities is written against, the units it is measured in,
 the combined profit and general expenses line it is totalled through, KDV, the
 public holiday calendar and the lira.
@@ -78,7 +78,7 @@ The pack hides no module. Every module stays visible to every user.
 ## What the platform provides, outside this pack
 
 Tevkifat, stopaj, the e-Fatura file and the hakediş are features of
-OpenConstructionERP itself. The pack configures none of them and they work
+Construction AI OS itself. The pack configures none of them and they work
 with or without it.
 
 - Withheld VAT (KDV tevkifatı), income tax withholding (stopaj) and stamp duty
@@ -165,7 +165,7 @@ or tax advice.
 
 Installing the pack switches the interface to Turkish (`default_locale` is
 `tr`). The pack brings no strings of its own for that: the Turkish interface
-is the bundle OpenConstructionERP ships, and anyone can switch to another
+is the bundle Construction AI OS ships, and anyone can switch to another
 language at any time. The pack's own Turkish vocabulary sits where it is read,
 in the onboarding script and in the reference documents.
 
@@ -178,7 +178,7 @@ be relied on for a tender or a tax filing before that review.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules then
+This pack ships inside Construction AI OS. Activate it from Modules then
 Partner Packs: click Rescan, find "Turkey Construction Pack", then Activate
 pack.
 
@@ -190,5 +190,5 @@ OE_PACK=turkey-tr openconstructionerp serve
 
 ## License
 
-AGPL-3.0-or-later. OpenConstructionERP is authored and owned by
+AGPL-3.0-or-later. The original Construction AI OS is authored and owned by
 DataDrivenConstruction.

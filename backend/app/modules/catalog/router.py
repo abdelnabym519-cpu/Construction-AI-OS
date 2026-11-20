@@ -137,6 +137,23 @@ REGION_MAP: dict[str, str] = {v.region: v.catalog_folder for v in base_registry.
 
 _GITHUB_BASE = "https://raw.githubusercontent.com/datadrivenconstruction/OpenConstructionEstimate-DDC-CWICR/main"
 
+
+def _catalog_user_agent() -> str:
+    """UA for CWICR catalog fetches: this product's name + operator contact.
+
+    Both come from settings (``app_name``, ``support_email``) so the
+    outbound identity follows the installation instead of naming an
+    upstream brand and domain.
+    """
+    try:
+        from app.config import get_settings
+
+        s = get_settings()
+        return f"{s.app_name.replace(' ', '-')} (+{s.support_email})"
+    except Exception:  # noqa: BLE001 - settings import is best-effort
+        return "catalog-fetcher (+support@example.com)"
+
+
 # Local cache for downloaded catalog CSVs. Shares the parent directory with the
 # CWICR parquet cache in app.modules.costs.router so one folder holds all
 # downloaded reference data, and a region imported once stays available offline.
@@ -364,7 +381,7 @@ def _read_region_catalog_csv(region: str, folder: str) -> tuple[bytes, str]:
 
         req = urllib.request.Request(
             url,
-            headers={"User-Agent": ("OpenConstructionERP (+https://datadrivenconstruction.io; DDC-CWICR-OE-2026)")},
+            headers={"User-Agent": _catalog_user_agent()},
         )
         try:
             with urllib.request.urlopen(req, timeout=60) as resp:  # noqa: S310 - host pinned above
@@ -436,7 +453,7 @@ def _read_market_catalog_csv(base_region: str, market_token: str) -> tuple[bytes
 
     req = urllib.request.Request(
         url,
-        headers={"User-Agent": ("OpenConstructionERP (+https://datadrivenconstruction.io; DDC-CWICR-OE-2026)")},
+        headers={"User-Agent": _catalog_user_agent()},
     )
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:  # noqa: S310 - host pinned above

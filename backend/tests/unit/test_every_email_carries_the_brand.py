@@ -1,6 +1,6 @@
 # DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 # Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
-"""Every email the platform sends carries the OpenConstructionERP brand.
+"""Every email the platform sends carries the product brand (app_name).
 
 The brand shows in the same places in every mail: the ``From:`` display name,
 the line beside the logo, and the closing line of the footer. It is never
@@ -16,6 +16,7 @@ from unittest.mock import patch
 
 import pytest
 
+from app.config import Settings
 from app.core.email import (
     BRAND_NAME,
     EmailAttachment,
@@ -41,7 +42,7 @@ OLD_NAME = re.compile("open ?estimate", re.IGNORECASE)
 
 
 def _assert_branded(subject: str, html_body: str, *, shell: bool = True) -> None:
-    assert BRAND_NAME == "OpenConstructionERP"
+    assert Settings.model_fields["app_name"].default == BRAND_NAME
     assert brand_header() in html_body, "the mail does not open with the brand line"
     if shell:
         assert html_body.endswith(BRAND_FOOTER), "the mail does not close with the brand line"
@@ -158,9 +159,9 @@ def test_a_progress_report_email_carries_the_brand():
 
 
 def test_a_bare_sender_address_shows_the_brand_name():
-    assert sender_addresses("info@datadrivenconstruction.io") == (
-        "OpenConstructionERP <info@datadrivenconstruction.io>",
-        "info@datadrivenconstruction.io",
+    assert sender_addresses("support@example.com") == (
+        f"{BRAND_NAME} <support@example.com>",
+        "support@example.com",
     )
 
 
@@ -198,7 +199,7 @@ def test_the_smtp_backend_sends_under_the_brand_name():
         smtp_port=587,
         smtp_user="",
         smtp_password="",
-        smtp_from="info@datadrivenconstruction.io",
+        smtp_from="support@example.com",
         smtp_tls=True,
     )
     with patch("app.core.email.smtp.smtplib.SMTP", FakeSMTP):
@@ -206,6 +207,6 @@ def test_the_smtp_backend_sends_under_the_brand_name():
             EmailMessage(to="ann@example.com", subject="Hello", html_body="<p>x</p>")
         )
     assert result.ok
-    assert sent["envelope_from"] == "info@datadrivenconstruction.io"
-    assert "From: OpenConstructionERP <info@datadrivenconstruction.io>" in sent["raw"]
+    assert sent["envelope_from"] == "support@example.com"
+    assert f"From: {BRAND_NAME} <support@example.com>" in sent["raw"]
     assert not OLD_NAME.search(sent["raw"])

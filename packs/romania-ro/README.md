@@ -1,6 +1,6 @@
 # Romania Construction Pack
 
-Configures OpenConstructionERP for the Romanian construction market. A Romanian
+Configures Construction AI OS for the Romanian construction market. A Romanian
 budget is written as a deviz: a deviz general for the whole investment, a deviz
 pe obiect for each object in it, and a deviz ofertă when a contractor prices a
 tender. The pack files every priced line under the deviz general chapter it
@@ -111,7 +111,7 @@ relied on for a public tender.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules then Partner
+This pack ships inside Construction AI OS. Activate it from Modules then Partner
 Packs: click Rescan, find "Romania Construction Pack", then Activate pack.
 
 To run a workspace that boots straight into it:
@@ -122,5 +122,5 @@ OE_PACK=romania-ro openconstructionerp serve
 
 ## License
 
-AGPL-3.0-or-later. OpenConstructionERP is authored and owned by
+AGPL-3.0-or-later. The original Construction AI OS is authored and owned by
 DataDrivenConstruction.

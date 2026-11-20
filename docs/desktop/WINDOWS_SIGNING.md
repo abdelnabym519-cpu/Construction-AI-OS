@@ -1,6 +1,6 @@
 # Windows code signing for the desktop app
 
-This guide explains how to turn on Authenticode code signing for the OpenConstructionERP Windows installers. Today the `.exe` ships unsigned, and Windows SmartScreen warns every person who runs it. The pipeline for signing is already written and already in the release workflow. Nothing in this document is active yet, because none of the credentials it needs exist. The only remaining step is a human opening an Artifact Signing account and pasting six secrets and one variable into the repository settings. There is no code change to make afterwards.
+This guide explains how to turn on Authenticode code signing for the Construction AI OS Windows installers. Today the `.exe` ships unsigned, and Windows SmartScreen warns every person who runs it. The pipeline for signing is already written and already in the release workflow. Nothing in this document is active yet, because none of the credentials it needs exist. The only remaining step is a human opening an Artifact Signing account and pasting six secrets and one variable into the repository settings. There is no code change to make afterwards.
 
 This is a developer and maintainer document. If you are a user trying to install the app, read `docs/desktop/INSTALL.md` instead.
 
@@ -96,4 +96,4 @@ Microsoft, SmartScreen reputation for Windows app developers, the source for EV 
 
 Microsoft, signtool: https://learn.microsoft.com/en-us/windows/win32/seccrypto/signtool
 
-Questions: info@datadrivenconstruction.io. Licensed under AGPL-3.0.
+Questions: https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues. Licensed under AGPL-3.0-or-later.

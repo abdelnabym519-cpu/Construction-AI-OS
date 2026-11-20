@@ -53,7 +53,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-RELEASES_URL = "https://github.com/datadrivenconstruction/OpenConstructionERP/releases/latest"
+RELEASES_URL = "https://github.com/abdelnabym519-cpu/Construction-AI-OS/releases/latest"
 
 #: Shown verbatim to the user when a frozen build is asked to upgrade itself.
 FROZEN_REFUSAL = (

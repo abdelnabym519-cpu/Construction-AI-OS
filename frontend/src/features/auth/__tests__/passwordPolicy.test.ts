@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 import { describe, expect, it } from 'vitest';
 
-import { meetsPasswordPolicy } from '../passwordPolicy';
+import { meetsPasswordPolicy, passwordStrength } from '../passwordPolicy';
 
 /**
  * The client copy of `_validate_strong_password` (backend users/schemas.py).
@@ -36,5 +36,41 @@ describe('meetsPasswordPolicy', () => {
     // 128 code points is the ceiling, though it is 254 UTF-16 units.
     expect(meetsPasswordPolicy('a1' + '\u{1F600}'.repeat(126))).toBe(true);
     expect(meetsPasswordPolicy('a1' + 'x'.repeat(127))).toBe(false);
+  });
+});
+
+/**
+ * The word the register form shows beside its three bars.
+ *
+ * It has to answer the same question the submit button asks. The ladder it
+ * replaces measured length only, so `12345678` read "Medium" next to a button
+ * that stayed disabled for want of a letter, and the form offered no reason
+ * anywhere: the one message that names the rule is set by `handleSubmit`, which
+ * a disabled button never reaches. An installer in that position changes
+ * whatever field they suspect until the button lights, and then signs in with
+ * the password they believe they typed - which is not the one that was stored.
+ */
+describe('passwordStrength', () => {
+  it('calls a password the server will refuse weak, however long it is', () => {
+    expect(passwordStrength('12345678')).toBe('weak'); // eight characters, no letter
+    expect(passwordStrength('abcdefgh')).toBe('weak'); // no digit
+    expect(passwordStrength('abcdefghijklmnop')).toBe('weak'); // sixteen characters, no digit
+    expect(passwordStrength('abcd12')).toBe('weak'); // too short
+    expect(passwordStrength('')).toBe('weak'); // nothing typed yet
+  });
+
+  it('keeps the length ladder for a password the server will take', () => {
+    expect(passwordStrength('abcdefg1')).toBe('medium');
+    expect(passwordStrength('Abcdefgh1234')).toBe('strong');
+  });
+
+  it('measures the trimmed form, as the request schema strips whitespace', () => {
+    expect(passwordStrength('  Abcdefgh1234  ')).toBe('strong');
+    expect(passwordStrength(' abcdefg1 ')).toBe('medium');
+  });
+
+  it('takes a letter in any script for the step up from weak', () => {
+    expect(passwordStrength('пароль12')).toBe('medium');
+    expect(passwordStrength('密码密码密码12')).toBe('medium');
   });
 });

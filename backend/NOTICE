@@ -1,3 +1,53 @@
+Construction AI OS
+Copyright (c) 2026 Construction AI OS contributors (modifications)
+Source code - the AGPL section 13 Corresponding Source offer for THIS
+distribution:
+    https://github.com/abdelnabym519-cpu/Construction-AI-OS
+
+This distribution is a modified version of OpenConstructionERP by
+Artem Boiko / DataDrivenConstruction. The original work remains
+copyrighted by its authors; their notice is reproduced in full below
+and stays in force, and every copyright header in the source tree is
+preserved.
+
+------------------------------------------------------------------------
+About this modified distribution
+------------------------------------------------------------------------
+
+* Licence. The whole is licensed under AGPL-3.0-or-later, the same
+  licence as the upstream project. See the LICENSE file.
+
+* Corresponding Source. The complete source code of exactly this
+  distribution - including the full modification history from the
+  upstream baseline - is available at the repository URL above.
+
+* Closed commercial distribution caveat. The commercial licence
+  described in the upstream notice below is offered by the upstream
+  copyright holders for upstream OpenConstructionERP. It does not
+  automatically extend to this modified distribution: anyone who
+  redistributes this fork, or runs it as a service, without meeting
+  the AGPL source-sharing obligations needs permission from the
+  copyright holders of the code they use - the upstream authors for
+  the original code and this repository's maintainers for the
+  modifications. Nothing in this file grants such permission.
+
+* Support contacts. The contact addresses listed below belong to the
+  upstream project and apply to artefacts received from upstream. For
+  THIS distribution, open an issue on the repository above; a running
+  installation names its own operator contact (the configurable
+  support_email setting) on its About page and in its API
+  documentation.
+
+* Brand assets kept in the tree. frontend/public/brand retains
+  artem-boiko-avatar.png, ddc-book.png, ddc-logo.png and
+  ddc-logo.webp - works of Artem Boiko / DataDrivenConstruction. The
+  product UI no longer displays them; they remain in the tree so this
+  attribution travels with it.
+
+------------------------------------------------------------------------
+The upstream notice follows, unmodified.
+------------------------------------------------------------------------
+
 OpenConstructionERP
 Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 Contact: info@datadrivenconstruction.io

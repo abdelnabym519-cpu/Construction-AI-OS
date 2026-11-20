@@ -13,7 +13,7 @@ import sys
 
 
 def main() -> None:
-    """Start the OpenConstructionERP backend server."""
+    """Start the backend server (product name comes from settings)."""
     import uvicorn
 
     # Parse CLI args: --host X --port Y
@@ -39,7 +39,13 @@ def main() -> None:
         os.environ.setdefault("APP_ENV", "production")
         os.environ.setdefault("APP_DEBUG", "false")
 
-    print(f"Starting OpenConstructionERP on http://{host}:{port}")
+    try:
+        from app.config import get_settings
+
+        product = get_settings().app_name
+    except Exception:  # noqa: BLE001 - the banner must never block startup
+        product = "server"
+    print(f"Starting {product} on http://{host}:{port}")
 
     # Use direct app import for PyInstaller compatibility
     from app.core.server_loop import uvicorn_loop_option

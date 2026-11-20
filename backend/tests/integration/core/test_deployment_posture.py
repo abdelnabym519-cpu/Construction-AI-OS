@@ -38,8 +38,8 @@ def _posture(**overrides):
         ai_providers=[],
         registration_mode="admin-approve",
         analytics_bundled=False,
-        license_name="AGPL-3.0",
-        repository="https://github.com/datadrivenconstruction/OpenConstructionERP",
+        license_name="AGPL-3.0-or-later",
+        repository="https://github.com/abdelnabym519-cpu/Construction-AI-OS",
     )
     base.update(overrides)
     return build_data_security_posture(**base)
@@ -94,7 +94,7 @@ def test_payload_carries_every_section() -> None:
         "source",
     ):
         assert key in posture
-    assert posture["source"]["license"] == "AGPL-3.0"
+    assert posture["source"]["license"] == "AGPL-3.0-or-later"
     assert posture["source"]["repository"].startswith("https://github.com/")
 
 
@@ -132,8 +132,8 @@ def test_returned_provider_list_is_a_copy() -> None:
         ai_providers=providers,
         registration_mode="closed",
         analytics_bundled=False,
-        license_name="AGPL-3.0",
-        repository="https://github.com/datadrivenconstruction/OpenConstructionERP",
+        license_name="AGPL-3.0-or-later",
+        repository="https://github.com/abdelnabym519-cpu/Construction-AI-OS",
     )
     providers.append("OpenAI")
     assert posture["ai"]["providers"] == ["Anthropic"]

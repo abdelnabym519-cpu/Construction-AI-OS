@@ -103,12 +103,22 @@ def _build_historical_url(lat: float, lng: float, target: date) -> str:
     return f"{_OPEN_METEO_HISTORICAL_URL}?{urllib.parse.urlencode(params)}"
 
 
+def _weather_ua() -> str:
+    """UA for weather API calls: this product's token, never an upstream brand."""
+    try:
+        from app.config import outbound_product_token
+
+        return f"{outbound_product_token()}/daily-diary"
+    except Exception:  # noqa: BLE001 - settings import is best-effort
+        return "oe-daily-diary"
+
+
 def _do_get(url: str) -> dict[str, Any] | None:
     """Blocking GET - wrapped in :func:`asyncio.to_thread` by the async caller."""
     try:
         req = urllib.request.Request(
             url,
-            headers={"User-Agent": "OpenConstructionERP/daily-diary"},
+            headers={"User-Agent": _weather_ua()},
         )
         with urllib.request.urlopen(req, timeout=_HTTP_TIMEOUT_SECONDS) as resp:
             charset = resp.headers.get_content_charset() or "utf-8"

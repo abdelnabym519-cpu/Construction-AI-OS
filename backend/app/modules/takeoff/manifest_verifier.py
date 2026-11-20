@@ -163,11 +163,14 @@ logger = logging.getLogger(__name__)
 CURRENT_PUBKEY_HEX: str = "0000000000000000000000000000000000000000000000000000000000000000"
 # ROTATION_SENTINEL_END
 
-# Canonical manifest location. Mirror fallback is the marketing site,
-# which is hosted on a separate origin from the package CDN so a
-# single-CDN compromise doesn't take both down.
+# Canonical manifest location: the package CDN where the signed converter
+# manifests actually live. Operators can point at an internal mirror with
+# OE_MANIFEST_URL (see _resolve_manifest_url).
 DEFAULT_MANIFEST_URL: str = "https://pkg.datadrivenconstruction.io/oe/manifest.json"
-FALLBACK_MANIFEST_URL: str = "https://openconstructionerp.com/manifest.json"
+# No second mirror by default: this deployment must not silently trust a
+# manifest published on a domain its operator does not control. Run your
+# own mirror and set OE_MANIFEST_URL if you need one.
+FALLBACK_MANIFEST_URL: str = ""
 
 # Signature is fetched from <manifest_url>.sig - the same convention
 # Debian uses for InRelease/Release.gpg. Keeping it as a sibling URL

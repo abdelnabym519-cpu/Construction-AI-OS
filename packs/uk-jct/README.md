@@ -1,6 +1,6 @@
 # UK Construction Pack
 
-Pre-configures OpenConstructionERP for United Kingdom contracting: the RICS
+Pre-configures Construction AI OS for United Kingdom contracting: the RICS
 measurement rules, the JCT contract suite, the Construction Act payment
 regime, CIS and the VAT domestic reverse charge, CDM 2015 duties and the
 Building Safety Act 2022.
@@ -134,7 +134,7 @@ who has and has not read it.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules then
+This pack ships inside Construction AI OS. Activate it from Modules then
 Partner Packs: click Rescan, find "UK Construction Pack", then Activate pack.
 
 To run a workspace that boots straight into it:
@@ -145,5 +145,5 @@ OE_PACK=uk-jct openconstructionerp serve
 
 ## License
 
-AGPL-3.0-or-later. OpenConstructionERP is authored and owned by
+AGPL-3.0-or-later. The original Construction AI OS is authored and owned by
 DataDrivenConstruction.

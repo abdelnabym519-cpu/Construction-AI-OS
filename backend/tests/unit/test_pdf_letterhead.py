@@ -35,7 +35,7 @@ import pytest
 from pypdf import PdfReader
 
 from app.core import app_branding, company_profile, pdf_appearance
-from app.core.pdf_branding import branded_header_footer, branded_letterhead, render_sample_pdf
+from app.core.pdf_branding import DEFAULT_BRAND, branded_header_footer, branded_letterhead, render_sample_pdf
 from app.modules.rfi.pdf_export import USABLE_WIDTH, build_rfi_pdf
 
 MM = 72.0 / 25.4
@@ -362,8 +362,8 @@ def _shared_header_footer_pdf() -> bytes:
 def test_the_legal_name_brands_a_workspace_whose_app_has_no_name(data_dir: Path) -> None:
     """A formal document must not be credited to the platform once the firm is known."""
     before = _rfi_pdf()
-    assert "OpenConstructionERP" in _text(before)
-    assert _metadata(before).author == "OpenConstructionERP"
+    assert DEFAULT_BRAND in _text(before)
+    assert _metadata(before).author == DEFAULT_BRAND
 
     _profile(data_dir)
     # With the letterhead off, the legal name can only have come from the
@@ -371,14 +371,14 @@ def test_the_legal_name_brands_a_workspace_whose_app_has_no_name(data_dir: Path)
     pdf_appearance.write_appearance({"show_letterhead": False}, data_dir)
     pdf = _rfi_pdf()
     assert LEGAL_NAME in _text(pdf)
-    assert "OpenConstructionERP" not in _text(pdf)
+    assert DEFAULT_BRAND not in _text(pdf)
     assert _metadata(pdf).author == LEGAL_NAME
-    assert "OpenConstructionERP" not in (_metadata(pdf).producer or "")
+    assert DEFAULT_BRAND not in (_metadata(pdf).producer or "")
 
     # The shared header band and footer every other generator draws follow too.
     shared = _shared_header_footer_pdf()
     assert LEGAL_NAME in _text(shared)
-    assert "OpenConstructionERP" not in _text(shared)
+    assert DEFAULT_BRAND not in _text(shared)
     assert _metadata(shared).author == LEGAL_NAME
 
 
