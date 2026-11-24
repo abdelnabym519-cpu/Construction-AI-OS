@@ -12,7 +12,9 @@
  *   3. whether the first account they create is the one that owns the install,
  *   4. whether they can sign out and back in,
  *   5. whether the settings page names where this software comes from,
- *   6. whether the sign-up form still asks how they found us.
+ *   6. whether the sign-up form still asks how they found us,
+ *   7. whether the Legal link that page is quiet behind actually opens, and
+ *      whether what is behind it is still the licence, the notice and the offer.
  *
  * The reports that produced this file were made by a person with DevTools open
  * on Windows: 585 requests and 6.4 MB for one load of the sign-in page, 27
@@ -49,7 +51,7 @@
  * not pass - and annotates each one, so a red run of this lane names the test
  * that stopped rather than only the exit code it stopped with.
  */
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 
 /**
  * One worker, in order, against one server and one database. The second test
@@ -67,8 +69,8 @@ const MAX_API_REQUESTS = 60;
 const MAX_REPEATS_OF_ONE_URL = 5;
 
 /**
- * How long the last test gives each of its waits, and why that test's waits and
- * only that test's.
+ * How long the settings test and the legal test give each of their waits, and why
+ * those waits and only those.
  *
  * The Windows leg of this lane failed once with the product code byte-identical
  * to the run before it that passed: the whole difference between those two
@@ -79,8 +81,8 @@ const MAX_REPEATS_OF_ONE_URL = 5;
  * three expected, one unexpected. The record window in the first test is 45s on
  * both, so the three tests that act on the product took about 32s when the leg
  * passed and about 98s when it failed: one exhausted 60s ceiling plus the
- * reporting around it, in the last test, which is the only test whose metrics
- * line never reached the run.
+ * reporting around it, in the settings test, which was the last of the four and
+ * the only one whose metrics line never reached the run.
  *
  * Which of that test's three waits ran out is not known, and widening one of them
  * on a guess about which it was would leave the other two where they are for the
@@ -95,6 +97,11 @@ const MAX_REPEATS_OF_ONE_URL = 5;
  * platforms in both runs, the first test's wait bounds the first paint after a
  * cold boot which is the thing this lane exists to measure, and a lane that moves
  * every ceiling it has after one failure has stopped measuring anything.
+ *
+ * The legal test added afterwards inherits this ceiling rather than inventing
+ * one: it waits against the same cold server for the same kind of thing, a first
+ * paint and two documents behind it, and it publishes its step timings beside the
+ * settings test's so a slow step is still a slow step in the numbers.
  */
 const COLD_STEP_TIMEOUT_MS = 120_000;
 
@@ -488,4 +495,262 @@ test('settings shows support and legal without naming where this software comes 
       'removed to make this pass. A fresh install shows the link and hides the notice, so on a cold start this ' +
       'sentence means the card grew a vendor, a repository or a claim about its origins.',
   ).toBe(false);
+});
+
+test('the Legal link in that card opens a page carrying the licence, the notice and the offer', async ({ page }) => {
+  // The fourth test asserts the card links to /legal, and the card is allowed to
+  // be quiet about where this software comes from *because* of that link: the
+  // licence is one click away rather than absent. Nothing followed the click.
+  //
+  // Following it is not a formality, because every way this can be broken still
+  // renders a page that looks like a legal page. The headings are React
+  // components, so they paint whether or not anything behind them arrived; a
+  // LICENSE.txt the cold CLI does not serve leaves the section holding a
+  // fallback sentence about the full licence shipping with the distribution;
+  // a /api/source that answers 500 is caught by the page and turned into one
+  // line saying some of the information could not be loaded. The fourth test's
+  // link count passes on all three.
+  //
+  // Signed out first, because the route sits outside the authenticated group on
+  // purpose - the section 13 offer has to be reachable before sign-in as well as
+  // after - and then through the card's own link, which is the claim the fourth
+  // test's comment makes and stops short of checking.
+  //
+  // What this test deliberately does NOT do is apply the fourth test's origin
+  // regex here. This page is the one place in the product that says where the
+  // software comes from, and the notice it renders names the repository. That it
+  // is the only such place is
+  // src/features/legal/__tests__/legalPageIsTheOnlyPlaceThatSaysIt.test.tsx's
+  // subject, in a suite that can fail on a component; asserting it again from a
+  // browser against a cold server would only be slower.
+  const { census, stop } = watch(page);
+  const timings: Record<string, number> = {};
+  let stepStartedAt = Date.now();
+  /** Record how long the step just finished took, and start the next one. */
+  const mark = (step: string): void => {
+    timings[step] = Date.now() - stepStartedAt;
+    stepStartedAt = Date.now();
+  };
+
+  await page.goto('/legal');
+  await expect(page.locator('[data-testid="legal-page"]'), 'the /legal route did not render signed out').toBeVisible({
+    timeout: COLD_STEP_TIMEOUT_MS,
+  });
+  mark('legal page painted, signed out');
+
+  // Three things on this page render only after a fetch of their own lands, and
+  // all three are waited for rather than counted, because counting one that has
+  // not arrived yet reads as "the document is missing" when the truth is "the
+  // document had not arrived when I looked":
+  //
+  //   * the licence <pre>, from /legal/LICENSE.txt;
+  //   * the notice <pre>, from /legal/NOTICE.txt, fetched in parallel and the
+  //     larger of the two, so it is the one most likely to still be in flight
+  //     when the licence has landed;
+  //   * the link out to the source, which the page renders from the
+  //     `source_code` field of GET /api/source and does not render at all until
+  //     that answer is in.
+  //
+  // A <pre> being there is the assertion that the cold server serves the
+  // document, and its length is the evidence that what it serves is the document
+  // rather than a stub. Each wait is caught rather than awaited straight, as the
+  // fourth test catches its card, so the report below still prints when a wait
+  // is what failed - and each failure is reported as its own field, because
+  // "the notice never rendered" and "the notice rendered empty" are different
+  // defects with different causes.
+  /** Wait for one of them, and say what happened if it did not arrive. */
+  const arrived = async (subject: string, locator: Locator): Promise<string> => {
+    try {
+      await expect(locator, subject).toBeVisible({ timeout: COLD_STEP_TIMEOUT_MS });
+      return '';
+    } catch (error) {
+      return String((error as { message?: string } | undefined)?.message ?? error)
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line !== '')
+        .slice(0, 4)
+        .join(' | ');
+    }
+  };
+
+  const licence = page.locator('[data-testid="legal-licence"] pre');
+  const licenceError = await arrived('the licence text was not served to a fresh install', licence);
+  mark('licence text waited for');
+  const noticePre = page.locator('[data-testid="legal-notice"] pre');
+  const noticeError = await arrived('the attribution notice was not served to a fresh install', noticePre);
+  mark('notice text waited for');
+  const offerLinks = page.locator('[data-testid="legal-source-offer"] a[target="_blank"]');
+  const offerError = await arrived('the source offer named no source to go to', offerLinks.first());
+  mark('offer link waited for');
+
+  // Read only after the wait that says the element resolved: textContent() on a
+  // locator that never matched throws, and an exception here would take the
+  // report with it, which is the failure this file's conventions exist to
+  // prevent.
+  const licenceText = licenceError === '' ? ((await licence.textContent()) ?? '') : '';
+  const noticeText = noticeError === '' ? ((await noticePre.textContent()) ?? '') : '';
+  const offerLinkCount = await offerLinks.count();
+  // Static markup, not fetched, so it needs no wait of its own.
+  const machineReadableCount = await page.locator('[data-testid="legal-source-offer"] a[href="/api/source"]').count();
+
+  // Asked directly rather than read off the page, for the reason above: the page
+  // swallows a failure of this endpoint into one sentence and keeps rendering
+  // everything else, so the two documents passing would not have said anything
+  // about whether the disclosure the server makes about itself reached anybody.
+  // Bounded and caught for the same reason the waits above are: a request that
+  // hangs or a body that is not JSON would otherwise throw out of the test and
+  // take the report with it, and a status of 0 in the report says "never
+  // answered" which is a fact worth publishing rather than an exception to read
+  // out of a stack.
+  let sourceStatus = 0;
+  let sourceError = '';
+  let source: { license?: string; source_code?: string; copyright?: string; notice?: string } = {};
+  try {
+    const sourceResponse = await page.request.get('/api/source', { timeout: COLD_STEP_TIMEOUT_MS });
+    sourceStatus = sourceResponse.status();
+    if (sourceStatus === 200) {
+      source = (await sourceResponse.json()) as typeof source;
+    }
+  } catch (error) {
+    sourceError = String((error as { message?: string } | undefined)?.message ?? error)
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line !== '')
+      .slice(0, 4)
+      .join(' | ');
+  }
+  mark('disclosure asked');
+
+  await page.goto('/login');
+  await expect(page.locator('#login-password')).toBeVisible({ timeout: COLD_STEP_TIMEOUT_MS });
+  await page.locator('input[type="email"]').fill(OWNER_EMAIL);
+  await page.locator('#login-password').fill(OWNER_PASSWORD);
+  await page.locator('button[type="submit"]').click();
+  await expect(page, 'still on the sign-in form after signing in through it').not.toHaveURL(/\/login/, {
+    timeout: COLD_STEP_TIMEOUT_MS,
+  });
+  mark('signed in');
+
+  await page.goto('/settings?tab=company');
+  const card = page.locator('[data-testid="support-and-legal"]');
+  await expect(card, 'the Support and legal card did not render').toBeVisible({ timeout: COLD_STEP_TIMEOUT_MS });
+  await card.locator('a[href="/legal"]').first().click();
+  await expect(page, "the card's Legal link did not reach /legal").toHaveURL(/\/legal$/, {
+    timeout: COLD_STEP_TIMEOUT_MS,
+  });
+  await expect(
+    page.locator('[data-testid="legal-page"]'),
+    'the link landed on a URL that is not the legal page',
+  ).toBeVisible({ timeout: COLD_STEP_TIMEOUT_MS });
+  mark('card link followed');
+
+  // The same wait on the far side of the click. Counting here would be the same
+  // race as counting above: the page has just been mounted again and is fetching
+  // both documents again, so the <pre> is not there yet at the moment the URL
+  // settles.
+  const signedInLicence = page.locator('[data-testid="legal-licence"] pre');
+  const signedInError = await arrived('the licence text did not render after following the card link', signedInLicence);
+  mark('licence waited for again');
+  const signedInLicenceText = signedInError === '' ? ((await signedInLicence.textContent()) ?? '') : '';
+  const c = census();
+  stop();
+  mark('evidence gathered');
+
+  report('legal page', {
+    licence_rendered: licenceError === '',
+    licence_error: licenceError.slice(0, 300),
+    licence_text_length: licenceText.length,
+    notice_rendered: noticeError === '',
+    notice_error: noticeError.slice(0, 300),
+    notice_text_length: noticeText.length,
+    offer_error: offerError.slice(0, 300),
+    source_status: sourceStatus,
+    source_error: sourceError.slice(0, 300),
+    source_license: source.license ?? '',
+    source_has_source_code: Boolean(source.source_code),
+    source_has_copyright: Boolean(source.copyright),
+    source_has_notice: Boolean(source.notice),
+    offer_link_count: offerLinkCount,
+    machine_readable_link_count: machineReadableCount,
+    signed_in_error: signedInError.slice(0, 300),
+    signed_in_licence_length: signedInLicenceText.length,
+    url: page.url(),
+    step_timeout_ms: COLD_STEP_TIMEOUT_MS,
+    timings_ms: timings,
+    api_requests: c.api,
+    worst_repeat: c.worstRepeat,
+    server_errors: c.serverErrors,
+    console_errors: c.consoleErrors,
+    page_errors: c.pageErrors,
+  });
+
+  expect(licenceError, `the licence document was not served to a fresh install: ${licenceError.slice(0, 200)}`).toBe(
+    '',
+  );
+  expect(
+    licenceText.length,
+    `the licence text a fresh install was served is ${licenceText.length} characters and the file it is served from ` +
+      'is 34,523 bytes, so what arrived is not that file: a truncated or empty LICENSE.txt renders the same ' +
+      'headings and the same section',
+  ).toBeGreaterThan(30_000);
+  expect(licenceText, 'the text served as the licence does not say which licence it is').toContain(
+    'GNU AFFERO GENERAL PUBLIC LICENSE',
+  );
+  expect(
+    noticeError,
+    `the attribution notice was not served to a fresh install: ${noticeError.slice(0, 200)}`,
+  ).toBe('');
+  expect(
+    noticeText.length,
+    `the attribution notice a fresh install was served is ${noticeText.length} characters and the NOTICE.txt it is ` +
+      'served from is 63,479 bytes',
+  ).toBeGreaterThan(50_000);
+  expect(noticeText, 'the notice served does not carry the section 13 offer it exists to carry').toContain(
+    'Corresponding Source',
+  );
+  expect(
+    sourceStatus,
+    `GET /api/source answered ${sourceStatus} to a fresh install${sourceError ? `: ${sourceError.slice(0, 200)}` : ''}`,
+  ).toBe(200);
+  expect(source.license, 'GET /api/source carried no licence').toBeTruthy();
+  expect(
+    source.source_code,
+    'GET /api/source carried no source-code location, which is the section 13 offer the page exists to publish',
+  ).toBeTruthy();
+  expect(offerError, `the source offer rendered no link out to the source it names: ${offerError.slice(0, 200)}`).toBe(
+    '',
+  );
+  expect(offerLinkCount, 'the source offer rendered no link out to the source it names').toBeGreaterThan(0);
+  expect(machineReadableCount, 'the page no longer links to the machine-readable disclosure').toBe(1);
+  expect(
+    signedInLicenceText.length,
+    `following the card's own link reached /legal and the licence text behind it was ` +
+      `${signedInLicenceText.length} characters, so the door opens onto an empty room: ` +
+      `${signedInError.slice(0, 200) || 'the element rendered and carried nothing worth reading'}`,
+  ).toBeGreaterThan(30_000);
+  // The loop bound the first test carries, applied to the same census: a page
+  // that asks for one document over and over is the defect this lane was written
+  // about, and no new ceiling is invented here because nobody has reported one.
+  expect(
+    c.worstRepeat.count,
+    `the legal page asked for ${c.worstRepeat.url} ${c.worstRepeat.count} times`,
+  ).toBeLessThanOrEqual(MAX_REPEATS_OF_ONE_URL);
+  // What is asserted here and what is only published, on a page no run of this
+  // lane had measured before this test existed.
+  //
+  // Asserted: a 5xx, which is the answer the installer's original report was
+  // full of and which is a defect whoever sees it, and an uncaught page error.
+  // Not asserted: the console errors, which the first test does assert on the
+  // sign-in page. This is the first measurement of this page, and a console
+  // line can be a defect or a framework noticing something about the markup;
+  // the count is published so the run that first reads it can tell which, and
+  // an assertion follows that reading rather than preceding it. A 4xx is in
+  // neither list: the census keeps client errors separately and no test fails
+  // on them, so a document this page asks for and does not get is caught by the
+  // length assertions above, which is the shape that names the document.
+  expect(
+    c.serverErrors,
+    `the server answered 5xx while the legal page loaded: ${JSON.stringify(c.serverErrors)}`,
+  ).toHaveLength(0);
+  expect(c.pageErrors, `the legal page threw in the browser: ${JSON.stringify(c.pageErrors)}`).toEqual([]);
 });
