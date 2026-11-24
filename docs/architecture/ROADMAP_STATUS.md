@@ -580,7 +580,10 @@ switch rather than a code path.
    organization and other organizations participate through explicit grants. On the tree: the
    `oe_projects_participant_grant` table and revision `v3326_project_participant_grant`; a service
    in `app/modules/projects/grants.py` with create, change-scope, list and revoke, plus the
-   suspension that a change of project ownership triggers; four routes under
+   suspension a change of project ownership triggers - which nothing in the product triggers yet,
+   because no route, service or repair moves an existing project between companies, and which a
+   source census over every writer of that column keeps from being forgotten when one appears;
+   four routes under
    `/api/v1/projects/{project_id}/participant-grants`; a second GUC `app.granted_projects` bound
    once per request behind `OE_PROJECT_GRANTS`; and a second permissive `FOR SELECT` policy
    `oe_project_grant_read` installed beside the untouched `oe_tenant_isolation` policy on all

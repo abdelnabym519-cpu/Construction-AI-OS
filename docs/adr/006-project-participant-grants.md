@@ -1,9 +1,13 @@
 # ADR 006: Project participant grants
 
-Status: **accepted, and stages 1-4 of section 10 are implemented.** Date proposed 2026-10-30;
-date accepted 2026-11-22, when the owner's eight answers in section 11 were recorded and the
-grant table, its service, the second GUC, the two-arm database predicate and the retirement of the
-`project_frameworks` union had all shipped.
+Status: **accepted. Stages 1, 2, 3 and 5 of section 10 are implemented; stage 4 is implemented for
+the ten tables that carry both columns and not started for the project-scoped-only ones.** Date
+proposed 2026-10-30; date accepted 2026-11-22, when the owner's eight answers in section 11 were
+recorded and the grant table, its service, the second GUC, the two-arm database predicate and the
+retirement of the `project_frameworks` union had all shipped. The five deliverables in that list
+are the five stages, which is why this line says 1, 2, 3 and 5 and not 1 to 4: retiring the union
+*is* stage 5, and stage 4's own status paragraph in section 10 records the half of it that has not
+been attempted.
 
 **Sections 1 to 11 are left as they were written, and they are the proposal, not a description of
 the shipped code.** Where the shipped design differs - the scope vocabulary, the shape of the
@@ -423,6 +427,18 @@ questions are left as written because the reasoning in them is still the reasoni
    survives, the decision that was made is still readable. Every writer of a project's owning
    company calls it; `tests/unit/test_every_writer_of_a_projects_owning_company_suspends_its_grants.py`
    is a source census that fails if a new writer appears without the call.
+
+   What that census finds on the tree it was written against, stated because the answer above reads
+   as though transfers happen: **nothing in the product moves a project between companies, so the
+   suspension has no caller.** The only writer of `oe_projects_project.organization_id` in `app/` is
+   the boot backfill in `app/modules/users/repairs.py`, which is exempt and proven exempt rather
+   than merely listed: its `UPDATE` is guarded on `organization_id IS NULL`, so it fills a gap and
+   cannot replace one company with another, and the census fails if that guard is ever dropped.
+   Assigning `Project.owner_id`, which the import route does, is not in the census by construction,
+   because that column names a person and not a company. The behaviour is therefore built and
+   guarded but not reachable, which is the honest shape of an answer to a question about a feature
+   that does not exist yet: the code that will honour it is in place, and the thing that fails when
+   somebody adds the transfer feature without it is a test, not a reviewer's memory.
 5. **Can a grantee sub-grant?** This ADR assumes no: only the owner grants. Confirm, because a
    consortium structure may need a `steer`-scope grantee to bring in its own subcontractors.
 
@@ -700,7 +716,14 @@ million rows with both columns populated on the rows it counts.
   is not.
 * **The agent-path gate.** Section 6's requirement stands. No agent tool exposes grants, so nothing
   reaches the table except the four routes and the ownership-change suspension - which is a
-  statement about today's tree, not a guard that keeps it true.
+  statement about today's tree, and unlike the next bullet it is not guarded by anything, only
+  observed.
+* **A transfer of a project between companies.** No route, service or repair moves an existing
+  project's `organization_id` from one company to another, so question 4's suspension is code with
+  no caller. This one *is* guarded: the census named in section 11's answer 4 reads the source for
+  every writer of that column and fails on a new one that does not suspend, which is the only way
+  to guard a path that does not exist yet. Building the transfer feature is a decision this ADR
+  does not make; what it settles is that the feature cannot arrive silently.
 * **Acceptance by the grantee.** Question 2 answered no, so no `offered` status exists and none is
   planned.
 * **A third predicate arm for individuals.** Question 8 answered no.
@@ -786,14 +809,30 @@ test that ran before it. The grant-table tests now assert before-and-after delta
 and cascade counts scoped `WHERE project_id = :id`. Any test written against this ADR's table should
 do the same, and a later revision that adds a row to a shared table should expect to meet this one.
 
-One gap this run showed and did not close: `totals` above says `failed=5` while six tests failed,
-because `scripts/publish_test_counts.py` is handed eight `--target` files in the lane's own workflow,
-`.github/workflows/ci-postgres.yml`, and none of the eight is this ADR's. The sixth failure still
-reached the run page - the script annotates every failure in the report, not only its targets' - but
-the totals a reader compares against did not cover it, and a file that is not a target can skip
-entirely without the lane noticing. Adding this ADR's files as targets is the fix, and it needs a run
-to confirm that none of them skips, because the step passes `--fail-on-skip`; that is a change to
-make with the evidence in hand rather than blind at the head of a pull request.
+One gap this run showed, which the paragraph then left open and a later commit closed: `totals`
+above says `failed=5` while six tests failed, because `scripts/publish_test_counts.py` was handed
+eight `--target` files in the lane's own workflow, `.github/workflows/ci-postgres.yml`, and none of
+the eight was this ADR's. The sixth failure still reached the run page - the script annotates every
+failure in the report, not only its targets' - but the totals a reader compares against did not
+cover it, and a file that is not a target can skip entirely without the lane noticing.
+
+Every file section 13.8 names under `tests/pg` is now a target, so the step publishes nine of this
+ADR's beside the eight tenancy ones: the four whose whole subject is the grant mechanism, and the
+five that carry this ADR's claims among other tests, including the three assertions stage 5
+deliberately reversed. A reversed assertion that quietly stopped running reads exactly like one
+that still passes, which is why that second group is worth a published count and not only a green
+lane.
+
+What was checked before the edit rather than after it, since `--fail-on-skip` makes a skip a lane
+failure: none of the nine carries a skip marker of its own, so the only skip reachable in them is
+the session-wide `OE_TEST_DB` gate in `tests/pg/conftest.py`, and that gate cannot have been closed
+on the run this section is about, because the same step's eight tenancy targets passed
+`--fail-on-skip` on it. The mapping from a target string to a JUnit `classname` was then proven
+both ways on a synthetic report carrying the real module names and the real per-file test counts:
+all seventeen targets collected, 223 test functions in total, exit 0; and with the nine removed
+from the report the step exited 1 naming each of them as collecting nothing. What a synthetic
+report cannot say is what the next real run's numbers will be, and that is the one thing left to
+read off a run rather than off this tree.
 
 The same head's two other red jobs - `Browser cold start (windows-latest)`, and `CLI cold start`,
 which is a gate over both cold-start lanes and was red because the browser leg was - were not this
