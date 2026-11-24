@@ -142,10 +142,29 @@ jobs:
       # variable was missing looks exactly like one that passed. Both have happened
       # here. So the counts are read back out of the report the step above wrote
       # and published where they can be read without the logs, and the step fails if
-      # a tenancy target collected nothing or skipped anything. Skips are the point:
+      # a named target collected nothing or skipped anything. Skips are the point:
       # the pg lane skips silently unless OE_TEST_DB is set, which is the exact
       # failure mode this makes visible.
-      - name: Publish the PostgreSQL tenancy test counts
+      #
+      # The nine targets below the tenancy eight are every file under tests/pg
+      # that ADR 006 section 13.8 names as carrying a claim, and they close the
+      # gap that section's own run left open: the totals a reader compared against
+      # covered eight tenancy files and none of the ADR's, so a sixth failure was
+      # annotated but not counted, and any of these files could skip whole without
+      # the lane noticing. Four are about the grant mechanism alone - the table as
+      # the revision and as create_all each build it, the application arm of the
+      # two-layer read, the database arm of it, and the million-row measurement
+      # whose worst ratio section 13.4 quotes against the bar
+      # OE_GRANT_PERF_MAX_RATIO declares. Five carry the ADR's claims among other
+      # tests, including the three assertions stage 5 deliberately reversed, which
+      # is the group that most needs a count published: a reversed assertion that
+      # silently stopped running reads exactly like one that still passes.
+      # The same two rules apply as to the eight above. A file that collects
+      # nothing fails the step, and so does a file that skipped; none of the nine
+      # carries a skip of its own, so a skip can only mean the session-wide
+      # OE_TEST_DB gate in tests/pg/conftest.py moved, which the eight above would
+      # report as well.
+      - name: Publish the PostgreSQL access-control test counts
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: >-
           python ../scripts/publish_test_counts.py
@@ -158,6 +177,15 @@ jobs:
           --target tests/pg/test_rls_readiness_report_measures_the_real_database.py
           --target tests/pg/test_the_tenancy_boot_repair_is_atomic_idempotent_and_locked.py
           --target tests/pg/test_a_million_rows_are_rewritten_fast_enough_to_boot_on.py
+          --target tests/pg/test_the_participant_grant_table_is_the_same_however_it_was_built.py
+          --target tests/pg/test_a_grant_is_one_of_two_layers_and_both_have_to_answer_yes.py
+          --target tests/pg/test_a_grant_opens_exactly_the_project_it_names.py
+          --target tests/pg/test_the_two_arm_predicate_stays_within_a_quarter_of_the_single_condition_one.py
+          --target tests/pg/test_only_the_owning_organization_decides_who_participates_in_a_project.py
+          --target tests/pg/test_procurement_concept_service_on_pg.py
+          --target tests/pg/test_procurement_concept_http.py
+          --target tests/pg/test_a_legacy_project_with_no_organization_names_its_owners_company.py
+          --target tests/pg/test_procurement_concept_idor.py
           --annotate
           --fail-on-skip
       # Checks on what the demo seeder writes. Two families so far. Vocabulary:

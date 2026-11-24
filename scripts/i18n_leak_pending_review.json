@@ -11,16 +11,6 @@
     "n": 24,
     "reason": "Seeded when the leak guard was first split into three lists (ci(i18n): rebuild the leak guard as two separate lists plus a general scan). This entry's n is >=24/28, the shape the threshold scan actually flags; filed as ambiguous at guard rollout rather than triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
   },
-  "about.founder_name": {
-    "added_by": "adb78c983 (2026-08-02)",
-    "differs_in": [
-      "ar",
-      "ky"
-    ],
-    "en_value": "Artem Boiko",
-    "n": 26,
-    "reason": "Seeded when the leak guard was first split into three lists (ci(i18n): rebuild the leak guard as two separate lists plus a general scan). This entry's n is >=24/28, the shape the threshold scan actually flags; filed as ambiguous at guard rollout rather than triaged key by key. Backfilled 2026-08-25 when reason/added_by became mandatory fields on this list; this is commit-level and group-level context recovered from git history and this file's own n/differs_in fields, not a fresh per-key content review."
-  },
   "accommodation.booking.source.propdev_import": {
     "added_by": "03cc10968 (2026-08-08)",
     "differs_in": [

@@ -55,7 +55,7 @@
     "reason_category": "abbreviation"
   },
   "app.name": {
-    "en_value": "OpenConstructionERP",
+    "en_value": "Construction AI OS",
     "note": "our own product name, never translated",
     "reason_category": "product_name"
   },
@@ -103,26 +103,6 @@
     "en_value": "OK",
     "note": "status word carried unchanged into cs/de/es/fr/pt, the same way the locales already ship it elsewhere; the languages that do not borrow it translate it, ru ok, zh normal, so the identical cells are the translation and not the English showing through",
     "reason_category": "cognate_loanword"
-  },
-  "auth.how_found_github": {
-    "en_value": "GitHub",
-    "note": "brand/service name, functional interop reference",
-    "reason_category": "product_name"
-  },
-  "auth.how_found_linkedin": {
-    "en_value": "LinkedIn",
-    "note": "brand/service name, functional interop reference",
-    "reason_category": "product_name"
-  },
-  "auth.how_found_reddit": {
-    "en_value": "Reddit",
-    "note": "brand/service name, functional interop reference",
-    "reason_category": "product_name"
-  },
-  "auth.how_found_youtube": {
-    "en_value": "YouTube",
-    "note": "brand/service name, functional interop reference",
-    "reason_category": "product_name"
   },
   "bi.kpi": {
     "en_value": "KPI",
@@ -788,11 +768,6 @@
     "en_value": "BCF",
     "note": "open interchange format code, identical in all 29 locales including ru",
     "reason_category": "standard_code"
-  },
-  "login.github": {
-    "en_value": "GitHub",
-    "note": "brand/service name, functional interop reference",
-    "reason_category": "product_name"
   },
   "login.mod.bim": {
     "en_value": "BIM",
@@ -1508,11 +1483,6 @@
     "en_value": "DIN 276",
     "note": "named open data / interchange standard or format code (CLAUDE.md: not translated)",
     "reason_category": "standard_code"
-  },
-  "about.team_name": {
-    "en_value": "DataDrivenConstruction",
-    "note": "company/product proper noun, identical in all languages by design",
-    "reason_category": "product_name"
   },
   "modules.profile_particular_more": {
     "en_value": "+{{n}}",

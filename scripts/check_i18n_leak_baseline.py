@@ -255,8 +255,9 @@ UNDER_TRANSLATION: dict[str, int] = {
 # or reading git history, which this guard does nowhere else. Neither was judged
 # worth it while the swap is still visible in the diff to anyone reading it. If
 # a swap ever does get through unnoticed, that judgement is the thing to revisit.
-PENDING_REVIEW_CEILING = 238  # +8 in the same diff: the settings.support.* keys for the admin card that
-# sets the bug-report destination and the Legal-link visibility, each with a reason
+PENDING_REVIEW_CEILING = 237  # -1 in the same diff: about.founder_name left every bundle, so its entry left
+# this list rather than staying as a standing exemption for a key that does not exist.
+# scripts/test_i18n_leak_lists.py fails when this constant and the list's length disagree, from either side.
 
 import re
 
