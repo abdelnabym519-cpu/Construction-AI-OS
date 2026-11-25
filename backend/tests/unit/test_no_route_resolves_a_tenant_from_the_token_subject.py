@@ -59,6 +59,49 @@ _ALLOWED_SUBJECT_READS = {
     "app/modules/pointcloud/service.py::_resolve_tenant_and_verify",
 }
 
+#: Functions that read the subject *and* hand a tenant to somebody else, where the
+#: tenant they hand over is not the subject. Both are correct, and both are listed
+#: because the census below cannot tell a correct one from a defect by name: it
+#: catches the shape, and the shape includes a route that reads ``sub`` for its actor
+#: and resolves its tenant properly on the next line.
+_TENANT_ARGUMENTS_THAT_ARE_NOT_FED_BY_THE_SUBJECT = {
+    # ``actor_id`` comes from ``payload["sub"]`` and ``tenant_id`` from
+    # ``payload["tenant_id"]``, in the same call and never confused: the subject is
+    # who is asking and the claim is whose data it is. This is the audit context
+    # every request carries, so it is the one place the two are read side by side
+    # on purpose.
+    "app/dependencies.py::audit_context_dep",
+    # Reads ``sub`` into ``user_id`` for the analytics call's actor, and takes its
+    # tenant from ``_payload_tenant_id``, which reads the ``tenant_id`` and
+    # ``org_id`` claims and answers ``None`` when neither is there - no fall-through
+    # to the subject. A non-administrator with no claim gets an empty result set
+    # rather than somebody else's, which is the fail-closed answer.
+    "app/modules/property_dev/router.py::dashboard_broker_performance",
+}
+
+#: Functions that hand a *person* over where a company belongs. These are not
+#: allowed and not blessed: they are open defects, listed here because a defect
+#: nobody can see is worse than a defect on a list, and because the list is
+#: two-way ratcheted - fixing one removes it from the census and leaving it on the
+#: list after fixing it fails the same test.
+#:
+#: Both take ``caller = payload.get("sub")`` and pass ``tenant_id=str(caller)`` into
+#: a service that writes it onto a row and uses it to scope a contact lookup. That
+#: is the ``tenant_is_user`` shape ADR 005 spent a repair fixing, on a live route,
+#: and the service docstring still documents it as intended: "``tenant_id``:
+#: caller's user id". ``ROADMAP_STATUS.md``'s Phase 02c table names one property_dev
+#: site, ``service.py:3562``; the same defect has these two route sites above it and
+#: a third below it, where the ``Lead`` row's own tenant is taken from the request
+#: body. Fixing them is not a two-line edit and is not done here: the service uses
+#: the value to scope a find-or-create in the contacts bridge, so changing the key
+#: from a person to a company changes which existing contacts are found, and that
+#: needs a characterization test pinning both directions first - which is exactly
+#: how the procurement_concept half of this same table was closed.
+_OPEN_DEFECTS_THAT_PASS_A_PERSON_WHERE_A_TENANT_BELONGS = {
+    "app/modules/property_dev/router.py::create_buyer",
+    "app/modules/property_dev/router.py::create_lead",
+}
+
 
 def _functions(tree: ast.AST) -> list[ast.FunctionDef | ast.AsyncFunctionDef]:
     return [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
@@ -111,6 +154,125 @@ def test_the_only_tenant_named_functions_reading_the_subject_are_actor_reads() -
     day somebody notices two routes disagreeing with the door.
     """
     assert _census() == sorted(_ALLOWED_SUBJECT_READS), _census()
+
+
+def _passes_a_tenant_argument(fn: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    """Whether this function hands a tenant to somebody else as a keyword argument."""
+    for node in ast.walk(fn):
+        if isinstance(node, ast.Call):
+            for keyword in node.keywords:
+                if keyword.arg is not None and "tenant" in keyword.arg.lower():
+                    return True
+    return False
+
+
+def _tenant_argument_census() -> list[str]:
+    """Every ``app/`` function that reads ``sub`` and passes a tenant as an argument.
+
+    The census above asks whether a function *named* like a tenant resolver reads the
+    subject. This one asks whether a function hands a tenant to somebody else while
+    reading the subject at all, which is the same mistake in the place a name-shaped
+    census cannot see. A route called ``create_lead`` resolves nothing and is named
+    nothing, and it passed ``payload["sub"]`` as ``tenant_id`` for as long as the only
+    census was the name-shaped one - which is to say the whole time, since Phase 02b
+    deleted the two resolvers this file was written about.
+    """
+    found: list[str] = []
+    for path in sorted(_APP_ROOT.rglob("*.py")):
+        relative = path.relative_to(_APP_ROOT.parent).as_posix()
+        if "/tests/" in f"/{relative}" or path.name.startswith("test_"):
+            continue
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        except SyntaxError:  # pragma: no cover - every app file parses on CI's 3.12
+            continue
+        for fn in _functions(tree):
+            if _reads_subject(fn) and _passes_a_tenant_argument(fn):
+                found.append(f"{relative}::{fn.name}")
+    return sorted(found)
+
+
+def _names_fed_by_the_subject(fn: ast.FunctionDef | ast.AsyncFunctionDef) -> set[str]:
+    """The local names this function assigns out of a read of the token's subject."""
+    fed: set[str] = set()
+    for node in ast.walk(fn):
+        if not isinstance(node, ast.Assign):
+            continue
+        reads_subject = any(isinstance(n, ast.Constant) and n.value == "sub" for n in ast.walk(node.value))
+        if not reads_subject:
+            continue
+        fed.update(target.id for target in node.targets if isinstance(target, ast.Name))
+    return fed
+
+
+def _tenant_arguments_fed_by_the_subject(fn: ast.FunctionDef | ast.AsyncFunctionDef) -> list[str]:
+    """The tenant keyword arguments whose value traces back to a read of ``sub``.
+
+    One assignment of indirection, which is all this codebase uses: the routes that
+    are wrong assign ``caller = payload.get("sub")`` and then pass ``str(caller)``,
+    and the routes that are right read ``sub`` into an actor name and pass a tenant
+    that came from a claim instead. Following the name is what separates those two
+    without a human deciding which list a new site belongs on.
+    """
+    fed = _names_fed_by_the_subject(fn)
+    if not fed:
+        return []
+    traced: list[str] = []
+    for node in ast.walk(fn):
+        if not isinstance(node, ast.Call):
+            continue
+        for keyword in node.keywords:
+            if keyword.arg is None or "tenant" not in keyword.arg.lower():
+                continue
+            used = {n.id for n in ast.walk(keyword.value) if isinstance(n, ast.Name)}
+            if used & fed:
+                traced.append(keyword.arg)
+    return traced
+
+
+def _subject_fed_tenant_census() -> list[str]:
+    """Every ``app/`` function that passes the token's subject as a tenant."""
+    found: list[str] = []
+    for path in sorted(_APP_ROOT.rglob("*.py")):
+        relative = path.relative_to(_APP_ROOT.parent).as_posix()
+        if "/tests/" in f"/{relative}" or path.name.startswith("test_"):
+            continue
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        except SyntaxError:  # pragma: no cover - every app file parses on CI's 3.12
+            continue
+        for fn in _functions(tree):
+            if _tenant_arguments_fed_by_the_subject(fn):
+                found.append(f"{relative}::{fn.name}")
+    return sorted(found)
+
+
+def test_every_function_that_hands_over_a_tenant_while_reading_the_subject_is_accounted_for() -> None:
+    """The wide net: four functions, each on one of the two lists below.
+
+    Two read the subject as an actor and take their tenant from a claim. Two pass the
+    subject itself as the tenant. A fifth site fails here the day it is written, and a
+    site that stops reading the subject fails here the day it is fixed, so neither list
+    can quietly grow stale.
+    """
+    census = _tenant_argument_census()
+    accounted = (
+        _TENANT_ARGUMENTS_THAT_ARE_NOT_FED_BY_THE_SUBJECT | _OPEN_DEFECTS_THAT_PASS_A_PERSON_WHERE_A_TENANT_BELONGS
+    )
+    assert census == sorted(accounted), census
+
+
+def test_the_two_lists_are_a_classification_the_reader_derives_and_not_one_somebody_wrote() -> None:
+    """The narrow net, derived: which of those four actually feed a tenant from ``sub``.
+
+    This is the assertion that keeps the lists honest. The classification above is prose
+    and could be written to say anything; this follows the assignment from
+    ``payload.get("sub")`` into the tenant keyword and names what it reaches, so the two
+    lists are checked against each other rather than each against my reading of them.
+    """
+    derived = _subject_fed_tenant_census()
+    assert derived == sorted(_OPEN_DEFECTS_THAT_PASS_A_PERSON_WHERE_A_TENANT_BELONGS), derived
+    assert not (set(derived) & _TENANT_ARGUMENTS_THAT_ARE_NOT_FED_BY_THE_SUBJECT), derived
 
 
 @pytest.mark.parametrize("relative", [_DASHBOARDS, _COMPLIANCE])
