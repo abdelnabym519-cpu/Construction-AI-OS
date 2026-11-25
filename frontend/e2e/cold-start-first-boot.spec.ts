@@ -13,8 +13,9 @@
  *   4. whether they can sign out and back in,
  *   5. whether the settings page names where this software comes from,
  *   6. whether the sign-up form still asks how they found us,
- *   7. whether the Legal link that page is quiet behind actually opens, and
- *      whether what is behind it is still the licence, the notice and the offer.
+ *   7. whether the Legal link that page is quiet behind actually opens - in a tab
+ *      of its own, which is what the card's link says - and whether what is behind
+ *      it is still the licence, the notice and the offer.
  *
  * The reports that produced this file were made by a person with DevTools open
  * on Windows: 585 requests and 6.4 MB for one load of the sign-in page, 27
@@ -634,24 +635,71 @@ test('the Legal link in that card opens a page carrying the licence, the notice 
   await page.goto('/settings?tab=company');
   const card = page.locator('[data-testid="support-and-legal"]');
   await expect(card, 'the Support and legal card did not render').toBeVisible({ timeout: COLD_STEP_TIMEOUT_MS });
-  await card.locator('a[href="/legal"]').first().click();
-  await expect(page, "the card's Legal link did not reach /legal").toHaveURL(/\/legal$/, {
+  const cardLink = card.locator('a[href="/legal"]').first();
+  // The link opens a tab of its own: `CompanyDocumentsSettings.tsx` renders it
+  // with `target="_blank"`, so the page this test is standing on never leaves
+  // `/settings`, and a click that waits for it to is a click that waits for a
+  // navigation that cannot happen. Both legs of the first run of this test said
+  // so in their own way. Windows failed the URL assertion after its whole 120s
+  // ceiling with the page still on `/settings?tab=company`; Ubuntu never reached
+  // an assertion at all, because `click()` waits out a navigation it started and
+  // ran to the 480s test timeout instead. Reading the failure as "the link is
+  // broken" would have been wrong in the other direction: the licence is one
+  // click away, in a second tab, which is what the card says it is.
+  //
+  // What the link declares is asserted before it is followed, so a card that
+  // quietly drops `target="_blank"` changes a published field and this wait
+  // rather than passing unnoticed, and the tab is caught by waiting for the
+  // event the click causes instead of by sleeping for one.
+  const cardLinkTarget = await cardLink.getAttribute('target');
+  expect(
+    cardLinkTarget,
+    "the card's Legal link no longer opens a tab of its own, so the rest of this test is waiting for a tab that " +
+      'will not be created: it catches the popup the click causes, asserts the settings page stayed put, and reads ' +
+      'the licence out of the tab. Change those three waits with the link, in the same commit.',
+  ).toBe('_blank');
+  // Caught on the context and not on the opener, because the link also carries
+  // `rel="noreferrer"`, which makes the tab it opens a window with no opener at
+  // all: the event an opener would report is then up to the browser, while every
+  // page created in the context is reported to the context whatever its opener
+  // did. The waiter is created before the click runs, so a tab that opens fast
+  // is a tab that was already being waited for.
+  const [legalTab] = await Promise.all([
+    page.context().waitForEvent('page', { timeout: COLD_STEP_TIMEOUT_MS }),
+    cardLink.click(),
+  ]);
+  await expect(legalTab, "the tab the card's Legal link opened is not /legal").toHaveURL(/\/legal$/, {
     timeout: COLD_STEP_TIMEOUT_MS,
   });
   await expect(
-    page.locator('[data-testid="legal-page"]'),
-    'the link landed on a URL that is not the legal page',
+    legalTab.locator('[data-testid="legal-page"]'),
+    'the link opened a tab that is not the legal page',
   ).toBeVisible({ timeout: COLD_STEP_TIMEOUT_MS });
+  // And the page the click came from is still where the installer was. That is
+  // the other half of what `target="_blank"` means, and it is the half a person
+  // notices: a card that navigated away would lose the setting they were in the
+  // middle of changing.
+  await expect(page, 'following the card link navigated the settings page itself away').toHaveURL(
+    /\/settings\?tab=company$/,
+  );
   mark('card link followed');
 
   // The same wait on the far side of the click. Counting here would be the same
-  // race as counting above: the page has just been mounted again and is fetching
-  // both documents again, so the <pre> is not there yet at the moment the URL
-  // settles.
-  const signedInLicence = page.locator('[data-testid="legal-licence"] pre');
-  const signedInError = await arrived('the licence text did not render after following the card link', signedInLicence);
+  // race as counting above: the tab has just been created and is fetching both
+  // documents for the first time, so the <pre> is not there yet at the moment
+  // its URL settles. It is waited for in the tab, which is where the click put
+  // it, and not on the settings page that is still open beside it.
+  const signedInLicence = legalTab.locator('[data-testid="legal-licence"] pre');
+  const signedInError = await arrived('the licence text did not render in the tab the card link opened', signedInLicence);
   mark('licence waited for again');
   const signedInLicenceText = signedInError === '' ? ((await signedInLicence.textContent()) ?? '') : '';
+  // Published and not counted. `watch()` attaches to one page, and a census
+  // started after the tab was created would catch only the requests that came
+  // after it: a partial count printed beside a whole one is a number that looks
+  // comparable and is not. The tab's own evidence is the URL it reached, the
+  // page it painted and the length of the licence text behind it, each asserted
+  // below.
+  const tabUrl = legalTab.url();
   const c = census();
   stop();
   mark('evidence gathered');
@@ -674,6 +722,8 @@ test('the Legal link in that card opens a page carrying the licence, the notice 
     machine_readable_link_count: machineReadableCount,
     signed_in_error: signedInError.slice(0, 300),
     signed_in_licence_length: signedInLicenceText.length,
+    card_link_target: cardLinkTarget ?? '',
+    tab_url: tabUrl,
     url: page.url(),
     step_timeout_ms: COLD_STEP_TIMEOUT_MS,
     timings_ms: timings,
@@ -724,7 +774,7 @@ test('the Legal link in that card opens a page carrying the licence, the notice 
   expect(machineReadableCount, 'the page no longer links to the machine-readable disclosure').toBe(1);
   expect(
     signedInLicenceText.length,
-    `following the card's own link reached /legal and the licence text behind it was ` +
+    `following the card's own link opened /legal in a tab and the licence text behind it was ` +
       `${signedInLicenceText.length} characters, so the door opens onto an empty room: ` +
       `${signedInError.slice(0, 200) || 'the element rendered and carried nothing worth reading'}`,
   ).toBeGreaterThan(30_000);

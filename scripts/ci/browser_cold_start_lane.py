@@ -411,7 +411,7 @@ def _annotate_failures(failures: list[dict[str, object]]) -> list[str]:
 
     This is the half of the lane a red run cannot do without. The step's exit
     code says only that Playwright was unhappy; the traces and the video that
-    say which of the four tests stopped are inside an artifact, and neither the
+    say which test stopped are inside an artifact, and neither the
     job log nor the artifact could be fetched from the environment that had to
     diagnose this lane's first Windows failure. What was readable there was the
     ``expected=3 unexpected=1`` notice and the *absence* of one metrics line,
