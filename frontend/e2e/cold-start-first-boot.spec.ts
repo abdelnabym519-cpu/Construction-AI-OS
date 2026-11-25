@@ -17,6 +17,11 @@
  *      what it declares, what clicking it does in this lane, and whether the href
  *      it names opens onto the licence, the notice and the offer for a signed-in
  *      installer.
+ *   8. whether two organizations can exist on one install, whether one can grant
+ *      the other a project over HTTP, what the audit log says about that
+ *      decision, and what the second organization can then reach - measured
+ *      rather than assumed, because the answer is not the one the question
+ *      expects and the difference is written down where it is asserted.
  *
  * The reports that produced this file were made by a person with DevTools open
  * on Windows: 585 requests and 6.4 MB for one load of the sign-in page, 27
@@ -127,6 +132,30 @@ const COLD_STEP_TIMEOUT_MS = 120_000;
  * whole sign-in it would have appeared during.
  */
 const CLICK_PROBE_TIMEOUT_MS = 15_000;
+
+/**
+ * How many times one URL may be asked for during the legal test, and why this is
+ * not `MAX_REPEATS_OF_ONE_URL`.
+ *
+ * Derived, not fitted. The first test measured the sign-in page asking
+ * `/api/v1/branding/` twice on one load of the application - its published census
+ * reads `total=21 api=4` with `/api/v1/branding/=2` - and this test loads the
+ * application five times in the watched page: `/legal` signed out, `/login`, the
+ * navigation the sign-in itself performs, `/settings?tab=company`, and `/legal`
+ * signed in. Five loads at the two per load the first test measured is ten. The
+ * run that first measured this test with the legal page inside the watched page
+ * reported six, which is under that and over the old bound.
+ *
+ * The old bound of five was right when it was written and is not right now, for a
+ * reason worth keeping: the second `/legal` load used to happen in a tab of its
+ * own, and `watch()` attaches to one page, so that mount's requests were never
+ * counted at all. Bringing the load into the watched page - which is the only
+ * reason its licence text could be measured - added a mount to the census, and a
+ * ceiling calibrated against four loads cannot be applied to five. What the
+ * ceiling is for has not changed: a page asking for one document in a loop
+ * produces dozens, and ten still catches that.
+ */
+const LEGAL_MAX_REPEATS_OF_ONE_URL = 10;
 
 /** The first account on this install. Policy-compliant: letters, digits, 8+. */
 const OWNER_EMAIL = 'browser-lane-owner@example.com';
@@ -767,7 +796,13 @@ test('the Legal link in that card opens a page carrying the licence, the notice 
     card_link_target: cardLinkTarget ?? '',
     click_opened_a_tab: clickOpenedATab,
     click_navigated: clickNavigated,
-    click_error: clickError.slice(0, 300),
+    // 1200 and not 300. Playwright's click error carries the actionability
+    // reason in its call log several lines down, and at 300 characters the
+    // published value stopped at "waiting for locator(...)" - which says the
+    // click was attempted and not why it could not land. The run that first
+    // probed this anchor answered the question the probe exists to ask, and the
+    // answer was cut off before the part that names the cause.
+    click_error: clickError.slice(0, 1200),
     click_probe_timeout_ms: CLICK_PROBE_TIMEOUT_MS,
     url_after_click: urlAfterClick,
     url: page.url(),
@@ -829,8 +864,10 @@ test('the Legal link in that card opens a page carrying the licence, the notice 
   // about, and no new ceiling is invented here because nobody has reported one.
   expect(
     c.worstRepeat.count,
-    `the legal page asked for ${c.worstRepeat.url} ${c.worstRepeat.count} times`,
-  ).toBeLessThanOrEqual(MAX_REPEATS_OF_ONE_URL);
+    `the legal page asked for ${c.worstRepeat.url} ${c.worstRepeat.count} times across the five loads this test ` +
+      `performs, against a bound of ${LEGAL_MAX_REPEATS_OF_ONE_URL} derived from the two per load the sign-in test ` +
+      'measured',
+  ).toBeLessThanOrEqual(LEGAL_MAX_REPEATS_OF_ONE_URL);
   // What is asserted here and what is only published, on a page no run of this
   // lane had measured before this test existed.
   //
@@ -849,4 +886,459 @@ test('the Legal link in that card opens a page carrying the licence, the notice 
     `the server answered 5xx while the legal page loaded: ${JSON.stringify(c.serverErrors)}`,
   ).toHaveLength(0);
   expect(c.pageErrors, `the legal page threw in the browser: ${JSON.stringify(c.pageErrors)}`).toEqual([]);
+});
+
+/**
+ * The second organization on this install, and the person who speaks for it.
+ *
+ * Both are made over HTTP by the installation's own administrator, because that
+ * is the only surface the product has for either: the sign-up form makes a
+ * person and no company, and the company a person speaks for is the one their
+ * token names. `POST /api/v1/admin/organizations/` and
+ * `POST /api/v1/users/` are the two doors, and the second one is what makes a
+ * working person without a database write - `AdminUserCreate` defaults
+ * `is_active` to True, while the public registration endpoint leaves people
+ * inactive in `admin-approve` mode, which is why every integration test in
+ * `backend/tests/integration` activates its own users directly and this lane
+ * cannot.
+ *
+ * The password is a different shape from the owner's on purpose. A test that
+ * reused one credential for two people would still pass if the second sign-in
+ * quietly handed back the first person's token, and the assertion below that
+ * reads `/users/me` through the partner's token is only worth what the two
+ * credentials being different makes it worth.
+ */
+const PARTNER_ORGANIZATION = 'Browser Lane Partner';
+const PARTNER_EMAIL = 'browser-lane-partner@example.com';
+const PARTNER_PASSWORD = 'Partner-Lane!2026x';
+const PARTNER_NAME = 'Browser Lane Partner Person';
+
+test('two organizations and one grant, over HTTP, on a default install', async ({ page }) => {
+  const timings: Record<string, number> = {};
+  let stepStartedAt = Date.now();
+  const mark = (step: string): void => {
+    timings[step] = Date.now() - stepStartedAt;
+    stepStartedAt = Date.now();
+  };
+
+  // Every status this test receives, in the order it received it, and published
+  // whole. The assertion carrying the security weight here is that two projects
+  // are indistinguishable to a company invited into one of them, and a reader
+  // cannot check that from a pass or a fail: they need the two numbers.
+  const statuses: { step: string; path: string; status: number }[] = [];
+  const serverErrors: { step: string; path: string; status: number }[] = [];
+
+  const parse = (text: string): unknown => {
+    if (text === '') return null;
+    try {
+      return JSON.parse(text) as unknown;
+    } catch {
+      // A body that is not JSON is an answer worth publishing and not worth
+      // throwing for: every assertion below reads a status first, and the text
+      // goes into the message of the one that fails.
+      return null;
+    }
+  };
+  const asRecord = (value: unknown): Record<string, unknown> =>
+    value !== null && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+  const asArray = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
+  const idOf = (value: unknown): string => {
+    const id = asRecord(value).id;
+    return typeof id === 'string' ? id : '';
+  };
+  const asText = (value: unknown): string => (typeof value === 'string' ? value : '');
+
+  const record = (step: string, path: string, status: number): void => {
+    statuses.push({ step, path, status });
+    if (status >= 500) serverErrors.push({ step, path, status });
+  };
+
+  /** One call, with the token it needs and the bound this lane already uses. */
+  const call = async (
+    step: string,
+    method: 'GET' | 'POST',
+    path: string,
+    token: string,
+    body?: Record<string, unknown>,
+  ): Promise<{ status: number; json: unknown; text: string }> => {
+    const headers: Record<string, string> = token === '' ? {} : { Authorization: `Bearer ${token}` };
+    const response =
+      method === 'GET'
+        ? await page.request.get(path, { headers, timeout: COLD_STEP_TIMEOUT_MS })
+        : await page.request.post(path, { headers, data: body ?? {}, timeout: COLD_STEP_TIMEOUT_MS });
+    const text = await response.text();
+    const status = response.status();
+    record(step, path, status);
+    return { status, json: parse(text), text };
+  };
+
+  /**
+   * One sign-in, and the token is kept for the rest of the test.
+   *
+   * `login_rate_limit` is 10 attempts a minute per IP (`backend/app/config.py`)
+   * and this whole lane arrives from one loopback address, so a test that signed
+   * in at every step would end up measuring the rate limiter instead of the
+   * grant. Two sign-ins, one per person, is what the test needs and no more.
+   */
+  const login = async (
+    step: string,
+    email: string,
+    password: string,
+  ): Promise<{ status: number; token: string; text: string }> => {
+    const path = '/api/v1/users/auth/login';
+    const response = await page.request.post(path, { data: { email, password }, timeout: COLD_STEP_TIMEOUT_MS });
+    const text = await response.text();
+    const status = response.status();
+    record(step, path, status);
+    return { status, token: asText(asRecord(parse(text)).access_token), text };
+  };
+
+  // ── The installation's administrator, who is the owner this lane registered ──
+  const owner = await login('owner signed in', OWNER_EMAIL, OWNER_PASSWORD);
+  mark('owner signed in');
+  expect(
+    owner.token,
+    `the installation administrator could not sign in (${owner.status}): ${owner.text.slice(0, 200)}`,
+  ).not.toBe('');
+
+  // ── Organization B, and a person who speaks for it ──────────────────────────
+  const orgPath = '/api/v1/admin/organizations/';
+  const created = await call('organization created', 'POST', orgPath, owner.token, { name: PARTNER_ORGANIZATION });
+  mark('organization created');
+  expect(
+    created.status,
+    `creating the second organization answered ${created.status} rather than 201: ${created.text.slice(0, 300)}`,
+  ).toBe(201);
+  const partnerOrganizationId = idOf(created.json);
+  expect(
+    partnerOrganizationId,
+    `the second organization was created but carried no id: ${created.text.slice(0, 300)}`,
+  ).not.toBe('');
+
+  const personPath = '/api/v1/users/';
+  const person = await call('partner person created', 'POST', personPath, owner.token, {
+    email: PARTNER_EMAIL,
+    password: PARTNER_PASSWORD,
+    full_name: PARTNER_NAME,
+    role: 'viewer',
+  });
+  mark('partner person created');
+  expect(
+    person.status,
+    `the administrator could not create the second organization's person (${person.status}): ` +
+      `${person.text.slice(0, 300)}`,
+  ).toBe(201);
+
+  const memberPath = `/api/v1/admin/organizations/${partnerOrganizationId}/members/`;
+  const member = await call('partner person placed in the organization', 'POST', memberPath, owner.token, {
+    user_email: PARTNER_EMAIL,
+    is_default: true,
+  });
+  mark('partner person placed');
+  expect(
+    member.status,
+    `placing that person in the second organization answered ${member.status}: ${member.text.slice(0, 300)}. ` +
+      'Without this the person signs in speaking for no company, and every later step would be measuring a ' +
+      'caller with no tenant rather than a grantee.',
+  ).toBe(201);
+
+  const partner = await login('partner signed in', PARTNER_EMAIL, PARTNER_PASSWORD);
+  mark('partner signed in');
+  expect(
+    partner.token,
+    `the second organization's person could not sign in (${partner.status}): ${partner.text.slice(0, 300)}`,
+  ).not.toBe('');
+
+  // Read through the partner's own token before anything is granted, so a later
+  // step cannot be speaking as the administrator by accident. This is the
+  // assertion the two different passwords exist for.
+  const who = await call('partner asked who they are', 'GET', '/api/v1/users/me/', partner.token);
+  expect(who.status, `GET /api/v1/users/me/ answered ${who.status} to the second person: ${who.text.slice(0, 300)}`).toBe(
+    200,
+  );
+  expect(
+    asText(asRecord(who.json).email).toLowerCase(),
+    `the second person's own token answered with somebody else's address: ${who.text.slice(0, 300)}`,
+  ).toBe(PARTNER_EMAIL);
+
+  // ── Two projects in the first organization ─────────────────────────────────
+  const first = await call('granted project created', 'POST', '/api/v1/projects/', owner.token, {
+    name: 'Browser Lane Granted Project',
+  });
+  mark('granted project created');
+  expect(first.status, `creating the project to be shared answered ${first.status}: ${first.text.slice(0, 300)}`).toBe(
+    201,
+  );
+  const grantedProjectId = idOf(first.json);
+  expect(grantedProjectId, `the project to be shared carried no id: ${first.text.slice(0, 300)}`).not.toBe('');
+
+  const second = await call('unshared project created', 'POST', '/api/v1/projects/', owner.token, {
+    name: 'Browser Lane Unshared Project',
+  });
+  const unsharedProjectId = idOf(second.json);
+  expect(
+    second.status,
+    `creating the project not to be shared answered ${second.status}: ${second.text.slice(0, 300)}`,
+  ).toBe(201);
+  expect(
+    unsharedProjectId,
+    `the project not to be shared carried no id: ${second.text.slice(0, 300)}`,
+  ).not.toBe('');
+  expect(
+    unsharedProjectId,
+    'the two projects were created with the same id, so nothing below can tell them apart',
+  ).not.toBe(grantedProjectId);
+
+  // ── The grant itself ───────────────────────────────────────────────────────
+  const grantReason = 'Cold-start lane: sharing one project with a partner organization.';
+  const grantsPath = `/api/v1/projects/${grantedProjectId}/participant-grants`;
+  const grant = await call('grant created', 'POST', grantsPath, owner.token, {
+    grantee_organization_id: partnerOrganizationId,
+    scope: 'view',
+    reason: grantReason,
+  });
+  mark('grant created');
+  expect(
+    grant.status,
+    `granting the second organization view of one project answered ${grant.status}: ${grant.text.slice(0, 300)}`,
+  ).toBe(201);
+  const grantId = idOf(grant.json);
+  expect(grantId, `the grant carried no id: ${grant.text.slice(0, 300)}`).not.toBe('');
+
+  const listed = await call('grants listed by the owner', 'GET', grantsPath, owner.token);
+  expect(
+    listed.status,
+    `the owning organization could not list its own grants (${listed.status}): ${listed.text.slice(0, 300)}`,
+  ).toBe(200);
+  const listedIds = asArray(asRecord(listed.json).items).map(idOf);
+  expect(
+    listedIds,
+    `the grant just created is not among the grants the owner can see: ${listed.text.slice(0, 300)}`,
+  ).toContain(grantId);
+
+  // ── The audit row, read back over HTTP ─────────────────────────────────────
+  //
+  // `/api/v1/audit/timeline/` and not `/api/v1/audit/{entity_type}/{entity_id}`:
+  // a grant writes through `log_activity`, which lands in `oe_activity_log`, and
+  // the one-row-at-a-time legacy endpoint serves `oe_core_audit_log`. Asking the
+  // legacy endpoint for a grant would answer 200 with an empty list, which reads
+  // as "no audit row was written" when the truth is "wrong table".
+  const auditPath = `/api/v1/audit/timeline/?entity_type=participant_grant&entity_id=${grantId}`;
+  const rowsFor = (json: unknown): Record<string, unknown>[] => asArray(json).map(asRecord);
+  await expect
+    .poll(
+      async () => {
+        const read = await call('audit row for the grant', 'GET', auditPath, owner.token);
+        return rowsFor(read.json).some((row) => asText(row.action) === 'granted');
+      },
+      {
+        timeout: COLD_STEP_TIMEOUT_MS,
+        message: `no audit row recording the grant arrived at ${auditPath}`,
+      },
+    )
+    .toBe(true);
+  mark('audit row read back');
+
+  const auditAfterGrant = rowsFor((await call('audit rows for the grant', 'GET', auditPath, owner.token)).json);
+  const grantedRow = auditAfterGrant.find((row) => asText(row.action) === 'granted');
+  expect(
+    grantedRow,
+    `the grant's audit row was not among the rows read back: ${JSON.stringify(auditAfterGrant).slice(0, 400)}`,
+  ).toBeTruthy();
+  expect(
+    asText(grantedRow?.entity_id),
+    `the audit row names a different grant than the one just created: ${JSON.stringify(grantedRow ?? {}).slice(0, 300)}`,
+  ).toBe(grantId);
+  expect(
+    asText(grantedRow?.reason),
+    `the reason given for the grant was not recorded on its audit row: ${JSON.stringify(grantedRow ?? {}).slice(0, 300)}`,
+  ).toBe(grantReason);
+  expect(
+    asText(grantedRow?.tenant_id),
+    `the audit row for a decision the first organization made was filed under the second organization's tenant, ` +
+      `which puts the record of the decision in the ledger of the company that had no part in making it: ` +
+      `${JSON.stringify(grantedRow ?? {}).slice(0, 300)}`,
+  ).not.toBe(partnerOrganizationId);
+
+  // ── What the second organization can reach, before anything is withdrawn ───
+  const partnerList = await call('partner listed projects', 'GET', '/api/v1/projects/', partner.token);
+  mark('partner listed projects');
+  expect(
+    partnerList.status,
+    `listing projects answered ${partnerList.status} to the second organization's person: ${partnerList.text.slice(0, 300)}`,
+  ).toBe(200);
+  const partnerProjectIds = asArray(partnerList.json).map(idOf);
+
+  const readGranted = await call(
+    'partner read the granted project',
+    'GET',
+    `/api/v1/projects/${grantedProjectId}`,
+    partner.token,
+  );
+  const readUnshared = await call(
+    'partner read the unshared project',
+    'GET',
+    `/api/v1/projects/${unsharedProjectId}`,
+    partner.token,
+  );
+  const grantsAsPartner = await call('partner listed the grants on its own project', 'GET', grantsPath, partner.token);
+  const frameworksOfGranted = await call(
+    'partner read the granted project frameworks',
+    'GET',
+    `/api/v1/procurement-concept/projects/${grantedProjectId}/frameworks`,
+    partner.token,
+  );
+  const frameworksOfUnshared = await call(
+    'partner read the unshared project frameworks',
+    'GET',
+    `/api/v1/procurement-concept/projects/${unsharedProjectId}/frameworks`,
+    partner.token,
+  );
+  mark('partner refused');
+
+  // ── Withdraw it, and read the row that says so ─────────────────────────────
+  const revoke = await call(
+    'grant revoked',
+    'POST',
+    `/api/v1/projects/${grantedProjectId}/participant-grants/${grantId}/revoke`,
+    owner.token,
+    { reason: 'Cold-start lane: the sharing ended.' },
+  );
+  mark('grant revoked');
+  expect(
+    revoke.status,
+    `withdrawing the grant answered ${revoke.status}: ${revoke.text.slice(0, 300)}`,
+  ).toBe(200);
+
+  await expect
+    .poll(
+      async () => {
+        const read = await call('audit row for the revocation', 'GET', auditPath, owner.token);
+        return rowsFor(read.json).some((row) => asText(row.action) === 'revoked');
+      },
+      {
+        timeout: COLD_STEP_TIMEOUT_MS,
+        message: `no audit row recording the revocation arrived at ${auditPath}`,
+      },
+    )
+    .toBe(true);
+  mark('revocation audited');
+
+  const afterRevokeList = await call('partner listed projects again', 'GET', '/api/v1/projects/', partner.token);
+  const afterRevokeRead = await call(
+    'partner read the granted project again',
+    'GET',
+    `/api/v1/projects/${grantedProjectId}`,
+    partner.token,
+  );
+  mark('partner refused again');
+
+  report('two organizations and one grant', {
+    partner_organization_id: partnerOrganizationId,
+    granted_project_id: grantedProjectId,
+    unshared_project_id: unsharedProjectId,
+    grant_id: grantId,
+    partner_listed_project_count: partnerProjectIds.length,
+    partner_saw_the_granted_project: partnerProjectIds.includes(grantedProjectId),
+    partner_saw_the_unshared_project: partnerProjectIds.includes(unsharedProjectId),
+    read_granted_status: readGranted.status,
+    read_unshared_status: readUnshared.status,
+    grants_listed_by_partner_status: grantsAsPartner.status,
+    frameworks_granted_status: frameworksOfGranted.status,
+    frameworks_unshared_status: frameworksOfUnshared.status,
+    audit_rows_after_grant: auditAfterGrant.length,
+    audit_row_names_the_deciding_organization: asText(grantedRow?.tenant_id) !== partnerOrganizationId,
+    after_revoke_list_status: afterRevokeList.status,
+    after_revoke_list_count: asArray(afterRevokeList.json).map(idOf).length,
+    after_revoke_read_status: afterRevokeRead.status,
+    statuses,
+    server_errors: serverErrors,
+    step_timeout_ms: COLD_STEP_TIMEOUT_MS,
+    timings_ms: timings,
+  });
+
+  // What the second organization can see. Neither project, and that is asserted
+  // as the measured behaviour of a default install rather than as a failure of
+  // the grant: `project_grants_enforce` defaults to False
+  // (`backend/app/config.py`, env `OE_PROJECT_GRANTS`), and with it off
+  // `_company_layer_allows` answers True unconditionally, so no grant arm is
+  // provisioned and the emitted SQL is byte-identical to an install where the
+  // grant table does not exist. On top of that, the project list is keyed on the
+  // person and not on the company at all -
+  // `backend/app/modules/projects/repository.py` filters
+  // `Project.owner_id == caller OR caller is a team member`, with no grant arm -
+  // so a grant could not put a project in this list even with the flag on.
+  //
+  // What that makes this test: proof that the two organizations exist, that one
+  // can grant the other a project over HTTP, that the grant and its withdrawal
+  // are recorded in the audit log under the organization that decided, and that
+  // the second organization reaches nothing of the first one's. It is not proof
+  // that a grant opens a project, because on this product a grant alone does not
+  // open one: `verify_project_access` puts the company layer and the person
+  // layer in an AND, and its own comment says a grant alone opens nothing
+  // because the person still has to be on the team.
+  expect(
+    partnerProjectIds,
+    `the second organization's person saw the project they were granted, which no read path in this product ` +
+      'does on a default install: the project list is keyed on the person, not on the company ' +
+      `(ids seen: ${JSON.stringify(partnerProjectIds)})`,
+  ).not.toContain(grantedProjectId);
+  expect(
+    partnerProjectIds,
+    `the second organization's person saw a project that was never shared with them ` +
+      `(ids seen: ${JSON.stringify(partnerProjectIds)})`,
+  ).not.toContain(unsharedProjectId);
+
+  // The refusal, and the part of it that is a security property rather than a
+  // status code: a project that was shared and a project that never was have to
+  // answer the same way, or the difference is an oracle that says which UUIDs
+  // exist. Both are read through the same token, one call apart.
+  expect(
+    readGranted.status,
+    `reading the granted project answered ${readGranted.status} to the second organization, which is not a refusal: ` +
+      `${readGranted.text.slice(0, 300)}`,
+  ).toBeGreaterThanOrEqual(400);
+  expect(
+    readGranted.status,
+    `a project this company was invited into answered ${readGranted.status} and the one it was never invited into ` +
+      `answered ${readUnshared.status}, so the two are distinguishable and the difference is an existence oracle`,
+  ).toBe(readUnshared.status);
+  expect(
+    grantsAsPartner.status,
+    `the second organization could list who else is in the room on a project it was invited to ` +
+      `(${grantsAsPartner.status}): ${grantsAsPartner.text.slice(0, 300)}. Who else is participating is the owner's ` +
+      'information, not a consequence of having been invited.',
+  ).toBeGreaterThanOrEqual(400);
+  expect(
+    frameworksOfGranted.status,
+    `the frameworks of a project this company was invited into answered ${frameworksOfGranted.status} and those of a ` +
+      `project it was never invited into answered ${frameworksOfUnshared.status}, so the two are distinguishable`,
+  ).toBe(frameworksOfUnshared.status);
+  expect(
+    frameworksOfGranted.status,
+    `the second organization read the frameworks of a project it has no person on (${frameworksOfGranted.status}): ` +
+      `${frameworksOfGranted.text.slice(0, 300)}`,
+  ).toBeGreaterThanOrEqual(400);
+
+  // After the withdrawal: the same two answers, because they were already
+  // refusals. Asserting this is what makes the revocation mean something in a
+  // lane where the grant never opened a door - the row is closed and the audit
+  // log says who closed it, and nothing the partner could reach changed.
+  expect(
+    afterRevokeRead.status,
+    `after the grant was withdrawn, reading the project answered ${afterRevokeRead.status} where it answered ` +
+      `${readGranted.status} before`,
+  ).toBe(readGranted.status);
+  expect(
+    asArray(afterRevokeList.json).map(idOf),
+    `after the grant was withdrawn, the second organization's project list changed: ` +
+      `${JSON.stringify(asArray(afterRevokeList.json).map(idOf))}`,
+  ).not.toContain(grantedProjectId);
+
+  // The one thing asserted about the server itself, and the reason this lane
+  // exists: every refusal above is an answer, and a 5xx is not.
+  expect(
+    serverErrors,
+    `the server answered 5xx while two organizations shared a project: ${JSON.stringify(serverErrors)}`,
+  ).toHaveLength(0);
 });
