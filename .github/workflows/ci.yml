@@ -441,14 +441,36 @@ jobs:
           # reader that is not a shell.
           rc=0
           echo "::group::tenant_isolation marker"
-          pytest tests/integration tests/modules -q -ra --timeout=300 --timeout-method=signal -m tenant_isolation || rc=1
+          pytest tests/integration tests/modules -q -ra --timeout=300 --timeout-method=signal -m tenant_isolation --junitxml="${{ runner.temp }}/tenant-isolation-marker.xml" || rc=1
           echo "::endgroup::"
 
           echo "::group::frozen residue (what the old chain gated and the marker does not)"
-          pytest tests/integration tests/modules -q -ra --timeout=300 --timeout-method=signal -m "not tenant_isolation" -k "$CHAIN" || rc=1
+          pytest tests/integration tests/modules -q -ra --timeout=300 --timeout-method=signal -m "not tenant_isolation" -k "$CHAIN" --junitxml="${{ runner.temp }}/tenant-isolation-residue.xml" || rc=1
           echo "::endgroup::"
 
           exit $rc
+
+      - name: Annotate every failure this lane produced
+        if: always()
+        # The same reporting step the unit shards carry, and for the same reason:
+        # this lane failed at `b8080ea6` and the only annotation on the run was
+        # "Process completed with exit code 1". The job log was not downloadable
+        # from the environment that had to read it - the results receiver answers
+        # with an empty body - and this step writes no JUnit report, so the name
+        # of the failing test existed nowhere that could be reached. A lane that
+        # gates every boundary test in the product has to say which one stopped.
+        #
+        # Both runs are reported, not only the first, because both always execute
+        # and either can be the one that failed. continue-on-error is scoped here
+        # for the reason the shard's copy gives: a step that only reports must not
+        # be able to decide the build.
+        continue-on-error: true
+        run: >-
+          python ../scripts/publish_test_counts.py
+          --junit "${{ runner.temp }}/tenant-isolation-marker.xml"
+          --junit "${{ runner.temp }}/tenant-isolation-residue.xml"
+          --annotate
+          --title "### Tenant isolation and IDOR"
 
   zero-width-guard:
     name: Block zero-width Unicode characters
