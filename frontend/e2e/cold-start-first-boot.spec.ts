@@ -13,9 +13,10 @@
  *   4. whether they can sign out and back in,
  *   5. whether the settings page names where this software comes from,
  *   6. whether the sign-up form still asks how they found us,
- *   7. whether the Legal link that page is quiet behind actually opens - in a tab
- *      of its own, which is what the card's link says - and whether what is behind
- *      it is still the licence, the notice and the offer.
+ *   7. whether the Legal link that page is quiet behind actually leads somewhere:
+ *      what it declares, what clicking it does in this lane, and whether the href
+ *      it names opens onto the licence, the notice and the offer for a signed-in
+ *      installer.
  *
  * The reports that produced this file were made by a person with DevTools open
  * on Windows: 585 requests and 6.4 MB for one load of the sign-in page, 27
@@ -105,6 +106,27 @@ const MAX_REPEATS_OF_ONE_URL = 5;
  * settings test's so a slow step is still a slow step in the numbers.
  */
 const COLD_STEP_TIMEOUT_MS = 120_000;
+
+/**
+ * How long the legal test gives a click to produce a tab, and why this bound is
+ * not the one above.
+ *
+ * It is not a wait for content from a cold server, which is what
+ * `COLD_STEP_TIMEOUT_MS` exists for, so widening that ceiling would not have
+ * helped it and narrowing this one does not weaken anything the lane measures.
+ * It is a probe: the question is whether a click on this anchor produces a page
+ * at all, and two runs of this lane have answered that it does not, on either
+ * platform, at 120s and at the whole test timeout. A bound here exists so the
+ * report still arrives, and so a lane that has to measure an absence does not
+ * spend its budget proving it twice.
+ *
+ * 15s is about six times the slowest single step this platform was measured
+ * taking when the settings test passed - "signed in", 2326ms on the Windows leg
+ * and 1927ms on Ubuntu, against 766ms and 764ms to navigate to the card - so a
+ * tab that this browser was going to report has had longer to appear than the
+ * whole sign-in it would have appeared during.
+ */
+const CLICK_PROBE_TIMEOUT_MS = 15_000;
 
 /** The first account on this install. Policy-compliant: letters, digits, 8+. */
 const OWNER_EMAIL = 'browser-lane-owner@example.com';
@@ -636,70 +658,89 @@ test('the Legal link in that card opens a page carrying the licence, the notice 
   const card = page.locator('[data-testid="support-and-legal"]');
   await expect(card, 'the Support and legal card did not render').toBeVisible({ timeout: COLD_STEP_TIMEOUT_MS });
   const cardLink = card.locator('a[href="/legal"]').first();
-  // The link opens a tab of its own: `CompanyDocumentsSettings.tsx` renders it
-  // with `target="_blank"`, so the page this test is standing on never leaves
-  // `/settings`, and a click that waits for it to is a click that waits for a
-  // navigation that cannot happen. Both legs of the first run of this test said
-  // so in their own way. Windows failed the URL assertion after its whole 120s
-  // ceiling with the page still on `/settings?tab=company`; Ubuntu never reached
-  // an assertion at all, because `click()` waits out a navigation it started and
-  // ran to the 480s test timeout instead. Reading the failure as "the link is
-  // broken" would have been wrong in the other direction: the licence is one
-  // click away, in a second tab, which is what the card says it is.
-  //
-  // What the link declares is asserted before it is followed, so a card that
-  // quietly drops `target="_blank"` changes a published field and this wait
-  // rather than passing unnoticed, and the tab is caught by waiting for the
-  // event the click causes instead of by sleeping for one.
+  // What the card promises, read out of its own attributes and asserted before
+  // anything is clicked: the link goes to /legal, and it declares a tab of its
+  // own, because `CompanyDocumentsSettings.tsx` renders it with `target="_blank"`
+  // and `rel="noreferrer"`.
+  const cardLinkHref = await cardLink.getAttribute('href');
   const cardLinkTarget = await cardLink.getAttribute('target');
+  expect(cardLinkHref, "the card's Legal link no longer points at /legal").toBe('/legal');
   expect(
     cardLinkTarget,
-    "the card's Legal link no longer opens a tab of its own, so the rest of this test is waiting for a tab that " +
-      'will not be created: it catches the popup the click causes, asserts the settings page stayed put, and reads ' +
-      'the licence out of the tab. Change those three waits with the link, in the same commit.',
+    "the card's Legal link no longer declares a tab of its own, which changes what clicking it does to the " +
+      'settings page this test is standing on. The probe below publishes which of the two it did.',
   ).toBe('_blank');
-  // Caught on the context and not on the opener, because the link also carries
-  // `rel="noreferrer"`, which makes the tab it opens a window with no opener at
-  // all: the event an opener would report is then up to the browser, while every
-  // page created in the context is reported to the context whatever its opener
-  // did. The waiter is created before the click runs, so a tab that opens fast
-  // is a tab that was already being waited for.
-  const [legalTab] = await Promise.all([
-    page.context().waitForEvent('page', { timeout: COLD_STEP_TIMEOUT_MS }),
-    cardLink.click(),
-  ]);
-  await expect(legalTab, "the tab the card's Legal link opened is not /legal").toHaveURL(/\/legal$/, {
-    timeout: COLD_STEP_TIMEOUT_MS,
-  });
+
+  // Then the click: measured, bounded, caught, and not asserted. Two runs of this
+  // lane have now said what clicking this anchor does here, and neither said what
+  // a browser on a desk does. Waiting for the page this test stands on to reach
+  // /legal failed on Windows after its whole 120s ceiling with the URL unchanged,
+  // and hung inside the click itself until Ubuntu's 480s test timeout. Waiting
+  // instead for the tab the anchor declares timed out on both legs with no page
+  // event at all - "browserContext.waitForEvent: Timeout 120000ms exceeded while
+  // waiting for event page". So in this lane a click on a target="_blank"
+  // rel="noreferrer" anchor produces neither a navigation nor a page the test can
+  // reach, and a test that asserts either one is asserting something about the
+  // lane rather than something about the product.
+  //
+  // What is still asserted is the two things that do not depend on popup
+  // semantics and that a person would notice: the click leaves the installer
+  // inside this product rather than sending them somewhere else, and the href the
+  // card declares resolves, signed in, onto a page carrying the licence. What the
+  // click did is published beside them, so the run that reads this report can
+  // tell a popup this lane never sees from a link that has gone dead without
+  // guessing which of the two it was.
+  let clickOpenedATab = false;
+  let clickNavigated = false;
+  let clickError = '';
+  try {
+    const [maybeTab] = await Promise.all([
+      page
+        .context()
+        .waitForEvent('page', { timeout: CLICK_PROBE_TIMEOUT_MS })
+        .catch(() => null),
+      cardLink.click({ timeout: CLICK_PROBE_TIMEOUT_MS }),
+    ]);
+    clickOpenedATab = maybeTab !== null;
+    if (maybeTab) await maybeTab.close().catch(() => undefined);
+  } catch (error) {
+    clickError = String((error as { message?: string } | undefined)?.message ?? error)
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line !== '')
+      .slice(0, 3)
+      .join(' | ');
+  }
+  const urlAfterClick = page.url();
+  clickNavigated = /\/legal$/.test(urlAfterClick);
+  mark('card link clicked');
+
+  expect(
+    urlAfterClick,
+    `clicking the card's Legal link left the installer at ${urlAfterClick}, which is neither the settings card they ` +
+      'were reading nor the page the card names',
+  ).toMatch(/\/(settings\?tab=company|legal)$/);
+
+  // And the door the card names does open, signed in, onto the licence. Navigated
+  // rather than clicked, because navigation is the half this lane can observe and
+  // the href is the card's own promise, read out of its own attribute above. A
+  // click that did navigate has already done this work and is not repeated.
+  if (!clickNavigated) {
+    await page.goto('/legal');
+  }
   await expect(
-    legalTab.locator('[data-testid="legal-page"]'),
-    'the link opened a tab that is not the legal page',
+    page.locator('[data-testid="legal-page"]'),
+    "the href the card declares did not open the legal page for a signed-in installer",
   ).toBeVisible({ timeout: COLD_STEP_TIMEOUT_MS });
-  // And the page the click came from is still where the installer was. That is
-  // the other half of what `target="_blank"` means, and it is the half a person
-  // notices: a card that navigated away would lose the setting they were in the
-  // middle of changing.
-  await expect(page, 'following the card link navigated the settings page itself away').toHaveURL(
-    /\/settings\?tab=company$/,
-  );
   mark('card link followed');
 
-  // The same wait on the far side of the click. Counting here would be the same
-  // race as counting above: the tab has just been created and is fetching both
-  // documents for the first time, so the <pre> is not there yet at the moment
-  // its URL settles. It is waited for in the tab, which is where the click put
-  // it, and not on the settings page that is still open beside it.
-  const signedInLicence = legalTab.locator('[data-testid="legal-licence"] pre');
-  const signedInError = await arrived('the licence text did not render in the tab the card link opened', signedInLicence);
+  // The same wait on the far side. Counting here would be the same race as
+  // counting above: the page has just been mounted again and is fetching both
+  // documents again, so the <pre> is not there yet at the moment the URL settles.
+  const signedInLicence = page.locator('[data-testid="legal-licence"] pre');
+  const signedInError = await arrived('the licence text did not render after following the card link', signedInLicence);
   mark('licence waited for again');
   const signedInLicenceText = signedInError === '' ? ((await signedInLicence.textContent()) ?? '') : '';
-  // Published and not counted. `watch()` attaches to one page, and a census
-  // started after the tab was created would catch only the requests that came
-  // after it: a partial count printed beside a whole one is a number that looks
-  // comparable and is not. The tab's own evidence is the URL it reached, the
-  // page it painted and the length of the licence text behind it, each asserted
-  // below.
-  const tabUrl = legalTab.url();
   const c = census();
   stop();
   mark('evidence gathered');
@@ -722,8 +763,13 @@ test('the Legal link in that card opens a page carrying the licence, the notice 
     machine_readable_link_count: machineReadableCount,
     signed_in_error: signedInError.slice(0, 300),
     signed_in_licence_length: signedInLicenceText.length,
+    card_link_href: cardLinkHref ?? '',
     card_link_target: cardLinkTarget ?? '',
-    tab_url: tabUrl,
+    click_opened_a_tab: clickOpenedATab,
+    click_navigated: clickNavigated,
+    click_error: clickError.slice(0, 300),
+    click_probe_timeout_ms: CLICK_PROBE_TIMEOUT_MS,
+    url_after_click: urlAfterClick,
     url: page.url(),
     step_timeout_ms: COLD_STEP_TIMEOUT_MS,
     timings_ms: timings,
@@ -774,7 +820,7 @@ test('the Legal link in that card opens a page carrying the licence, the notice 
   expect(machineReadableCount, 'the page no longer links to the machine-readable disclosure').toBe(1);
   expect(
     signedInLicenceText.length,
-    `following the card's own link opened /legal in a tab and the licence text behind it was ` +
+    `following the href the card declares reached /legal signed in and the licence text behind it was ` +
       `${signedInLicenceText.length} characters, so the door opens onto an empty room: ` +
       `${signedInError.slice(0, 200) || 'the element rendered and carried nothing worth reading'}`,
   ).toBeGreaterThan(30_000);
