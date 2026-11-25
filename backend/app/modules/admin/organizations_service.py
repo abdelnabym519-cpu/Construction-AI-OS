@@ -162,12 +162,12 @@ def sanitize_organization_name(raw: str) -> str:
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
     if not cleaned:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="An organization needs a name that carries at least one visible character.",
         )
     if len(cleaned) > NAME_MAX_LENGTH:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"An organization name is at most {NAME_MAX_LENGTH} characters; this one is {len(cleaned)}.",
         )
     return cleaned
@@ -185,7 +185,7 @@ def slug_for_name(name: str) -> str:
     slug = _NON_SLUG.sub("-", name.lower()).strip("-")[:SLUG_MAX_LENGTH].strip("-")
     if not slug:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=(
                 "An organization name needs at least one letter or digit to be addressable; "
                 f"{name!r} sanitizes to nothing a slug can be made of."
@@ -270,7 +270,7 @@ def sanitize_slug(raw: str) -> str:
     slug = _NON_SLUG.sub("-", _INVISIBLE.sub("", raw or "").lower()).strip("-")[:SLUG_MAX_LENGTH].strip("-")
     if not slug:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="An organization slug needs at least one letter or digit.",
         )
     return slug
@@ -346,7 +346,7 @@ async def add_member(
     email = (user_email or "").strip().lower()
     if not email:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="A member is added by email address, and no address was given.",
         )
     user = await session.scalar(select(User).where(func.lower(User.email) == email).limit(1))
@@ -359,7 +359,7 @@ async def add_member(
     membership_role = role if role is not None else user.role
     if _resolve_role(membership_role) is None:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"{membership_role!r} is not a role this installation knows.",
         )
 
