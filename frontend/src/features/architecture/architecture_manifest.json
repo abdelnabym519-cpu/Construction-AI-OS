@@ -1238,6 +1238,8 @@
       "files": [
         "__init__.py",
         "manifest.py",
+        "organizations_router.py",
+        "organizations_service.py",
         "permissions_router.py",
         "rls_router.py",
         "router.py",
@@ -279382,7 +279384,7 @@
     "total_relationships": 240,
     "total_routes": 4631,
     "total_schemas": 4125,
-    "total_python_files": 2813,
+    "total_python_files": 2815,
     "frontend_features": 208,
     "frontend_ts_files": 3579,
     "frontend_backend_mapped": 188
