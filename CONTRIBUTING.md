@@ -1,6 +1,6 @@
-# Contributing to OpenConstructionERP
+# Contributing to Construction AI OS
 
-Thank you for your interest. OpenConstructionERP is an open-source platform for
+Thank you for your interest. Construction AI OS is an open-source platform for
 construction cost estimation, and the work that comes in from outside genuinely shapes
 what gets built. Read the next section before you write any code, because the route in
 is not the one most projects use.
@@ -36,8 +36,8 @@ how to brief an AI coding assistant on it.
 
 ```bash
 # 1. Clone
-git clone https://github.com/datadrivenconstruction/OpenConstructionERP.git
-cd OpenConstructionERP
+git clone https://github.com/abdelnabym519-cpu/Construction-AI-OS.git
+cd Construction-AI-OS
 
 # 2. Start dev environment
 docker compose up -d   # PostgreSQL + Redis
@@ -167,16 +167,19 @@ file-by-file walkthrough.
 
 ## Reporting Issues
 
-- Use [GitHub Issues](https://github.com/datadrivenconstruction/OpenConstructionERP/issues)
+- Use [GitHub Issues](https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues)
 - Include: version, steps to reproduce, expected vs actual behavior
 - For security issues, see [SECURITY.md](SECURITY.md)
 
 ## Licensing
 
-OpenConstructionERP is dual licensed, AGPL-3.0 for the community edition and a
-commercial license for enterprise use. Because code is written by the core team rather
-than merged from outside, there is no contributor license agreement to sign and no bot
-that will ask you for one.
+Construction AI OS is licensed AGPL-3.0-or-later; see [LICENSE](LICENSE) and the
+[NOTICE](NOTICE) preamble for what this modified distribution covers. The commercial
+license offered for the ORIGINAL OpenConstructionERP does not automatically extend to
+this distribution (see the note at the top of
+[docs/legal/COMMERCIAL-LICENSE.md](docs/legal/COMMERCIAL-LICENSE.md)). Because code is
+written by the core team rather than merged from outside, there is no contributor
+license agreement to sign and no bot that will ask you for one.
 
 Specifications, issue text and reproductions that you send in may be used to build the
 corresponding feature, which then ships under both licenses like everything else. If
@@ -185,7 +188,7 @@ first.
 
 ## Questions?
 
-- Open a [Discussion](https://github.com/datadrivenconstruction/OpenConstructionERP/discussions)
+- Open a [Discussion](https://github.com/abdelnabym519-cpu/Construction-AI-OS/discussions)
 - Join our community chat (coming soon)
 
 Thank you for helping make construction cost estimation open and accessible!

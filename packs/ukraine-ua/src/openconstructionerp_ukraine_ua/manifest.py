@@ -86,6 +86,6 @@ MANIFEST = PartnerPackManifest(
             "engineer (кошторисник) before they are relied on for a public "
             "tender."
         ),
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

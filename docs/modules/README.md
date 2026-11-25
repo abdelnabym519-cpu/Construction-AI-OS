@@ -1,6 +1,6 @@
 # Module ecosystem overview
 
-OpenConstructionERP is modular. Well over a hundred first-party modules ship in the box, and each one is a self-contained package that the platform discovers and mounts on start. You enable the ones a project needs and ignore the rest. This page groups the modules by area with a one-line description each, so you can see the full breadth and find the piece you are looking for. For the workflows that tie several modules together, read the [user guide](../user-guide/README.md). To build your own module, read the [platform and builder guide](../platform/README.md).
+Construction AI OS is modular. Well over a hundred first-party modules ship in the box, and each one is a self-contained package that the platform discovers and mounts on start. You enable the ones a project needs and ignore the rest. This page groups the modules by area with a one-line description each, so you can see the full breadth and find the piece you are looking for. For the workflows that tie several modules together, read the [user guide](../user-guide/README.md). To build your own module, read the [platform and builder guide](../platform/README.md).
 
 A module can depend on others, so enabling a workflow usually pulls in what it needs. Where a module is a thin analytical layer over data another module owns, that is noted, because it means the module adds a view rather than a new place to enter data.
 

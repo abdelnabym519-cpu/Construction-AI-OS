@@ -121,6 +121,6 @@ MANIFEST = PartnerPackManifest(
         ),
         "dsr_reference_year": 2023,
         "nbc_amendment_year": 2024,
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

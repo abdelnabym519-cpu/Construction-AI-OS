@@ -17,6 +17,7 @@
  */
 
 import { escapeHtml } from './printReport';
+import { APP_NAME } from '@/shared/lib/brandName';
 
 /** One thing that was decided about one issue during the session. */
 export interface ReviewDecision {
@@ -198,7 +199,7 @@ export function buildReviewMinutesHtml(params: ReviewMinutesParams): string {
   ${metaTable(params, l)}
   ${decisionsTable(params, l)}
   ${agendaTable(params, l)}
-  <p class="brand">OpenConstructionERP</p>
+  <p class="brand">${APP_NAME}</p>
 </body>
 </html>`;
 }

@@ -14,7 +14,7 @@ correction to the Türkiye configuration reaches this pack without an edit
 here.
 
 `turkey-tr` therefore has to be present, and the pack is not listed without
-it. In OpenConstructionERP itself both ship together: the wheel, the Docker
+it. In Construction AI OS itself both ship together: the wheel, the Docker
 image and the desktop build carry the two directories side by side, and this
 pack reads its neighbour. Installed from its own distribution, the country
 pack is a declared dependency.
@@ -92,7 +92,7 @@ on depends on them. The profile keeps their rows out of the menu instead.
 
 ## What the platform provides for a Turkish contractor
 
-These are features of OpenConstructionERP, not of this pack. They are there
+These are features of Construction AI OS, not of this pack. They are there
 with or without it, and the pack's menu is where an installer finds them.
 
 - The site registers (RFIs, submittals, correspondence, change orders,
@@ -141,7 +141,7 @@ or a tax filing before that review. Nothing here is legal or tax advice.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules, Packs
+This pack ships inside Construction AI OS. Activate it from Modules, Packs
 tab: find "Turkey MEP Contractor Pack", then Activate pack. The first-run
 wizard also lists it, marked as a specialised variant, next to the Turkey
 Construction Pack it is built on.
@@ -154,7 +154,7 @@ OE_PACK=turkey-tr-mep openconstructionerp serve
 
 ## License
 
-AGPL-3.0-or-later, the same licence as OpenConstructionERP. No part of this
+AGPL-3.0-or-later, the same licence as Construction AI OS. No part of this
 pack is reserved under a partnership agreement.
 
-Contact: info@datadrivenconstruction.io
+Contact: support@example.com

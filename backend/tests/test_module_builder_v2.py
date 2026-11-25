@@ -208,20 +208,34 @@ class TestAFeaturelessSpecRendersExactlyAsBefore:
 
     The fixtures are the full render of the v2 generator as it was committed,
     before links and features. A spec with none of them must render the same
-    bytes in every file but spec.json. Generator 3 only escapes names where
-    they land in code, which ordinary names never need, so the table and API
-    files a refresh compares still match and the refresh is not refused.
+    statements in every file but spec.json. Two deliberate text changes sit
+    on top of the v2 bytes: the 2026-10 identity change moved the
+    generator's own stamp (header/note comments) and its default docstrings
+    from the upstream brand to the product's, and refresh normalises exactly
+    those (stamp generations compared equal, docstrings blanked), so the
+    table and API files a refresh compares still match and the refresh is
+    not refused. Anything else - a comment, a format change, a statement -
+    still fails this test.
     """
 
     @pytest.mark.parametrize("make", [hire_spec, notice_spec, a_spec, a_minimal_spec])
     def test_every_file_but_the_spec_matches_the_fixture(self, make) -> None:
+        from app.modules.module_builder import refresh
+
         spec = make()
         compared = 0
         for item in generator.render(spec):
             if item.path == "spec.json":
                 continue
-            expected = (FIXTURES / "module_builder_v2" / spec.key / f"{item.path}.v2").read_text(encoding="utf-8")
-            assert item.content == expected, f"{spec.key}/{item.path} renders differently than before v2"
+            expected = (FIXTURES / "module_builder_v2" / spec.key / f"{item.path}.v2").read_bytes()
+            rendered = item.content.encode("utf-8")
+            if item.path.endswith(".py"):
+                same = refresh.same_apart_from_docstrings(expected, rendered)
+            else:
+                # Markdown has no docstrings to blank; the stamp/default
+                # normalisation is byte-level and applies as it stands.
+                same = refresh._without_generator_stamps(expected) == refresh._without_generator_stamps(rendered)
+            assert same, f"{spec.key}/{item.path} renders differently than before v2"
             compared += 1
         assert compared == len(generator.render(spec)) - 1
 

@@ -38,9 +38,6 @@ vi.mock('react-i18next', () => ({
 vi.mock('@/shared/lib/useI18nReady', () => ({ useI18nReady: () => 0 }));
 vi.mock('./CustomBranding', () => ({ CustomBranding: () => null }));
 vi.mock('@/shared/ui/UpdateChecker', () => ({ UpdateNotification: () => null, UpdateBadge: () => null }));
-vi.mock('@/features/modules/RequestCustomModuleDialog', () => ({
-  RequestCustomModuleDialog: () => null,
-}));
 vi.mock('@/shared/hooks/useSidebarBadges', () => ({
   useSidebarBadges: () => ({ tasks: 0, rfi: 0, safety: 0 }),
 }));

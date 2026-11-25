@@ -21,6 +21,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 
 from app.dependencies import SessionDep
+from app.modules.admin.organizations_router import router as organizations_router
 from app.modules.admin.permissions_router import router as permissions_router
 from app.modules.admin.rls_router import router as rls_router
 from app.modules.admin.service import GateError, check_gates, reset_demo_data
@@ -35,6 +36,11 @@ logger = logging.getLogger(__name__)
 router.include_router(permissions_router)
 # Sub-router: GET /rls/readiness, admin-only and read-only.
 router.include_router(rls_router)
+# Sub-router: POST/GET /organizations and POST /organizations/{id}/members,
+# installation-administrator-only. Kept in its own file, like the two above,
+# because the question "who may create a tenant?" is easier to review in a file
+# that answers nothing else.
+router.include_router(organizations_router)
 
 
 # Background-task registry for the cost-vector reindex.  Tracks one-shot

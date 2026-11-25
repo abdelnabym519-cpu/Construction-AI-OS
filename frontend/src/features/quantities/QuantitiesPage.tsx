@@ -631,12 +631,6 @@ function InstallProgressPanel({
           <span className="flex items-center gap-1">
             <HardDrive size={10} /> {t('quantities.module_label', { defaultValue: 'Module' })}
           </span>
-          <span className="flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> {t('quantities.open_source', { defaultValue: 'Open Source' })}
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-400" /> {t('quantities.free_label', { defaultValue: 'Free' })}
-          </span>
           <span className="ml-auto font-medium text-content-secondary">
             {result
               ? t('quantities.info_ready', { defaultValue: 'Ready to use' })
@@ -1094,11 +1088,6 @@ export function QuantitiesPage() {
                   {installedCount}/{totalCount} {t('quantities.installed_label', { defaultValue: 'installed' })}
                 </span>
               </div>
-              <p className="mt-0.5 text-xs text-content-quaternary">
-                {t('quantities.converters_author', {
-                  defaultValue: 'DDC Community · Open Source · Free',
-                })}
-              </p>
             </div>
           </div>
           <p className="mt-3 text-sm text-content-secondary leading-relaxed">

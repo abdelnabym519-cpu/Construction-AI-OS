@@ -492,11 +492,29 @@ async def call_gemini(
 # ── OpenAI-compatible providers (OpenRouter, Mistral, Groq, DeepSeek) ───────
 
 
+def _public_referer() -> str:
+    """The URL this installation puts on outbound AI provider calls.
+
+    OpenRouter attributes apps by ``HTTP-Referer``/``X-Title``. It names
+    this deployment, never a third party's marketing domain: the operator's
+    ``public_site_url`` when configured, otherwise the source repository.
+    """
+    try:
+        from app.config import get_settings
+
+        url = str(get_settings().public_site_url or "").strip()
+        if url:
+            return url
+    except Exception:
+        pass
+    return "https://github.com/abdelnabym519-cpu/Construction-AI-OS"
+
+
 _OPENAI_COMPAT_CONFIG = {
     "openrouter": {
         "url": "https://openrouter.ai/api/v1/chat/completions",
         "model": OPENROUTER_MODEL,
-        "extra_headers": {"HTTP-Referer": "https://openconstructionerp.com"},
+        "extra_headers": {"HTTP-Referer": _public_referer()},
     },
     "mistral": {
         "url": "https://api.mistral.ai/v1/chat/completions",

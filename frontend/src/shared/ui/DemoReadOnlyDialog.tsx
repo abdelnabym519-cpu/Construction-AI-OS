@@ -23,9 +23,10 @@ import clsx from 'clsx';
 
 import { useFocusTrap } from '@/shared/hooks/useFocusTrap';
 import { useDemoReadOnlyStore } from '@/stores/useDemoReadOnlyStore';
+import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
 
-/** Where the real builds live. Already the download link used elsewhere in the app. */
-const DOWNLOAD_URL = 'https://openconstructionerp.com/download';
+/** Where the real builds live: this product's release page. */
+const DOWNLOAD_URL = `${SOURCE_REPO_URL}/releases`;
 
 /**
  * The install options, in the order a visitor is likely to want them.

@@ -764,7 +764,7 @@ def test_the_classification_a_pack_names_is_one_the_platform_labels(slug: str) -
 
 
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
-_ALLOWED_EMAILS = {"info@datadrivenconstruction.io"}
+_ALLOWED_EMAILS = {"support@example.com"}
 
 
 @pytest.mark.parametrize("slug", SLUGS)

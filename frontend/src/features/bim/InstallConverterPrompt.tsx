@@ -16,6 +16,7 @@
  */
 
 import { useState } from 'react';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Download, Loader2, X } from 'lucide-react';
@@ -189,7 +190,7 @@ export function InstallConverterPrompt({
           <p className="text-sm text-content-secondary leading-relaxed">
             {t('bim.install_prompt_body', {
               defaultValue:
-                'To process “{{fileName}}” ({{fileSize}}), OpenConstructionERP needs the {{converterName}} ({{converterSize}} MB one-time download).',
+                `To process “{{fileName}}” ({{fileSize}}), ${APP_NAME} needs the {{converterName}} ({{converterSize}} MB one-time download).`,
               fileName,
               fileSize: sizeFormatted,
               converterName,

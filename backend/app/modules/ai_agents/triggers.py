@@ -9,8 +9,12 @@ This module is the single source of truth for two things a user-authored
    permission an operator must already hold before that tool can be added to
    a custom agent. We NEVER widen a user's reach through an agent: a viewer who
    cannot write the BOQ cannot build an agent that calls ``create_position``.
-   The map is consulted both at setup (``service.set_tools``) and is the
-   contract the frontend tool picker renders ("you lack ``boq.write``").
+   The map is consulted at setup (``service.set_tools``), it is the contract the
+   frontend tool picker renders ("you lack ``boq.write``"), and - since the
+   mandatory gate landed - it is consulted again on **every tool call at
+   execution time** by :mod:`app.modules.ai_agents.tool_authorization`. Setup
+   decides what an agent may be given; execution decides what this caller may do
+   with it right now, against their current role.
 
 2. **Event-trigger catalogue** - the set of platform events a custom agent may
    subscribe to (e.g. fire when an RFI is created). Storing the subscription is
@@ -26,11 +30,16 @@ from __future__ import annotations
 
 # ── Tool → required-permission map ──────────────────────────────────────────
 # Maps a runner tool slug to the platform permission an operator must hold to
-# attach it to a custom agent. A tool absent from this map is treated as
-# requiring ``ai_agents.run`` (the baseline an agent author already holds), so
-# a newly-shipped read-only tool is usable without a code change here, while a
-# tool that performs (or proposes) a privileged action MUST be listed with the
-# permission of the module it touches.
+# attach it to a custom agent, and that the execution-time gate verifies the
+# invoking user still holds before the tool runs.
+#
+# A tool absent from this map falls back to ``ai_agents.run`` (the baseline an
+# agent author already holds). That default is a convenience, not a licence: at
+# execution time it means a privileged tool nobody thought to map would run
+# whenever the caller can start an agent at all. So every registered tool is
+# required to appear here, and
+# ``test_every_registered_tool_names_the_permission_it_requires`` fails when one
+# does not - a new tool arrives with its permission named, or the build says so.
 #
 # Note on ``create_position``: the BOQ-drafter tool only structures a PROPOSAL
 # (it never writes the DB - the user confirms in the review panel). We still
@@ -53,6 +62,25 @@ TOOL_PERMISSIONS: dict[str, str] = {
     "project_cost_summary": "projects.read",
     # rate-benchmarker
     "benchmark_rate": "costs.read",
+    # Precise Estimate Matcher, registered from ``ai_estimator/tools.py`` into
+    # the same global registry. The slugs are spelled out here rather than
+    # imported from their ``TOOL_*`` constants because ``ai_estimator`` already
+    # imports this module's registry through ``ai_agents.base``, and an import
+    # back the other way would be a cycle. The spelling is pinned against those
+    # constants by
+    # ``test_every_registered_tool_names_the_permission_it_requires``, so drift
+    # fails a test instead of silently dropping a tool to the floor permission.
+    #
+    # Five of the six read the cost database, which is global reference data, so
+    # ``costs.read`` (VIEWER) is the honest requirement. ``flag_for_human`` reads
+    # nothing and writes nothing: it records that the model wants a person, which
+    # is part of driving an estimator run, so it carries that run's permission.
+    "estimator_search_rates": "costs.read",
+    "estimator_refine_query": "costs.read",
+    "estimator_resources_matcher": "costs.read",
+    "estimator_llm_rerank": "costs.read",
+    "estimator_resource_breakdown": "costs.read",
+    "estimator_flag_for_human": "ai_estimator.run",
 }
 
 # The permission required for a tool that is registered with the runner but not

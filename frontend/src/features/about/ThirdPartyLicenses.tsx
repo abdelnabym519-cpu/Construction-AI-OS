@@ -19,6 +19,7 @@
  */
 
 import { useCallback, useState } from 'react';
+import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, ExternalLink, FileText } from 'lucide-react';
 import clsx from 'clsx';
@@ -51,7 +52,7 @@ export interface LicenseTextDetail extends LicenseTextSummary {
   text: string;
 }
 
-const NOTICE_URL = 'https://github.com/datadrivenconstruction/OpenConstructionERP/blob/main/NOTICE';
+const NOTICE_URL = `${SOURCE_REPO_URL}/blob/main/NOTICE`;
 
 /**
  * The bundled LGPL components and their licence texts.

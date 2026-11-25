@@ -73,13 +73,13 @@ describe('RecoveryCard - 401 (signed out)', () => {
 });
 
 describe('RecoveryCard - 403 (no access)', () => {
-  it('renders the "Request access" mailto CTA on a 403', () => {
+  it('explains the 403 without offering an external contact channel', () => {
     renderCard({ error: { status: 403 } });
     expect(screen.getByText(/don’t have access here/i)).toBeInTheDocument();
-    const mailto = screen.getByRole('link', { name: /Request access/i });
-    expect(mailto.getAttribute('href')).toBe(
-      'mailto:info@datadrivenconstruction.io?subject=Access%20request',
-    );
+    // Access is granted by a project administrator, so the card names that
+    // path in its description and renders no link (it used to mailto a
+    // vendor support inbox that this deployment does not own).
+    expect(screen.queryByRole('link', { name: /Request access/i })).toBeNull();
   });
 
   it('does not render a Retry button on a 403 (no recovery via reload)', () => {

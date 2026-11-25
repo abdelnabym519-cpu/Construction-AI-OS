@@ -1,6 +1,6 @@
 # macOS notarization for the desktop app
 
-This guide explains how to turn on Apple notarization for the OpenConstructionERP desktop app. Today the macOS build ships ad-hoc signed but not notarized, so users have to clear quarantine once by hand. Everything described here is ready to activate. The moment a real Apple Developer ID certificate and credentials exist, notarization can be switched on with a small, well-defined diff. Nothing in this document is active yet. It is the plan and the artifacts, not the live configuration.
+This guide explains how to turn on Apple notarization for the Construction AI OS desktop app. Today the macOS build ships ad-hoc signed but not notarized, so users have to clear quarantine once by hand. Everything described here is ready to activate. The moment a real Apple Developer ID certificate and credentials exist, notarization can be switched on with a small, well-defined diff. Nothing in this document is active yet. It is the plan and the artifacts, not the live configuration.
 
 This is a developer and maintainer document. If you are a user trying to open the app, read `docs/desktop/INSTALL.md` instead.
 
@@ -156,7 +156,7 @@ After a release build with notarization on, two checks confirm it worked. Run th
 First, ask Gatekeeper to assess it.
 
 ```
-spctl -a -t exec -vvv /path/to/OpenConstructionERP.app
+spctl -a -t exec -vvv "/path/to/Construction AI OS.app"
 ```
 
 On a correctly notarized build this prints `accepted` and a source line reading `source=Notarized Developer ID`. Today, before activation, this same command reports the app as rejected and unnotarized, which is expected for the ad-hoc build. The diagnostic step at the end of the release workflow already runs this command and prints the result into the build log, so the change from rejected to accepted is visible at release time.
@@ -164,12 +164,12 @@ On a correctly notarized build this prints `accepted` and a source line reading 
 Second, confirm the notarization ticket is stapled to the bundle so it validates offline.
 
 ```
-xcrun stapler validate /path/to/OpenConstructionERP.app
+xcrun stapler validate "/path/to/Construction AI OS.app"
 ```
 
 This should report that the validate action worked and the ticket is present. Stapling attaches the notary ticket to the app itself, so Gatekeeper can confirm notarization even without a network connection. Tauri staples automatically after a successful notarization. If `stapler validate` passes and `spctl` says accepted with source Notarized Developer ID, the build is good and the dmg will open cleanly on a fresh download with no quarantine workaround.
 
-It is also worth confirming the signature carries hardened runtime, which you can read from `codesign -dvvv /path/to/OpenConstructionERP.app` in the build log. The flags line should show `runtime` among the code-signing flags.
+It is also worth confirming the signature carries hardened runtime, which you can read from `codesign -dvvv "/path/to/Construction AI OS.app"` in the build log. The flags line should show `runtime` among the code-signing flags.
 
 ## References
 
@@ -181,4 +181,4 @@ Apple, Customizing the notarization workflow (stapling, spctl assessment, troubl
 
 Apple, Hardened Runtime (entitlements and capabilities): https://developer.apple.com/documentation/security/hardened-runtime
 
-Questions: info@datadrivenconstruction.io. Licensed under AGPL-3.0.
+Questions: https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues. Licensed under AGPL-3.0-or-later.

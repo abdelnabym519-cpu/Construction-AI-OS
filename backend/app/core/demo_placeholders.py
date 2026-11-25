@@ -36,6 +36,29 @@ _DXF_LIKE_EXTS = frozenset({".dwg", ".dxf"})
 _IFC_LIKE_EXTS = frozenset({".ifc", ".step", ".stp"})
 
 
+def _brand() -> str:
+    """The name stamped on generated placeholder documents and IFC headers.
+
+    Read at call time rather than at import: this module is imported while the
+    demo project is seeded, and resolving the cached settings object before boot
+    has caused a startup failure here before. It defers to DEFAULT_BRAND in
+    pdf_branding, which is the one display-name constant - the same value the PDF
+    letterhead stamps, and the same one
+    tests/unit/test_the_display_name_is_one_constant.py holds to the config
+    default - so an exported file cannot disagree with the UI about what this
+    product is called. The literal fallback is that constant's own declared
+    default, and it exists so a placeholder generator never raises.
+    """
+    try:
+        from app.core.pdf_branding import DEFAULT_BRAND
+
+        if str(DEFAULT_BRAND).strip():
+            return str(DEFAULT_BRAND).strip()
+    except Exception:  # pragma: no cover - branding module unavailable
+        logger.debug("Could not read the display brand for a placeholder", exc_info=True)
+    return "Construction AI OS"
+
+
 def _ext_of(name: str) -> str:
     """Return the lowercased extension of ``name`` including the dot."""
     return Path(name).suffix.lower()
@@ -68,7 +91,7 @@ def write_pdf_placeholder(target: Path, title: str, note: str | None = None) -> 
         c.drawString(72, height - 200, "This file is auto-generated for the example project.")
         c.drawString(72, height - 215, "Upload your own document to replace it.")
         c.setFont(BODY_FONT, 9)
-        c.drawString(72, 60, "OpenConstructionERP - open-source construction cost platform")
+        c.drawString(72, 60, f"{_brand()} - construction cost platform")
         c.showPage()
         c.save()
     except Exception:  # pragma: no cover - reportlab missing or font failure
@@ -116,8 +139,8 @@ def write_ifc_placeholder(target: Path, title: str) -> None:
     body = (
         "ISO-10303-21;\n"
         "HEADER;\n"
-        "FILE_DESCRIPTION(('OpenConstructionERP sample model'),'2;1');\n"
-        f"FILE_NAME('{safe_title}','',(''),(''),'OpenConstructionERP','OpenConstructionERP','');\n"
+        f"FILE_DESCRIPTION(('{_brand()} sample model'),'2;1');\n"
+        f"FILE_NAME('{safe_title}','',(''),(''),'{_brand()}','{_brand()}','');\n"
         "FILE_SCHEMA(('IFC4'));\n"
         "ENDSEC;\n"
         "DATA;\n"

@@ -1,7 +1,7 @@
 # South Africa Construction Pack
 
 DataDrivenConstruction's first African market pack. It pre-configures
-OpenConstructionERP for South African construction with the local measurement
+Construction AI OS for South African construction with the local measurement
 standards, contractor grading, procurement framework, currency and tax.
 
 ## What this pack enables
@@ -19,7 +19,7 @@ standards, contractor grading, procurement framework, currency and tax.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules then
+This pack ships inside Construction AI OS. Activate it from Modules then
 Partner Packs: click Rescan, find "South Africa Construction Pack", then Apply.
 
 To run a workspace that boots straight into it:
@@ -58,5 +58,5 @@ public standards listed above. See CONTRIBUTORS.md.
 
 ## License
 
-AGPL-3.0-or-later. OpenConstructionERP is authored and owned by
+AGPL-3.0-or-later. The original Construction AI OS is authored and owned by
 DataDrivenConstruction.

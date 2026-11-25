@@ -77,6 +77,17 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+
+def _installer_ua() -> str:
+    """UA for model downloads: this product's token, never an upstream brand."""
+    try:
+        from app.config import outbound_product_token
+
+        return f"{outbound_product_token()}-model-installer"
+    except Exception:  # noqa: BLE001 - settings import is best-effort
+        return "oe-model-installer"
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -398,7 +409,7 @@ def _resolve_file_list(repo_id: str) -> list[str]:
         url,
         headers={
             "Accept": "application/json",
-            "User-Agent": "OpenConstructionERP-model-installer",
+            "User-Agent": _installer_ua(),
         },
     )
     try:
@@ -495,7 +506,7 @@ def _download_one(url: str, dest: Path, *, on_bytes: Any = None) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
 
     have = part.stat().st_size if part.is_file() else 0
-    headers = {"User-Agent": "OpenConstructionERP-model-installer"}
+    headers = {"User-Agent": _installer_ua()}
     if have:
         headers["Range"] = f"bytes={have}-"
 

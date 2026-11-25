@@ -55,6 +55,6 @@ MANIFEST = PartnerPackManifest(
             "ARCON (Architects Registration Council of Nigeria)",
         ],
         "vat_standard_rate": 7.5,
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

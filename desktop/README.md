@@ -1,8 +1,8 @@
-# OpenConstructionERP Desktop
+# Construction AI OS Desktop
 
-This folder holds the desktop build of OpenConstructionERP by DataDrivenConstruction. The desktop app is a native shell built with Tauri that bundles the full backend and an embedded PostgreSQL database into a single installer. People who install it do not need Python, pip, Docker, or any database setup. They download one file, run it, and the app takes care of the rest.
+This folder holds the desktop build of Construction AI OS. The desktop app is a native shell built with Tauri that bundles the full backend and an embedded PostgreSQL database into a single installer. People who install it do not need Python, pip, Docker, or any database setup. They download one file, run it, and the app takes care of the rest.
 
-This README is for developers who build the installers. If you are a user looking to install and run the app, read `docs/desktop/INSTALL.md` instead, and for a warning or an error during install or start see [Installation help](https://openconstructionerp.com/install-help).
+This README is for developers who build the installers. If you are a user looking to install and run the app, read `docs/desktop/INSTALL.md` instead, and for a warning or an error during install or start see [Installation help](../docs/INSTALL_TROUBLESHOOTING.md).
 
 ## How it fits together
 
@@ -87,7 +87,7 @@ desktop/
     icons/                App and installer icons
 ```
 
-Questions: info@datadrivenconstruction.io. Licensed under AGPL-3.0.
+Questions: https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues. Licensed under AGPL-3.0-or-later.
 
 ## Desktop regression checks
 

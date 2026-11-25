@@ -17,6 +17,8 @@ architectural choices. Each file answers three questions:
 | [003](003-vector-match-service.md) | Accepted | Vector match service | — |
 | [2026-05-28](2026-05-28-partner-pack-architecture.md) | Accepted | Partner-pack architecture (Shape A, single-tenant, entry-points) | 2026-05-28 |
 | [004](004-case-role-marks-replace-portraits.md) | Accepted | Case role cells are drawn marks, not photographs | 2026-08-26 |
+| [005](005-organization-is-the-tenant.md) | Accepted | The organization is the tenant | 2026-10-29 |
+| [006](006-project-participant-grants.md) | Accepted | Project participant grants (stages 1-3 and 5 implemented; stage 4 on the ten both-column tables, the project-scoped-only ones remain) | 2026-10-30 |
 
 ## Writing a new ADR
 

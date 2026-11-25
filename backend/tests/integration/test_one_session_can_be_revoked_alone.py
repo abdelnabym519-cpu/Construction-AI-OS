@@ -227,6 +227,7 @@ def test_a_token_minted_before_sessions_existed_still_works(client: TestClient) 
     from types import SimpleNamespace
 
     from app.config import get_settings
+    from app.core.tenant_scope import TENANT_CLAIM
     from app.modules.users.service import create_access_token
 
     account = _register_and_login(client)
@@ -236,9 +237,17 @@ def test_a_token_minted_before_sessions_existed_still_works(client: TestClient) 
     # ``User.id`` holds. Handing over ``claims["sub"]`` also works today, but
     # only because the minter happens to call ``str()`` on it, so the test
     # would break confusingly the moment that line stopped being a no-op.
+    # The tenant claim is not what this test is about, and it has to be here
+    # anyway. Since ADR 005 the door refuses an access token that names no
+    # organization, so a token without one would be refused for a reason that has
+    # nothing to do with the missing ``sid``, and the assertion below would prove
+    # nothing either way. The claim is read off the token the registration itself
+    # issued, so it is the organization this account really belongs to rather than
+    # an invented one.
     legacy = create_access_token(
         SimpleNamespace(id=uuid.UUID(claims["sub"]), email=claims["email"], role=claims["role"]),
         get_settings(),
+        {TENANT_CLAIM: claims[TENANT_CLAIM]},
     )
     assert "sid" not in _unverified(legacy), "the point of this token is that it has no sid; it was built wrong"
 
@@ -282,11 +291,14 @@ def test_a_session_that_is_not_on_file_is_honoured_and_says_so(
     claims = _unverified(account["access"])
 
     from app.config import get_settings
+    from app.core.tenant_scope import TENANT_CLAIM
     from app.modules.users.service import create_access_token
 
+    # Named a session, and an organization: only the session is under test here.
     orphaned = create_access_token(
         SimpleNamespace(id=uuid.UUID(claims["sub"]), email=claims["email"], role=claims["role"]),
         get_settings(),
+        {TENANT_CLAIM: claims[TENANT_CLAIM]},
         sid=orphan_sid,
     )
     assert _unverified(orphaned).get("sid") == orphan_sid, "the token was built without the sid under test"

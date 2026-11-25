@@ -34,9 +34,16 @@ import pytest
 
 from app.core.party_names import canonical_id, contact_display_name, resolve_party_names
 
-FIRM = uuid.uuid4()
-PERSON = uuid.uuid4()
-USER = uuid.uuid4()
+# Fixed sample ids, not uuid4() draws. FIRM flows into @pytest.mark.parametrize
+# below, and parametrize ids are computed at COLLECTION time: with a fresh
+# uuid4() per import, two pytest-xdist workers collected different test ids for
+# the same tests and the run died with "Different tests were collected between
+# gw0 and gw1" before executing anything. The values are arbitrary either way -
+# what the tests assert is shape-folding (case, str-vs-UUID), not randomness -
+# so pinning them keeps every assertion and makes collection reproducible.
+FIRM = uuid.UUID("7f3a1c52-9b4e-4d21-8a6f-2c5e0b7d9134")
+PERSON = uuid.UUID("b81d4e07-2f6a-4c93-9e5d-60a1f8c2b477")
+USER = uuid.UUID("4c92ab61-70d8-45fe-b319-8ed5c0f6a248")
 
 
 # ── Stubs ────────────────────────────────────────────────────────────────

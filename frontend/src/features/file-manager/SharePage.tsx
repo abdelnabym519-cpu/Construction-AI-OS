@@ -12,12 +12,13 @@
  *       inline error; 200 → redirect to ``download_url``.
  *    4. If no password is required → auto-call access and redirect.
  *
- * Brand-aware: shows the OpenConstructionERP logo + project tagline
+ * Brand-aware: shows the product logo + project tagline
  * without the authenticated app shell (no sidebar). The page handles
  * its own loading / error states.
  */
 
 import { useEffect, useState, type FormEvent } from 'react';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -132,7 +133,7 @@ export function SharePage() {
             <p className="mt-1 text-xs text-content-tertiary">
               {t('share.page.subtitle', {
                 defaultValue:
-                  'Someone shared a file with you via OpenConstructionERP.',
+                  `Someone shared a file with you via ${APP_NAME}.`,
               })}
             </p>
           </div>
@@ -308,7 +309,7 @@ export function SharePage() {
         </div>
 
         <p className="mt-4 text-center text-2xs text-content-quaternary">
-          OpenConstructionERP · datadrivenconstruction.io
+          {APP_NAME}
         </p>
       </div>
     </div>

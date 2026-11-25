@@ -1,9 +1,9 @@
 # Formwork Management Module — Design Specification
 
 Status: Draft 1
-Author: OpenConstructionERP Core Team
+Author: Construction AI OS Core Team
 Last updated: 2026-05-24
-Contact: info@datadrivenconstruction.io
+Contact: this repository's issue tracker
 Implementation target: single 4-to-6-week development wave
 
 ---
@@ -20,7 +20,7 @@ ties, and idle days that nobody attributed to a pour. Existing GC software treat
 formwork either as bulk equipment (loses the panel-level accountability) or as a
 material line on the BOQ (loses the rental clock and the condition history).
 
-This module gives OpenConstructionERP a **first-class formwork lifecycle** —
+This module gives Construction AI OS a **first-class formwork lifecycle** —
 catalogue, unit, accessory, order, assignment-to-pour, inspection, movement —
 that fits a small contractor running 50 panels on one floor *and* a
 major-supplier-scale rental yard issuing 10 000 panels across 30 projects.
@@ -71,7 +71,7 @@ was late is a real and frequently un-attributed cost.
 
 **Engineering input** typically comes from the formwork supplier's own CAD
 tool; each of the large suppliers ships one. Output is a per-pour drawing
-plus a list of panels and accessories. OpenConstructionERP will not embed
+plus a list of panels and accessories. Construction AI OS will not embed
 those tools; it ingests their output as a CSV/Excel/JSON parts list and
 optionally the IFC of the formwork assembly through the existing DDC
 cad2data pipeline.
@@ -808,7 +808,7 @@ a planning tool, a yard ERP and a customer portal, each tied to one
 manufacturer's catalogue. All vendor-locked; none of them expose the inventory
 through an open API that a general contractor's PMIS could consume.
 
-OpenConstructionERP **Formwork module** target differentiation:
+Construction AI OS **Formwork module** target differentiation:
 - Vendor-neutral catalogue (every major manufacturer + in-house systems coexist).
 - Offline-first mobile worker UX (PWA + sync queue, not a portal).
 - Re-use cycle is a first-class metric (none of the above expose it cleanly).

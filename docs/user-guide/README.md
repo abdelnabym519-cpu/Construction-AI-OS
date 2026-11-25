@@ -1,6 +1,6 @@
 # User guide
 
-This guide covers the main workflows in OpenConstructionERP, one short page each. The pages are written for the person doing the work, an estimator pricing a job, a site engineer recording what happened, a project controls lead watching cost and time. Each page tells you what the feature is for, when to use it, the steps to do it, and how it connects to the rest of the platform.
+This guide covers the main workflows in Construction AI OS, one short page each. The pages are written for the person doing the work, an estimator pricing a job, a site engineer recording what happened, a project controls lead watching cost and time. Each page tells you what the feature is for, when to use it, the steps to do it, and how it connects to the rest of the platform.
 
 You do not have to read them in order. The order below follows one common path: start from a drawing or a model, measure it, price it, check it, and then carry the job on through options, tender, programme and site.
 

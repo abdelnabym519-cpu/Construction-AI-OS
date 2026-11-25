@@ -48,7 +48,7 @@ from typing import Any
 
 import pytest
 
-from app.cli import _resolve_version, cmd_version
+from app.cli import _app_name, _resolve_version, cmd_version
 
 #: A version no tree is ever at, so an answer of exactly this one can only have
 #: come from the metadata lookup and never from the pyproject beside the source.
@@ -162,6 +162,9 @@ def test_the_printed_line_uses_the_resolver(
     cmd_version(argparse.Namespace())
     printed = capsys.readouterr().out
 
-    assert f"OpenConstructionERP v{expected}" in printed
+    # The printed prefix is the display-name constant (_app_name reads
+    # Settings.app_name), so this stays correct across a rebrand: the test
+    # is about the version half of the line, not the product-name half.
+    assert f"{_app_name()} v{expected}" in printed
     assert NOT_THIS_TREE not in printed
     assert "Undefined" not in printed

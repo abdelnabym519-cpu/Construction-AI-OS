@@ -13,7 +13,7 @@ manifest = ModuleManifest(
         "purchase requisitions, extended POs, goods receipts with batch/serial "
         "tracking, vendor invoices with 3-way match, and warehouse stock control."
     ),
-    author="OpenConstructionERP",
+    author="Construction AI OS",
     category="extension",
     depends=["oe_projects", "oe_users", "oe_procurement"],
     auto_install=True,

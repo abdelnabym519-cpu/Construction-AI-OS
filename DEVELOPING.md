@@ -1,4 +1,4 @@
-# Developing on OpenConstructionERP, with or without an AI assistant
+# Developing on Construction AI OS, with or without an AI assistant
 
 This file exists because the platform is large and its shape is not obvious from the outside.
 There are 193 backend modules and around 180 frontend feature directories, and a newcomer who starts
@@ -54,7 +54,7 @@ implementation from scratch and credits the person who specified it.
 If you are running a pilot on a fork for your own use, that is exactly what the AGPL-3.0 licence
 is for, and you owe nobody a pull request. Send the findings instead. They travel further.
 
-Questions and reports: info@datadrivenconstruction.io
+Questions and reports: the issue tracker at https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues
 
 ## Getting it running
 
@@ -307,8 +307,8 @@ Do not auto-apply AI output without human confirmation. Do not introduce vendor 
 data stays exportable and all formats open. Do not take code from external pull requests, forks
 or patches. Do not publish internal working documents. Do not write developer-facing text in any
 language but English. Do not name competitor brands anywhere in the code, commits, builds or
-interface, and describe capabilities by category or function instead. Contact address is
-info@datadrivenconstruction.io and no other.
+interface, and describe capabilities by category or function instead. Contact route is
+the issue tracker at https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues and no other.
 
 For backend work, hold the assistant to one module at a time, complete, in the order models,
 schemas, repository, service, router, tests. Core infrastructure gets tests first.
@@ -383,4 +383,4 @@ attention currently is.
 
 `SECURITY.md` for reporting a vulnerability, which should not go through a public issue.
 
-Everything else: info@datadrivenconstruction.io
+Everything else: the issue tracker at https://github.com/abdelnabym519-cpu/Construction-AI-OS/issues

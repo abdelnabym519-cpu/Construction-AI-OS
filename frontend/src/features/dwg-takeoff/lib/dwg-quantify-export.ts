@@ -13,6 +13,7 @@
  */
 
 import type * as ExcelJS from 'exceljs';
+import { APP_NAME } from '@/shared/lib/brandName';
 import type { LayerQuantity } from './auto-quantify';
 import { quantifyTotals, type QuantifyTotals } from './takeoff-totals';
 import {
@@ -87,7 +88,7 @@ export async function buildQuantifyWorkbook(
   const mod = await import('exceljs');
   const Ctor = (mod.Workbook ?? mod.default.Workbook) as typeof ExcelJS.Workbook;
   const wb = new Ctor();
-  wb.creator = 'OpenConstructionERP';
+  wb.creator = APP_NAME;
   wb.created = ctx.exportDate ?? new Date();
 
   // Display measurement system for this written sheet. Storage is always

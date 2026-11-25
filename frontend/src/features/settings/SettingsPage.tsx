@@ -1,6 +1,7 @@
 // DDC-CWICR-OE: DataDrivenConstruction · OpenConstructionERP
 // Copyright (c) 2026 Artem Boiko / DataDrivenConstruction
 import { ConverterReleaseNotice } from '@/shared/ui/ConverterReleaseNotice';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -79,6 +80,7 @@ import {
 import { BIMConverterStatusBanner } from '@/features/bim/BIMConverterStatusBanner';
 import { converterName, converterVersionLabel } from '@/features/bim/converterText';
 import { DataSecurityPanel } from '@/features/data-security';
+import { UpdateCheckCard } from './UpdateCheckCard';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 import { DemoLeftoversPanel } from './DemoLeftoversPanel';
 import { ReferenceDataPanel } from './ReferenceDataPanel';
@@ -1779,7 +1781,7 @@ export function SettingsPage() {
               to="/about"
               className="inline-flex items-center gap-1 text-xs text-content-tertiary hover:text-oe-blue transition-colors"
             >
-              {t('settings.about_link', { defaultValue: 'About OpenConstructionERP' })}
+              {t('settings.about_link', { defaultValue: `About ${APP_NAME}` })}
               <ChevronRight size={11} />
             </Link>
           </div>
@@ -1951,7 +1953,7 @@ export function SettingsPage() {
                         {t('settings.sign_out_title', { defaultValue: 'Sign out of all sessions' })}
                       </p>
                       <p className="text-xs text-content-secondary mt-0.5">
-                        {t('settings.sign_out_desc', { defaultValue: 'You will need to enter your credentials to access OpenConstructionERP again.' })}
+                        {t('settings.sign_out_desc', { defaultValue: `You will need to enter your credentials to access ${APP_NAME} again.` })}
                       </p>
                     </div>
                     <Button
@@ -2127,7 +2129,14 @@ export function SettingsPage() {
 
           {/* ── DATA & SECURITY ──────────────────────────────────── */}
           {activeTab === 'security' && (
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-4">
+              {/* The one part of the posture an administrator can change, above the
+                  panel that reports the rest of it. Rendered beside DataSecurityPanel
+                  rather than inside it on purpose: that panel answers from its own
+                  query and returns a skeleton or an error card while it does, and a
+                  switch that vanished because a posture read failed would be a switch
+                  nobody could find. */}
+              <UpdateCheckCard />
               <DataSecurityPanel />
             </div>
           )}
@@ -2323,7 +2332,7 @@ export function SettingsPage() {
               to="/about"
               className="inline-flex items-center gap-1 text-sm text-content-tertiary hover:text-oe-blue transition-colors"
             >
-              {t('settings.about_link', { defaultValue: 'About OpenConstructionERP' })}
+              {t('settings.about_link', { defaultValue: `About ${APP_NAME}` })}
               <ChevronRight size={12} />
             </Link>
           </div>

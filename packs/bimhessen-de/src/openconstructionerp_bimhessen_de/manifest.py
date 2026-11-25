@@ -84,6 +84,6 @@ MANIFEST = PartnerPackManifest(
             "veröffentlicht — fällt auf cwicr-de-berlin zurück; "
             "BKI-Regionalfaktor DE-HE wird angewendet."
         ),
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

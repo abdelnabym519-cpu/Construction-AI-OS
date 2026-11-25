@@ -49,7 +49,7 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 #   B008    the generated router declares `limit: int = Query(100, ...)`, which
 #           is how FastAPI parameters are written; pyproject ignores B008 for
 #           exactly that reason.
-#   RUF100  schemas.py carries `# noqa: F401` on its date and Decimal imports
+#   RUF100  schemas.py carries `noqa: F401` on its date and Decimal imports
 #           because whether they are used depends on the spec's field types.
 #           That suppression is load-bearing for a spec with no date and no
 #           money field and merely redundant for one that has both, so it

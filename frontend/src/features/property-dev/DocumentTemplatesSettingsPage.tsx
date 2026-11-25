@@ -36,6 +36,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import DOMPurify from 'isomorphic-dompurify';
@@ -286,7 +287,7 @@ export function DocumentTemplatesSettingsPage() {
         })}
         subtitle={t('property_dev.doc_templates.intro', {
           defaultValue:
-            'Document templates power the PDF documents OpenConstructionERP generates for buyer journeys, reservation receipts, SPA contracts, handover protocols, warranty certificates. Pick a built-in template, preview it for your country or regulator, or upload your own .docx / .html / .pdf template.',
+            `Document templates power the PDF documents ${APP_NAME} generates for buyer journeys, reservation receipts, SPA contracts, handover protocols, warranty certificates. Pick a built-in template, preview it for your country or regulator, or upload your own .docx / .html / .pdf template.`,
         })}
         actions={
           <Button

@@ -1,4 +1,4 @@
-# OpenConstructionERP - Quickstart Docker Compose
+# Construction AI OS - Quickstart Docker Compose
 #
 # ⚠️  EVALUATION / LOCAL-DEMO ONLY - NOT FOR PRODUCTION
 #
@@ -73,6 +73,9 @@ services:
       # not terminate TLS itself and is not meant to; 443 belongs to the proxy.
       - "${OE_BIND:-0.0.0.0}:${OE_PORT:-8080}:8080"
     environment:
+      # Demo data is opt-in: the app boots with an empty workspace unless
+      # SEED_DEMO=true asks for the demo accounts and showcase projects.
+      SEED_DEMO: "${SEED_DEMO:-false}"
       # PostgreSQL connection - required, the image has no database default.
       # The parts are passed rather than a finished URL. Compose has no
       # urlencode, so interpolating the password straight into a URL breaks

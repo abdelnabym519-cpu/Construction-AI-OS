@@ -17,6 +17,7 @@
  */
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCatalogueInstallStore } from '@/stores/useCatalogueInstallStore';
@@ -390,7 +391,7 @@ export function CataloguesPanelCard({ preferredRegion }: Props) {
                 <div className="mt-0.5">
                   {t(
                     'catalogues.demo_notice_body',
-                    'You can browse the cost databases the full product ships, but installing them is disabled on the demo (each is 400+ MB and it runs on a small shared box). To load any region, or your own cost data, download and run OpenConstructionERP on your own PC or server: pip install openconstructionerp.',
+                    `You can browse the cost databases the full product ships, but installing them is disabled on the demo (each is 400+ MB and it runs on a small shared box). To load any region, or your own cost data, download and run ${APP_NAME} on your own PC or server: pip install openconstructionerp.`,
                   )}
                 </div>
               </div>

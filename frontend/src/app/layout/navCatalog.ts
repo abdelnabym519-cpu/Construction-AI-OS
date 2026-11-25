@@ -100,7 +100,6 @@ import {
   FileWarning,
   Flag,
   Wrench,
-  MonitorPlay,
 } from 'lucide-react';
 
 
@@ -171,10 +170,6 @@ export interface NavGroup {
   dynamicGroupKey?: string;
 }
 
-/** The Learn group's id: the sidebar draws it apart from the loop and stores
- *  its hidden state under this key in `hiddenGroups`. */
-export const LEARN_GROUP_ID = 'grp_learn';
-
 // Navigation groups — collapsible thematic sections (v6.10.0 redesign).
 //
 // The flat / oversized menu was regrouped into 19 thematic groups of
@@ -208,30 +203,6 @@ export const LEARN_GROUP_ID = 'grp_learn';
 // The locale keys are added by a later pass; until then the English
 // default renders. Item labelKeys reuse the existing locale strings.
 export const navGroups: NavGroup[] = [
-  // ── 0. LEARN (videos and cases) ────────────────────────────────────
-  // The two ways into the product for somebody new: watch it, or walk a
-  // guided case in the app. The sidebar does not render this group in the
-  // loop with the others: it draws it as its own card above everything else,
-  // Pinned included, in Simple, Advanced and workspace menus alike, and lets
-  // the user hide the whole card from its header and bring it back from the
-  // foot of the menu (see `LearnSection` in Sidebar.tsx). Hiding goes through
-  // the same `hiddenGroups` list as the Edit-menu section toggles, keyed by
-  // LEARN_GROUP_ID, so the "{N} hidden" chip counts it too.
-  //
-  // It stays in the catalogue rather than living in the sidebar alone, so the
-  // route-icon map and the case editor's screen picker keep seeing both rows.
-  // Cases (playbooks) moved here from Overview.
-  {
-    id: LEARN_GROUP_ID,
-    labelKey: 'sidebar.group.learn',
-    defaultLabel: 'Learn',
-    defaultOpen: true,
-    items: [
-      { labelKey: 'nav.videos', defaultLabel: 'Video guides', to: '/videos', icon: MonitorPlay },
-      { labelKey: 'nav.cases', to: '/cases', icon: Route },
-      { labelKey: 'nav.packs', defaultLabel: 'Packs', to: '/packs', icon: PackageOpen },
-    ],
-  },
   // ── 1. OVERVIEW (always visible) ───────────────────────────────────
   // The few entry points every user touches every session.
   {
@@ -242,6 +213,9 @@ export const navGroups: NavGroup[] = [
     items: [
       { labelKey: 'nav.dashboard', to: '/', icon: LayoutDashboard },
       { labelKey: 'projects.title', to: '/projects', icon: FolderOpen, tourId: 'projects' },
+      // Case playbooks: a business feature (walk a worked-out case), listed
+      // with the other everyday entry points.
+      { labelKey: 'nav.cases', to: '/cases', icon: Route },
       // Documents is back in Overview by founder request. It carries no
       // hideInSimple and no advancedOnly, which is what keeps it reachable in
       // Simple mode; the sheet register and the drawing surfaces stay behind
@@ -968,6 +942,9 @@ export const navGroups: NavGroup[] = [
       // no role gate here: the build and remove controls on the page are what
       // an administrator sees and what the server enforces.
       { labelKey: 'nav.module_builder', to: '/module-builder', icon: Wand2, advancedOnly: true },
+      // Partner packs (declarative preset bundles) beside the module register
+      // they extend.
+      { labelKey: 'nav.packs', defaultLabel: 'Packs', to: '/packs', icon: PackageOpen, advancedOnly: true },
       { labelKey: 'nav.background_jobs', defaultLabel: 'Background Jobs', to: '/jobs', icon: Wrench, advancedOnly: true, adminOnly: true },
     ],
   },

@@ -6,11 +6,12 @@
  * To extend the notice, change the date below; nothing else needs touching.
  */
 
+import { SOURCE_REPO_URL } from '@/shared/lib/brandName';
+
 /** Last moment the notice is shown, in local time (31 Oct 2026, 23:59:59). */
 export const CONVERTER_NOTICE_UNTIL = new Date(2026, 9, 31, 23, 59, 59);
 
-export const CONVERTER_ISSUES_URL = 'https://github.com/datadrivenconstruction/OpenConstructionERP/issues/new';
-export const CONVERTER_CONTACT_EMAIL = 'info@datadrivenconstruction.io';
+export const CONVERTER_ISSUES_URL = `${SOURCE_REPO_URL}/issues/new`;
 
 export function isConverterNoticeActive(now: Date = new Date()): boolean {
   return now.getTime() <= CONVERTER_NOTICE_UNTIL.getTime();
@@ -58,10 +59,4 @@ function reportBody(info: ConverterReportInfo): string {
 export function converterReportUrl(info: ConverterReportInfo): string {
   const q = new URLSearchParams({ title: 'Converter: ', body: reportBody(info) });
   return `${CONVERTER_ISSUES_URL}?${q.toString()}`;
-}
-
-export function converterMailtoUrl(info: ConverterReportInfo): string {
-  const subject = encodeURIComponent('Converter: ');
-  const body = encodeURIComponent(reportBody(info));
-  return `mailto:${CONVERTER_CONTACT_EMAIL}?subject=${subject}&body=${body}`;
 }

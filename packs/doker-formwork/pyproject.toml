@@ -10,8 +10,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "AGPL-3.0-or-later" }
 authors = [
-    { name = "OpenConstructionERP", email = "info@datadrivenconstruction.io" },
-    { name = "Doka Formwork", email = "info@datadrivenconstruction.io" },
+    { name = "Construction AI OS", email = "support@example.com" },
+    { name = "Doka Formwork", email = "support@example.com" },
 ]
 keywords = [
     "openconstructionerp",
@@ -38,7 +38,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://www.doka.com"
-Source = "https://github.com/DataDrivenConstruction/openconstructionerp"
+Source = "https://github.com/abdelnabym519-cpu/Construction-AI-OS"
 
 [project.entry-points."openconstructionerp.partner_packs"]
 doker-formwork = "openconstructionerp_doker_formwork:MANIFEST"

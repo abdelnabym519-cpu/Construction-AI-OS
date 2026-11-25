@@ -536,15 +536,53 @@ class TestUserCreateSchema:
             )
 
     def test_password_max_length_boundary(self):
-        """Exactly 128 characters should pass — must include at least one letter and one
-        digit per the v0.8.0 strong password policy."""
-        password = "a" * 126 + "12"
+        """The longest password that can be stored is accepted; one byte more is not.
+
+        ``Field(max_length=128)`` was the boundary this test pinned, with
+        ``"a" * 126 + "12"`` on the accepted side of it. It could not be the real
+        one: bcrypt refuses more than 72 encoded bytes rather than truncating them,
+        which ``test_hash_rejects_password_over_72_bytes`` pins beside this, so a
+        128-byte password cleared the schema and then raised inside
+        ``hash_password``. The registration answered 500, no account was created,
+        and the two limits had met inside one request with the character limit
+        winning and the byte limit reporting the failure.
+
+        Nothing that could ever be stored is refused now. A password over 72 bytes
+        could not be hashed at any revision, so no account in any database has one,
+        and the reader is told the limit in the same 422 that tells them every
+        other way a password was refused. The character limit at 128 is unchanged
+        and still covered by ``test_password_over_max_rejected`` below.
+        """
+        longest = "a" * 70 + "12"  # 72 bytes: the most bcrypt will take
         data = UserCreate(
             email="user@example.com",
-            password=password,
+            password=longest,
             full_name="Test User",
         )
-        assert len(data.password) == 128
+        assert len(data.password) == 72
+
+        with pytest.raises(ValidationError, match="72 bytes"):
+            UserCreate(
+                email="user@example.com",
+                password=longest + "b",
+                full_name="Test User",
+            )
+
+    def test_the_password_limit_counts_bytes_not_characters(self):
+        """A short-looking password can reach the limit, because the limit is bcrypt's.
+
+        The field counts characters and bcrypt counts encoded bytes, and the two
+        only differ for a password that is not ASCII. Two bytes per Arabic letter
+        means 38 characters can be over the limit while 23 of the same letters are
+        comfortably under it - the case a character count alone cannot express, and
+        the one that reads as a nuisance until the message names the byte limit.
+        """
+        under = "ab1" + "\u0649" * 20  # 23 characters, 43 bytes
+        over = "ab1" + "\u0649" * 35  # 38 characters, 73 bytes
+
+        assert len(UserCreate(email="user@example.com", password=under, full_name="Test User").password) == 23
+        with pytest.raises(ValidationError, match="72 bytes"):
+            UserCreate(email="user@example.com", password=over, full_name="Test User")
 
     def test_password_over_max_rejected(self):
         with pytest.raises(ValidationError):

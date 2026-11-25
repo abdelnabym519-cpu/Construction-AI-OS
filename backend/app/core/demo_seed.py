@@ -107,8 +107,10 @@ def seed_demo_enabled() -> bool:
 
     ``SEED_DEMO`` (when set) keeps its historical semantics: only the
     explicit values ``false`` / ``0`` / ``no`` disable seeding. When the
-    variable is unset, the persisted choice file decides; without either,
-    seeding stays on (out-of-the-box demo experience).
+    variable is unset, the persisted first-run choice file decides;
+    without either, nothing is seeded: demo data is opt-in. A fresh
+    interactive install is asked by the CLI ("Load demo projects?");
+    containers and services opt in with ``SEED_DEMO=true``.
     """
     env = os.environ.get("SEED_DEMO")
     if env is not None:
@@ -116,4 +118,4 @@ def seed_demo_enabled() -> bool:
     choice = read_demo_seed_choice()
     if choice is not None:
         return choice
-    return True
+    return False

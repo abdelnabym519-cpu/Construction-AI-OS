@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { Sidebar, FloatingRecentButton } from './Sidebar';
 import { Header, resolvePageTitleKey } from './Header';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { DesktopToolbar } from './DesktopToolbar';
 import { FeedbackDialog } from '@/shared/ui';
 import { FloatingQueuePanel } from './FloatingQueuePanel';
@@ -16,7 +17,6 @@ import { DwgUploadIndicator } from '@/shared/ui/DwgUploadIndicator';
 import { GlobalCatalogueInstallIndicator } from '@/shared/ui/GlobalCatalogueInstallIndicator';
 import { DemoBanner } from '@/shared/ui/DemoBanner';
 import { DemoSwitcherBar } from '@/shared/ui/DemoSwitcherBar';
-import { ReviewPromptCard } from '@/shared/ui/ReviewPromptCard';
 import { FloatingChatButton } from '@/features/erp-chat/FloatingChatButton';
 import { FloatingChatPanel } from '@/features/erp-chat/FloatingChatPanel';
 import {
@@ -29,7 +29,6 @@ import { useIsRTL } from '@/shared/hooks/useIsRTL';
 import { useOfflineSync } from '@/shared/hooks/useOnlineStatus';
 import { usePartnerPackLocale } from '@/shared/hooks/usePartnerPackLocale';
 import { useBrandingStore } from '@/stores/useBrandingStore';
-import { useReviewPromptStore } from '@/stores/useReviewPromptStore';
 import { useGlobalPresenceSocket } from '@/features/global_presence';
 
 interface AppLayoutProps {
@@ -59,27 +58,16 @@ export function AppLayout({ title, children }: AppLayoutProps) {
 
   // When the user has white-labelled the workspace with their own company
   // name, the browser tab follows the same brand as the sidebar so the whole
-  // experience reads as "their" tool. Falls back to OpenConstructionERP.
+  // experience reads as "their" tool. Falls back to the product display name
+  // (APP_NAME, the frontend copy of the backend app_name constant).
   const brandName = useBrandingStore((s) => (s.companyName.trim() ? s.companyName.trim() : null));
-
-  // Count today towards "distinct days the app was opened". This has to run
-  // from the shell, unconditionally, and NOT from ReviewPromptCard: if the
-  // day were recorded by the card, the counter would only advance on days
-  // the card already rendered and could never reach its own threshold. The
-  // write is idempotent per day. AppLayout mounts once per signed-in session
-  // (App.tsx `AppShell` hoists it above the router outlet), so this effect
-  // runs when the shell mounts, not on every navigation.
-  const recordActiveDay = useReviewPromptStore((s) => s.recordActiveDay);
-  useEffect(() => {
-    recordActiveDay();
-  }, [recordActiveDay]);
 
   useEffect(() => {
     // Translate the browser-tab title through the same map the on-screen
     // page heading uses, so the tab also follows the active language.
     const key = resolvePageTitleKey(title);
     const translated = title ? (key ? t(key, { defaultValue: title }) : title) : null;
-    const suffix = brandName ?? 'OpenConstructionERP';
+    const suffix = brandName ?? APP_NAME;
     document.title = translated ? `${translated} | ${suffix}` : suffix;
     // i18n.language in deps so the tab re-translates on a language switch.
   }, [title, t, i18n.language, brandName]);
@@ -206,16 +194,6 @@ export function AppLayout({ title, children }: AppLayoutProps) {
           survives navigation. */}
       <FloatingChatButton />
       <FloatingChatPanel />
-
-      {/* Occasional, non-blocking ask for a rating or review. Mounted here
-          rather than at App.tsx top level on purpose: this shell is behind
-          auth, and /login, /register, /forgot-password and /onboarding all
-          render OUTSIDE it, so those surfaces are excluded structurally
-          instead of by a route blocklist that would rot. AppLayout mounts
-          once per signed-in session (App.tsx `AppShell`), and every piece of
-          state the card needs lives in useReviewPromptStore anyway, not in
-          the component. */}
-      <ReviewPromptCard />
 
       {/* Global onboarding tour (ProductTour) mounts once at App.tsx
           top level — moving it out of here was the fix for

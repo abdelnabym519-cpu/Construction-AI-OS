@@ -32,7 +32,7 @@ def _backend() -> SmtpEmailBackend:
         smtp_port=587,
         smtp_user="",
         smtp_password="",
-        smtp_from="info@datadrivenconstruction.io",
+        smtp_from="support@example.com",
         smtp_tls=True,
     )
     return SmtpEmailBackend(settings)

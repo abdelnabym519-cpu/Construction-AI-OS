@@ -1,8 +1,8 @@
-# OpenConstructionERP on STACKIT, one isolated instance per company
+# Construction AI OS on STACKIT, one isolated instance per company
 
 English | [Deutsch](README.de.md) | [Русский](README.ru.md)
 
-Terraform modules that run OpenConstructionERP on [STACKIT](https://www.stackit.de), the German
+Terraform modules that run Construction AI OS on [STACKIT](https://www.stackit.de), the German
 cloud, with a **separate instance for every company**: its own database server, its own bucket,
 its own credentials and its own namespace. Data stays in German data centres (region `eu01`).
 

@@ -1,6 +1,6 @@
 # Mexico Construction Pack
 
-Pre-configures OpenConstructionERP for Mexican construction with the local
+Pre-configures Construction AI OS for Mexican construction with the local
 unit-price method, tax rules, electronic invoicing, social-housing context and
 site-safety norms. Built so a real Mexican user can pilot on a social-housing
 project and a private-residential project from day one.
@@ -22,7 +22,7 @@ project and a private-residential project from day one.
 
 ## Install
 
-This pack ships inside OpenConstructionERP. Activate it from Modules then
+This pack ships inside Construction AI OS. Activate it from Modules then
 Packs: click Rescan, find "Mexico Construction Pack", then Apply.
 
 To run a workspace that boots straight into it:
@@ -65,5 +65,5 @@ are not an official index.
 
 ## License
 
-AGPL-3.0-or-later. OpenConstructionERP is authored and owned by
+AGPL-3.0-or-later. The original Construction AI OS is authored and owned by
 DataDrivenConstruction.

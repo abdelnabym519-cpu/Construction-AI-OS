@@ -1,7 +1,10 @@
 """Unit tests for Contact.tenant_id (v2.3.1).
 
 Covers:
-    - Service sets ``tenant_id`` on insert alongside ``created_by``.
+    - Service sets ``tenant_id`` on insert *beside* ``created_by``, and the two are
+      different values: the tenant is the caller's organization (ADR 005) and
+      ``created_by`` is the person. A caller that names no tenant gets NULL rather
+      than silently becoming one.
     - Repository list/stats/list_by_company scope by ``tenant_id``.
     - Legacy rows (tenant_id NULL, created_by set) still match via the
       backwards-compat fallback so pre-v2.3.1 data stays reachable to
@@ -67,15 +70,48 @@ async def _insert_raw(
 
 class TestServiceSetsTenantOnCreate:
     @pytest.mark.asyncio
-    async def test_tenant_id_is_populated(self, session):
+    async def test_tenant_id_is_the_organization_and_created_by_is_the_person(self, session):
+        """The access gate and the audit field are two different values.
+
+        This test used to assert ``contact.tenant_id == user_id``, which was the
+        documented single-tenant contract: with no tenancy entity in the schema the
+        creator's id was the only thing a tenant column ever held, and
+        ``v231_contact_tenant_id`` backfilled exactly that. ADR 005 replaces it. The
+        assertion is stronger now rather than weaker: it pins both values and that
+        they differ, which is the whole content of the change.
+        """
         service = ContactService(session)
         user_id = str(uuid.uuid4())
+        organization_id = str(uuid.uuid4())
         contact = await service.create_contact(
             ContactCreate(contact_type="supplier", company_name="Acme"),
             user_id=user_id,
+            tenant_id=organization_id,
         )
-        assert contact.tenant_id == user_id
-        # Audit field populated alongside the access gate.
+        assert contact.tenant_id == organization_id
+        # Audit field still names the person who wrote the row.
+        assert contact.created_by == user_id
+        assert contact.tenant_id != contact.created_by
+
+    @pytest.mark.asyncio
+    async def test_a_caller_that_names_no_tenant_does_not_become_one(self, session):
+        """The removed fall-through, pinned from the write side.
+
+        Distinct from the anonymous case below: this caller is known, and is still
+        not a tenant. Storing the creator's id here is what made the
+        ``tenant_is_user`` readiness blocker permanent, because an install could be
+        repaired perfectly and the next contact written would put a person back into
+        the tenant column. NULL is the honest answer, and
+        ``rls_readiness_report`` counts it and refuses strict mode until somebody
+        resolves it.
+        """
+        service = ContactService(session)
+        user_id = str(uuid.uuid4())
+        contact = await service.create_contact(
+            ContactCreate(contact_type="supplier", company_name="No Tenant Ltd"),
+            user_id=user_id,
+        )
+        assert contact.tenant_id is None
         assert contact.created_by == user_id
 
     @pytest.mark.asyncio

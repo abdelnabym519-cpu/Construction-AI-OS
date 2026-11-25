@@ -144,6 +144,160 @@ async def test_the_preview_matches_contacts_and_totals_without_writing(client, a
     assert await _invoices(client, admin, world) == []
 
 
+async def _colleague(client: AsyncClient, admin: dict[str, str]) -> tuple[dict[str, str], str]:
+    """A non-admin member of the admin's own company, and that company's id.
+
+    Registered rather than seeded, then belonged to the admin's organization
+    directly: a registration on its own would put the newcomer in a company of
+    their own, which is the right answer for an install with several companies and
+    no use at all here, where the point is somebody who sees the same directory
+    without being allowed to see every one.
+    """
+    from jose import jwt
+    from sqlalchemy import select, update
+
+    from app.database import async_session_factory
+    from app.modules.users.models import Membership, User
+
+    tenant = jwt.get_unverified_claims(admin["Authorization"].removeprefix("Bearer "))["tenant_id"]
+    unique = uuid.uuid4().hex[:8]
+    email, password = f"colleague-{unique}@test.io", f"Colleague{unique}9"
+    reg = await client.post(
+        "/api/v1/users/auth/register", json={"email": email, "password": password, "full_name": "Colleague"}
+    )
+    assert reg.status_code == 201, reg.text
+    async with async_session_factory() as s:
+        user = (await s.execute(select(User).where(User.email == email))).scalar_one()
+        # ``finance.create`` is an editor permission. Whatever registration
+        # assigned is not what this test is about and must not decide whether it
+        # can run.
+        await s.execute(update(User).where(User.id == user.id).values(role="editor"))
+        s.add(
+            Membership(
+                user_id=user.id,
+                organization_id=uuid.UUID(tenant),
+                role="editor",
+                status="active",
+                is_default=True,
+            )
+        )
+        await s.commit()
+    data = (await client.post("/api/v1/users/auth/login", json={"email": email, "password": password})).json()
+    assert data.get("access_token"), data
+    headers = {"Authorization": f"Bearer {data['access_token']}"}
+    claims = jwt.get_unverified_claims(data["access_token"])
+    assert claims["tenant_id"] == tenant, "the colleague signed in to a company that is not the admin's"
+    return headers, tenant
+
+
+async def _stranger(client: AsyncClient) -> tuple[dict[str, str], str]:
+    """A caller in a company of their own, which is what makes them a stranger."""
+    from jose import jwt
+    from sqlalchemy import func, select
+
+    from app.database import async_session_factory
+    from app.modules.users.models import Organization
+
+    # Two companies have to exist before this registration. With one, the newcomer
+    # joins it, which is correct for a real single-company install and would make
+    # this fixture no stranger to anybody.
+    async with async_session_factory() as s:
+        if int(await s.scalar(select(func.count()).select_from(Organization)) or 0) < 2:
+            s.add(Organization(name="Another company", slug=f"another-{uuid.uuid4().hex[:8]}", status="active"))
+            await s.commit()
+    unique = uuid.uuid4().hex[:8]
+    email, password = f"stranger-{unique}@test.io", f"Stranger{unique}9"
+    reg = await client.post(
+        "/api/v1/users/auth/register", json={"email": email, "password": password, "full_name": "Stranger"}
+    )
+    assert reg.status_code == 201, reg.text
+    data: dict = {}
+    for attempt in range(3):
+        data = (await client.post("/api/v1/users/auth/login", json={"email": email, "password": password})).json()
+        if data.get("access_token"):
+            headers = {"Authorization": f"Bearer {data['access_token']}"}
+            return headers, jwt.get_unverified_claims(data["access_token"])["tenant_id"]
+        await asyncio.sleep(5 * (attempt + 1))
+    raise AssertionError(f"login failed: {data}")
+
+
+async def test_a_colleague_matches_their_own_companys_contacts(client, admin, world):
+    """The import matches the contacts of the caller's company, not of the caller.
+
+    ``import_open_items`` was handed the caller's user id as its tenant and filtered
+    ``Contact.tenant_id`` with it. That was coherent while a contact's tenant was
+    whoever wrote it, and it stopped being coherent when the ADR 005 backfill moved
+    every stored tenant onto an organization: the filter then matched no contact at
+    all, so a cut-over file would have come back with every row unmatched and an
+    operator would have been told to retype a directory the system already held.
+
+    The admin tests above cannot see any of this, because an admin is deliberately
+    unfiltered - which is why this one is a colleague, and why it also checks the
+    other direction: a contact belonging to a different company is not a candidate
+    however closely it is named.
+    """
+    headers, tenant = await _colleague(client, admin)
+    tag = world["tag"]
+
+    # Their own project, not the admin's: ``_require_project_access`` answers 404
+    # for a project the caller neither created nor administers, and that check is
+    # about people and is not what this test is about. What it is about is that the
+    # contact directory is the company's, so a colleague working in a project of
+    # their own still matches the contacts the admin's cut-over created.
+    own = await _ok(
+        await client.post(
+            "/api/v1/projects/", json={"name": f"Colleague cut-over {tag}", "currency": "CAD"}, headers=headers
+        ),
+        201,
+    )
+
+    async def _preview(*rows: str) -> dict:
+        return await _ok(
+            await client.post(
+                URL,
+                params={"project_id": own["id"], "cutover_date": CUTOVER, "dry_run": "true"},
+                files={"file": ("open_items.csv", _csv(world, *rows), "text/csv")},
+                headers=headers,
+            )
+        )
+
+    data = await _preview(*_good_rows(world))
+    assert (data["ready"], data["errors"]) == (3, 0), data["rows"]
+    by_number = {r["invoice_number"]: r for r in data["rows"]}
+    assert by_number[f"INV-{tag}-1"]["contact_id"] == world["homes"]
+    assert by_number[f"LS-{tag}-1"]["contact_id"] == world["steel"]
+
+    # The same directory from another company must not be reachable. The foreign
+    # row is written directly rather than through the API: what is under test is
+    # which rows the import offers as candidates, and a registration's default role
+    # has no ``contacts.create`` permission to grant one. The organization it
+    # belongs to is a real one, minted by a real registration.
+    from app.database import async_session_factory
+    from app.modules.contacts.models import Contact
+
+    _, stranger_tenant = await _stranger(client)
+    assert stranger_tenant != tenant, "the stranger is in the colleague's company after all"
+    foreign_name = f"Foreign Twin {tag}"
+    async with async_session_factory() as session:
+        foreign = Contact(
+            contact_type="client",
+            company_name=foreign_name,
+            tenant_id=stranger_tenant,
+            # A person, and a different one from the caller: ``created_by`` has
+            # never held an organization, and the row must not match this caller on
+            # the legacy arm of the scope filter either.
+            created_by=str(uuid.uuid4()),
+        )
+        session.add(foreign)
+        await session.commit()
+        foreign_id = str(foreign.id)
+    foreign_row = f"AR,INV-{tag}-9,{foreign_name},,2026-08-15,2026-09-14,CAD,1000.00,0,0,1000.00"
+    refused = await _preview(foreign_row)
+    assert refused["rows"][0].get("contact_id") != foreign_id, (
+        "a contact belonging to another company was offered as a match for this caller's import"
+    )
+
+
 async def test_one_bad_row_keeps_the_whole_file_out(client, admin, world):
     tag = world["tag"]
     rows = (

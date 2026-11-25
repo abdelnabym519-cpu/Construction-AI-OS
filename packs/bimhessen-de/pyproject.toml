@@ -10,7 +10,7 @@ readme = "README.md"
 license = { text = "AGPL-3.0-or-later" }
 requires-python = ">=3.11"
 authors = [
-    { name = "BIM-Cluster Hessen", email = "info@datadrivenconstruction.io" },
+    { name = "BIM-Cluster Hessen", email = "support@example.com" },
 ]
 keywords = [
     "openconstructionerp",
@@ -44,7 +44,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://bim-cluster-hessen.com"
-Source = "https://github.com/DataDrivenConstruction/openconstructionerp"
+Source = "https://github.com/abdelnabym519-cpu/Construction-AI-OS"
 
 [project.entry-points."openconstructionerp.partner_packs"]
 bimhessen-de = "openconstructionerp_bimhessen_de:MANIFEST"

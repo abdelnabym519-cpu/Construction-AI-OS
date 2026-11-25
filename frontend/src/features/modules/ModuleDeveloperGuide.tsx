@@ -14,6 +14,7 @@
  */
 
 import { useEffect, useState, type MouseEvent } from 'react';
+import { APP_NAME } from '@/shared/lib/brandName';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
@@ -122,7 +123,7 @@ export function ModuleDeveloperGuide() {
         srTitle={t('modules.dev_guide_title', { defaultValue: 'Build your own module' })}
         subtitle={t('modules.dev_guide_subtitle', {
           defaultValue:
-            'A practical, 10-minute walkthrough for adding business features to OpenConstructionERP.',
+            `A practical, 10-minute walkthrough for adding business features to ${APP_NAME}.`,
         })}
         actions={
           <Link

@@ -1,6 +1,6 @@
 # Build your own module
 
-OpenConstructionERP is built entirely from modules. Every business feature you see (BOQ, BIM Hub, Schedule, CDE, regional packs, AI tooling) is a self-contained module that the platform discovers, loads and mounts on its own. This guide is a practical, ten-minute walkthrough for adding your own.
+Construction AI OS is built entirely from modules. Every business feature you see (BOQ, BIM Hub, Schedule, CDE, regional packs, AI tooling) is a self-contained module that the platform discovers, loads and mounts on its own. This guide is a practical, ten-minute walkthrough for adding your own.
 
 There are two ways to extend the platform. A **partner pack** is a code-free preset bundle (branding, locale, currency, which modules to show) that anyone can build and share. A **module** is real code: new screens, endpoints, tables, validation rules. Start with the part you need.
 
@@ -97,7 +97,7 @@ acme-co = "openconstructionerp_acme_co:MANIFEST"
 - The pack can display your contact details or website to whoever uses it (your partner website, support email and your co-branding line).
 - We can also share information about you and your pack through our social networks, so more people discover your work.
 
-To list your pack or get featured, contact info@datadrivenconstruction.io. A pack holds presets only, no code. If you need new screens, endpoints or tables, build a module (below) and reference it from your pack via `default_modules`.
+To list your pack or get featured, open an issue in this repository. A pack holds presets only, no code. If you need new screens, endpoints or tables, build a module (below) and reference it from your pack via `default_modules`.
 
 ---
 
@@ -113,8 +113,8 @@ Have these ready before starting. If you can run the app locally, you already ha
 - **A clone of the repo** to hack on the module
 
 ```bash
-git clone https://github.com/datadrivenconstruction/OpenConstructionERP.git
-cd OpenConstructionERP
+git clone https://github.com/abdelnabym519-cpu/Construction-AI-OS.git
+cd Construction-AI-OS
 # Backend
 cd backend && pip install -e ".[dev]"
 uvicorn app.main:create_app --factory --reload --port 8000
@@ -558,5 +558,5 @@ Always bump `manifest.version` on every release; the installer uses it to decide
 
 ## Further reading
 
-- [MODULES.md on GitHub](https://github.com/datadrivenconstruction/OpenConstructionERP/blob/main/MODULES.md): single source of truth
-- [CONTRIBUTING.md](https://github.com/datadrivenconstruction/OpenConstructionERP/blob/main/CONTRIBUTING.md): style, commits, PR process
+- [MODULES.md on GitHub](https://github.com/abdelnabym519-cpu/Construction-AI-OS/blob/main/MODULES.md): single source of truth
+- [CONTRIBUTING.md](https://github.com/abdelnabym519-cpu/Construction-AI-OS/blob/main/CONTRIBUTING.md): style, commits, PR process

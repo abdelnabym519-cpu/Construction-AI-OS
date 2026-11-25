@@ -16,7 +16,7 @@ page shows the open items, the decider decides.
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 from app.modules.project_governance.evidence import (
@@ -41,14 +41,21 @@ WARNING_STATE = "warning" if "warning" in EVIDENCE_STATES else "met"
 
 
 async def overdue_decisions(
-    session: Any, project_id: uuid.UUID, gate_code: str, items: list[Any]
+    session: Any,
+    project_id: uuid.UUID,
+    gate_code: str,
+    items: list[Any],
+    *,
+    today: date | None = None,
 ) -> list[EvidenceItem]:
     """One evidence item per item of the gate whose decision date has passed, coded by the item id."""
     from app.modules.commitment_release.service import CommitmentService
 
     if not items:
         return []
-    today = datetime.now(UTC).date()
+    today = (
+        today if today is not None else datetime.now(UTC).date()
+    )  # the reference day is a parameter; production callers pass nothing and get the real date
     views = await CommitmentService(session).item_views(project_id, today=today, item_ids=[i.id for i in items])
     return [
         EvidenceItem(

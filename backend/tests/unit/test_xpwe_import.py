@@ -9,6 +9,7 @@ has a row only one rule gets right, so a test failing names the rule.
 from __future__ import annotations
 
 import asyncio
+import sys
 import tracemalloc
 from collections.abc import Awaitable, Callable
 from decimal import Decimal
@@ -770,6 +771,28 @@ def test_a_sixty_megabyte_export_parses_in_bounded_memory() -> None:
     assert list_peak < 0.25 * size, f"price list: peak {list_peak / 2**20:.0f} MiB for a {size / 2**20:.0f} MiB file"
 
 
+def _loop_hold_bound(elapsed: float, idle_gap: float) -> float:
+    """The ticker gap that counts as the parser holding the event loop.
+
+    Three terms, each there for a reason. A flat floor, because a parse short
+    enough that the ticker barely missed a beat is not evidence of anything. A
+    quarter of the parse, because the hold scales with the work. And five times
+    the idle control, taken over the same loop for the same duration after the
+    parse, because a loaded runner jitters on its own and that jitter must not
+    be read as the parser holding the loop.
+
+    It lives at module level rather than inline in the test so the meta-test
+    below can pin it. While the expression sat inside the test body there was no
+    way to hold it still: on a busy runner the idle control came back large
+    enough that five times it exceeded the inline parse's worst gap, the loop
+    check passed when it should have failed, and the meta-test died with
+    "DID NOT RAISE" - a flake that blamed the meta-test for the machine it ran
+    on. Pinning the bound makes that proof deterministic without weakening the
+    real test, which keeps calling this function unchanged.
+    """
+    return max(0.25, elapsed / 4, 5 * idle_gap)
+
+
 def test_parsing_does_not_hold_the_event_loop() -> None:
     """The single worker keeps answering other requests while a large bill is read."""
     content = fx.large_bill(8 * 1024 * 1024)
@@ -810,7 +833,7 @@ def test_parsing_does_not_hold_the_event_loop() -> None:
     seen: list[str] = []
     for _attempt in range(3):
         elapsed, worst_gap, idle_gap = asyncio.run(run())
-        if worst_gap < max(0.25, elapsed / 4, 5 * idle_gap):
+        if worst_gap < _loop_hold_bound(elapsed, idle_gap):
             return
         seen.append(f"{worst_gap:.2f}s of a {elapsed:.2f}s parse, idle jitter {idle_gap:.2f}s")
     pytest.fail("loop held on every one of three runs: " + "; ".join(seen))
@@ -823,5 +846,13 @@ def test_parsing_inline_would_fail_the_event_loop_check(monkeypatch: pytest.Monk
         return func(*args)
 
     monkeypatch.setattr(asyncio, "to_thread", inline)
+    # Pin the bound at zero so the proof does not depend on how loaded the
+    # runner is. With no headroom at all, any ticker gap fails the check, which
+    # is the point: this test asserts the check CAN fail, and that assertion has
+    # to hold on an idle laptop and on a contested CI machine alike. Unpinned it
+    # was load-sensitive in exactly the wrong direction - a busy runner inflated
+    # the idle control, the bound rose above the inline parse's worst gap, the
+    # loop check passed, and this test reported DID NOT RAISE.
+    monkeypatch.setattr(sys.modules[__name__], "_loop_hold_bound", lambda elapsed, idle_gap: 0.0)
     with pytest.raises(pytest.fail.Exception, match="every one of three runs"):
         test_parsing_does_not_hold_the_event_loop()

@@ -6,7 +6,8 @@
 // collapsed never heard about a release. The badge names the version in its
 // tooltip, opens About, and follows the same dismissal as the card.
 //
-// Which of the two the sidebar renders is pinned in Sidebar.learn.test.tsx.
+// Which of the two the sidebar renders follows its collapsed state (see
+// the iconified branch in Sidebar.tsx).
 //
 // Run:  npx vitest run src/shared/ui/__tests__/updateBadge.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -14,6 +15,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { useBrandingStore } from '@/stores/useBrandingStore';
 import { UpdateBadge } from '../UpdateChecker';
 
 const DISMISS_KEY = 'oe_update_dismissed_version';
@@ -59,6 +61,13 @@ async function settled(fetchMock: ReturnType<typeof vi.fn>) {
 
 beforeEach(() => {
   localStorage.clear();
+  // The automatic check is opt-in: it runs only for a workspace whose
+  // administrator turned it on (see updateCheckEnabled in useBrandingStore).
+  // Every test here is about what the notice does with an answer, not about the
+  // default, so the harness states the precondition. Without it the query never
+  // runs, no fetch is made, and a "nothing shown" assertion would pass for the
+  // wrong reason - which is the failure this file exists to catch.
+  useBrandingStore.setState({ updateCheckEnabled: true });
 });
 
 afterEach(() => {

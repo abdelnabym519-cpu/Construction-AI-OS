@@ -83,7 +83,12 @@ def test_the_version_printed_is_the_version_of_this_source_tree(argv: tuple[str,
 
     assert proc.returncode == 0, proc.stderr
     first_line = proc.stdout.splitlines()[0]
-    assert first_line == f"OpenConstructionERP v{_declared_version()}", first_line
+    # The pinned name is the display name from its one source (app/config.py),
+    # not a literal: the report must name the product, whichever app_name the
+    # install configures.
+    from app.config import get_settings
+
+    assert first_line == f"{get_settings().app_name} v{_declared_version()}", first_line
 
 
 def test_the_upgrade_pin_still_belongs_to_upgrade() -> None:

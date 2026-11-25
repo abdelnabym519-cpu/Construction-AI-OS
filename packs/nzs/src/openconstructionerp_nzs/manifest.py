@@ -86,6 +86,6 @@ MANIFEST = PartnerPackManifest(
             "Site",
         ],
         "default_contract": "NZS 3910:2023",
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )

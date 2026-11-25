@@ -116,6 +116,6 @@ MANIFEST = PartnerPackManifest(
             "quantity surveyor and a Turkish accountant: do not rely on it "
             "for a tender or a tax filing before that review."
         ),
-        "support_email": "info@datadrivenconstruction.io",
+        "support_email": "support@example.com",
     },
 )
