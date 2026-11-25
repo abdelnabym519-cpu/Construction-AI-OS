@@ -2246,6 +2246,125 @@ def cmd_promote_admin(args: argparse.Namespace) -> None:
     print(_green(message))
 
 
+# ── Organization bootstrap (create-organization) ────────────────────────────
+# An organization is the tenant (ADR 005): every tenant_id column names one and
+# every token's tenant_id claim carries one. The web routes that create one
+# (app.modules.admin.organizations_router) are installation-administrator-only,
+# which is right for a running install and useless for an install nobody has
+# registered on yet - the shape an operator bootstrapping a second company for a
+# customer is in, and the shape a project participant grant (ADR 006) needs
+# before there is another organization to invite. This command is the offline
+# half of the same surface: it writes the same rows through the same service and
+# refuses the same names, under the authority of the shell it was typed into,
+# which is the authority promote-admin and reset-password already exercise over
+# the same tables.
+
+
+async def _create_organization_offline(session: AsyncSession, name: str, owner_email: str | None) -> str:
+    """Create one organization, optionally adding somebody to it, and return what happened.
+
+    The name goes through the same sanitising and uniqueness rules the HTTP route
+    applies, and a refusal arrives as the same ``HTTPException`` the route would
+    have answered with, so an operator typing a name that is already taken reads
+    the sentence a user would have read.
+
+    ``--owner`` adds an existing account as an administrator *of that
+    organization*, which is a per-organization role and not an installation one:
+    it does not make them able to create another organization, and this command
+    says so rather than leaving them to find out at a 403. It never moves them
+    out of an organization they are already in. The line printed afterwards names
+    the organization their next sign-in will speak for, because that is the one
+    fact about a second membership an operator cannot see from the command they
+    typed.
+
+    Raises:
+        LookupError: ``--owner`` named an address this install has no account at.
+    """
+    from sqlalchemy import func, select
+
+    from app.modules.admin.organizations_service import add_member, create_organization
+    from app.modules.users.models import Membership, User
+
+    organization = await create_organization(session, name=name, actor_id=None, actor_role="admin")
+    lines = [f"Created organization {organization.name!r} (slug {organization.slug!r}), id {organization.id}."]
+
+    if not (owner_email or "").strip():
+        lines.append(
+            "Nobody belongs to it yet. Add somebody from the web UI as an installation administrator, "
+            "or run this command again with --owner <email>."
+        )
+        return "\n".join(lines)
+
+    email = owner_email.strip().lower()
+    user = (
+        await session.execute(select(User).where(func.lower(User.email) == email, User.deleted_at.is_(None)).limit(1))
+    ).scalar_one_or_none()
+    if user is None:
+        raise LookupError(f"No user with e-mail {owner_email!r}.")
+
+    membership = await add_member(
+        session,
+        organization_id=organization.id,
+        user_email=user.email,
+        actor_id=None,
+        actor_role="admin",
+        role="admin",
+    )
+
+    named = (
+        await session.execute(
+            select(Membership.organization_id)
+            .where(Membership.user_id == user.id, Membership.is_default.is_(True))
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    lines.append(f"{user.email} is now an administrator of it, which is a role in that organization only.")
+    if membership.is_default:
+        lines.append("It is their first organization, so it is the one their next sign-in speaks for.")
+    else:
+        lines.append(
+            f"Their next sign-in still speaks for organization {named}, because adding somebody to a company "
+            "does not move them out of the one they were in."
+        )
+    return "\n".join(lines)
+
+
+def cmd_create_organization(args: argparse.Namespace) -> None:
+    """Create an organization from the command line, and optionally add its first member."""
+    name = (getattr(args, "name", "") or "").strip()
+    if not name:
+        print(_red("Give the organization a name: openconstructionerp create-organization <name> [--owner <email>]"))
+        sys.exit(2)
+    data_dir = _data_dir_from_args(args)
+    _setup_env(data_dir, DEFAULT_HOST, DEFAULT_PORT)
+
+    import asyncio
+
+    from fastapi import HTTPException
+
+    async def _run() -> str:
+        from app.database import async_session_factory
+
+        _register_all_module_models()
+        async with async_session_factory() as session:
+            message = await _create_organization_offline(session, name, getattr(args, "owner", None))
+            await session.commit()
+            return message
+
+    try:
+        message = asyncio.run(_run())
+    except LookupError as exc:
+        print(_red(str(exc)))
+        sys.exit(1)
+    except HTTPException as exc:
+        # The service refuses a bad or duplicate name the same way it refuses one
+        # over HTTP, and an operator should read that sentence rather than a
+        # traceback ending in "422".
+        print(_red(str(exc.detail)))
+        sys.exit(1)
+    print(_green(message))
+
+
 async def _cost_control_demo_owner(session: AsyncSession, email: str | None) -> uuid.UUID:
     """The owner of the cost control demo: the account at ``email``, else the first admin.
 
@@ -3068,6 +3187,20 @@ def _build_parser() -> argparse.ArgumentParser:
     promote_p.add_argument("email", nargs="?", help="E-mail of the existing account to promote")
     _add_data_dir_arg(promote_p)
 
+    # create-organization - bootstrap a second tenant, offline
+    create_org_p = subparsers.add_parser(
+        "create-organization",
+        help="Create an organization (a tenant), optionally adding an existing account to it",
+    )
+    # Optional at parse time so ``create-organization --data-dir X`` parses like
+    # every other data-dir command; cmd_create_organization refuses a missing name.
+    create_org_p.add_argument("name", nargs="?", help="The organization's name, sanitized and unique per install")
+    create_org_p.add_argument(
+        "--owner",
+        help="E-mail of an existing account to add to it as an administrator of that organization",
+    )
+    _add_data_dir_arg(create_org_p)
+
     reset_pw_p = subparsers.add_parser(
         "reset-password",
         help="Set a user's password from the command line (recovery when nobody can sign in)",
@@ -3232,6 +3365,8 @@ def main() -> None:
         cmd_seed(args)
     elif args.command == "promote-admin":
         cmd_promote_admin(args)
+    elif args.command == "create-organization":
+        cmd_create_organization(args)
     elif args.command == "reset-password":
         cmd_reset_password(args)
     elif args.command == "demo-cleanup":

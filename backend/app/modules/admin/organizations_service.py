@@ -62,6 +62,15 @@ organization is not a project.
 The row names the actor in ``user_id`` and carries the organization, the person
 added, the role and the actor's own organization in ``details``, so "who, what,
 which organization, which user, when" is answerable from one row.
+
+``actor_id`` may be ``None``, and the row then names no actor. Only the CLI
+reaches that: ``create-organization`` can run on an install nobody has
+registered on yet, which is exactly when a second organization may need
+bootstrapping, and inventing an actor for it would put a person's id on a
+decision they did not make. The authority the CLI acts under is the shell it was
+typed into, which is the same authority ``promote-admin`` and ``reset-password``
+already exercise over the same tables, and the same reason the HTTP routes check
+a role and this entry point does not.
 """
 
 from __future__ import annotations
@@ -200,7 +209,7 @@ async def create_organization(
     session: AsyncSession,
     *,
     name: str,
-    actor_id: str | uuid.UUID,
+    actor_id: str | uuid.UUID | None = None,
     actor_role: str | None,
     actor_tenant_id: str | uuid.UUID | None = None,
     slug: str | None = None,
@@ -244,7 +253,7 @@ async def create_organization(
         action=ACTION_CREATED,
         entity_type=ORGANIZATION_ENTITY_TYPE,
         entity_id=str(organization.id),
-        user_id=str(actor_id),
+        user_id=str(actor_id) if actor_id else None,
         details={
             "name": organization.name,
             "slug": organization.slug,
@@ -301,7 +310,7 @@ async def add_member(
     *,
     organization_id: uuid.UUID | str,
     user_email: str,
-    actor_id: str | uuid.UUID,
+    actor_id: str | uuid.UUID | None = None,
     actor_role: str | None,
     actor_tenant_id: str | uuid.UUID | None = None,
     role: str | None = None,
@@ -401,7 +410,7 @@ async def add_member(
         action=ACTION_MEMBER_ADDED,
         entity_type=MEMBERSHIP_ENTITY_TYPE,
         entity_id=str(membership.id),
-        user_id=str(actor_id),
+        user_id=str(actor_id) if actor_id else None,
         details={
             "organization_id": str(organization.id),
             "organization_slug": organization.slug,
